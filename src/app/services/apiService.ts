@@ -1,11 +1,43 @@
 // src/services/apiService.ts
+
 import {
+  // Properties
+  GetAllPropertiesPayload,
+  GetAllPropertiesResponse,
+  GetActivePropertiesPayload,
+  GetActivePropertiesResponse,
+
+  // Zones List & Management
+  GetZonesListPayload,
+  GetZonesListResponse,
+  CreateZonePayload,
+  CreateZoneResponse,
+  UpdateZonePayload,
+  UpdateZoneResponse,
+
+  // Person Management
+  CreatePersonPayload,
+  CreatePersonResponse,
+  UpdatePersonPayload,
+  UpdatePersonResponse,
+  DeletePersonAccountPayload,
+  DeletePersonAccountResponse,
+
+  // OTP
+  SendOtpPayload,
+  SendOtpResponse,
+  VerifyOtpPayload,
+  VerifyOtpResponse,
+
+  // Communication Groups
+  CreateCommunicationGroupPayload,
+  CreateCommunicationGroupResponse,
+  UpdateCommunicationGroupPayload,
+  UpdateCommunicationGroupResponse,
   GetZonesByPersonPayload,
   GetZonesByPersonResponse,
-} from "../types/zones";
+} from "../types/apiEndpoints";
 import EncryptionService from "./encryptionService";
-
-// TypeScript interfaces for API responses
 
 class MyMMOAPI {
   /**
@@ -41,12 +73,15 @@ class MyMMOAPI {
    * Get zones list (geographical)
    * Endpoint: /service/mymmo-service/getZonesList
    */
-  static async getZonesList(payload: any): Promise<any> {
+  static async getZonesList(
+    payload: GetZonesListPayload
+  ): Promise<GetZonesListResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/getZonesList",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<GetZonesListResponse>(
+          "/service/mymmo-service/getZonesList",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -59,12 +94,15 @@ class MyMMOAPI {
    * Create zone
    * Endpoint: /service/mymmo-service/createZone
    */
-  static async createZone(payload: any): Promise<any> {
+  static async createZone(
+    payload: CreateZonePayload
+  ): Promise<CreateZoneResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/createZone",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<CreateZoneResponse>(
+          "/service/mymmo-service/createZone",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -77,12 +115,15 @@ class MyMMOAPI {
    * Update zone
    * Endpoint: /service/mymmo-service/updateZone
    */
-  static async updateZone(payload: any): Promise<any> {
+  static async updateZone(
+    payload: UpdateZonePayload
+  ): Promise<UpdateZoneResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/updateZone",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<UpdateZoneResponse>(
+          "/service/mymmo-service/updateZone",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -95,12 +136,15 @@ class MyMMOAPI {
    * Get all properties
    * Endpoint: /service/mymmo-service/getAllProperties
    */
-  static async getAllProperties(payload: any): Promise<any> {
+  static async getAllProperties(
+    payload: GetAllPropertiesPayload
+  ): Promise<GetAllPropertiesResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/getAllProperties",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<GetAllPropertiesResponse>(
+          "/service/mymmo-service/getAllProperties",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -113,12 +157,15 @@ class MyMMOAPI {
    * Get active properties
    * Endpoint: /service/mymmo-service/getActiveProperties
    */
-  static async getActiveProperties(payload: any): Promise<any> {
+  static async getActiveProperties(
+    payload: GetActivePropertiesPayload
+  ): Promise<GetActivePropertiesResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/getActiveProperties",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<GetActivePropertiesResponse>(
+          "/service/mymmo-service/getActiveProperties",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -131,12 +178,15 @@ class MyMMOAPI {
    * Update person
    * Endpoint: /service/mymmo-service/updatePerson
    */
-  static async updatePerson(payload: any): Promise<any> {
+  static async updatePerson(
+    payload: UpdatePersonPayload
+  ): Promise<UpdatePersonResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/updatePerson",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<UpdatePersonResponse>(
+          "/service/mymmo-service/updatePerson",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -149,12 +199,15 @@ class MyMMOAPI {
    * Delete person account
    * Endpoint: /service/mymmo-service/deletePersonAccount
    */
-  static async deletePersonAccount(payload: any): Promise<any> {
+  static async deletePersonAccount(
+    payload: DeletePersonAccountPayload
+  ): Promise<DeletePersonAccountResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/deletePersonAccount",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<DeletePersonAccountResponse>(
+          "/service/mymmo-service/deletePersonAccount",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -167,12 +220,15 @@ class MyMMOAPI {
    * Create communication group
    * Endpoint: /service/mymmo-service/createCommunicationGroup
    */
-  static async createCommunicationGroup(payload: any): Promise<any> {
+  static async createCommunicationGroup(
+    payload: CreateCommunicationGroupPayload
+  ): Promise<CreateCommunicationGroupResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/createCommunicationGroup",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<CreateCommunicationGroupResponse>(
+          "/service/mymmo-service/createCommunicationGroup",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -185,12 +241,15 @@ class MyMMOAPI {
    * Update communication group
    * Endpoint: /service/mymmo-service/updateCommunicationGroup
    */
-  static async updateCommunicationGroup(payload: any): Promise<any> {
+  static async updateCommunicationGroup(
+    payload: UpdateCommunicationGroupPayload
+  ): Promise<UpdateCommunicationGroupResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/updateCommunicationGroup",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<UpdateCommunicationGroupResponse>(
+          "/service/mymmo-service/updateCommunicationGroup",
+          payload
+        );
 
       return response;
     } catch (error) {
@@ -203,9 +262,9 @@ class MyMMOAPI {
    * Send OTP
    * Endpoint: /service/mymmo-service/sendOtp
    */
-  static async sendOtp(payload: any): Promise<any> {
+  static async sendOtp(payload: SendOtpPayload): Promise<SendOtpResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
+      const response = await EncryptionService.secureApiCall<SendOtpResponse>(
         "/service/mymmo-service/sendOtp",
         payload
       );
@@ -221,9 +280,11 @@ class MyMMOAPI {
    * Verify OTP
    * Endpoint: /service/mymmo-service/verifyOtp
    */
-  static async verifyOtp(payload: any): Promise<any> {
+  static async verifyOtp(
+    payload: VerifyOtpPayload
+  ): Promise<VerifyOtpResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
+      const response = await EncryptionService.secureApiCall<VerifyOtpResponse>(
         "/service/mymmo-service/verifyOtp",
         payload
       );
@@ -239,12 +300,15 @@ class MyMMOAPI {
    * Create person
    * Endpoint: /service/mymmo-service/createPerson
    */
-  static async createPerson(payload: any): Promise<any> {
+  static async createPerson(
+    payload: CreatePersonPayload
+  ): Promise<CreatePersonResponse> {
     try {
-      const response = await EncryptionService.secureApiCall(
-        "/service/mymmo-service/createPerson",
-        payload
-      );
+      const response =
+        await EncryptionService.secureApiCall<CreatePersonResponse>(
+          "/service/mymmo-service/createPerson",
+          payload
+        );
 
       return response;
     } catch (error) {

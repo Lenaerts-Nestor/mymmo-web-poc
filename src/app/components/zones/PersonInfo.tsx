@@ -1,11 +1,4 @@
-import { PersonEndpoint } from "@/app/types/person";
-
-interface PersonInfoProps {
-  person: PersonEndpoint | null;
-  personId: string;
-  appLang: string;
-  translationLang: string;
-}
+import { PersonEndpoint, PersonInfoProps } from "@/app/types/person";
 
 export function PersonInfo({
   person,

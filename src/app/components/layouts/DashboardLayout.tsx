@@ -1,10 +1,5 @@
 import Sidebar from "@/app/components/Sidebar";
-
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  personId: string;
-  personName?: string;
-}
+import { DashboardLayoutProps } from "@/app/types/dashboard";
 
 export function DashboardLayout({
   children,

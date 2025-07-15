@@ -4,3 +4,10 @@ export interface PersonEndpoint {
   lastName: string;
   profilePictures: any[];
 }
+
+export interface PersonInfoProps {
+  person: PersonEndpoint | null;
+  personId: string;
+  appLang: string;
+  translationLang: string;
+}

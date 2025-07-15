@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Zone, GetZonesByPersonResponse } from "@/app/types/zones";
 import { PersonEndpoint } from "@/app/types/person";
 import MyMMOAPI from "@/app/services/apiService";
+import { GetZonesByPersonResponse, Zone } from "../types/apiEndpoints";
 
 export function useZones(personId: string, translationLang: string) {
   const [isLoading, setIsLoading] = useState(true);

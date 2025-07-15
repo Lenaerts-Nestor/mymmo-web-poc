@@ -1,8 +1,4 @@
-import { Zone } from "@/app/types/zones";
-
-interface ZoneCardProps {
-  zone: Zone;
-}
+import { ZoneCardProps } from "@/app/types/zones";
 
 export function ZoneCard({ zone }: ZoneCardProps) {
   return (

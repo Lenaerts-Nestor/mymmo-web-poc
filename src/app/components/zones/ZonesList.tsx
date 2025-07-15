@@ -1,10 +1,5 @@
-import { Zone } from "@/app/types/zones";
+import { ZonesListProps } from "@/app/types/zones";
 import { ZoneCard } from "./ZoneCard";
-
-interface ZonesListProps {
-  zones: Zone[];
-  isLoading: boolean;
-}
 
 function ZonesListSkeleton() {
   return (
