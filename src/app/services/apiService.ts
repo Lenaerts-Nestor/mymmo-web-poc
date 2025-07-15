@@ -1,5 +1,6 @@
 // src/services/apiService.ts
 
+import EncryptionService from "../api/encryption/encryptionService";
 import {
   // Properties
   GetAllPropertiesPayload,
@@ -37,7 +38,6 @@ import {
   GetZonesByPersonPayload,
   GetZonesByPersonResponse,
 } from "../types/apiEndpoints";
-import EncryptionService from "./encryptionService";
 
 class MyMMOAPI {
   /**
