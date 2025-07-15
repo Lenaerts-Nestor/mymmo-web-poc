@@ -7,9 +7,12 @@ export function DashboardLayout({
   personName,
 }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+    <div
+      className="min-h-screen"
+      style={{ background: "var(--primary-cream)" }}
+    >
       <Sidebar personId={personId} personName={personName} />
-      <main className="ml-64 p-6">
+      <main className="ml-64 p-8">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
     </div>

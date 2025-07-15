@@ -1,36 +1,63 @@
 import { ZoneCardProps } from "@/app/types/zones";
 
-export function ZoneCard({ zone }: ZoneCardProps) {
-  return (
-    <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-      <h3 className="font-semibold text-gray-800 mb-2 text-lg">{zone.name}</h3>
-      <p className="text-sm text-gray-600 mb-3">{zone.formattedAddress}</p>
+// Array of background colors for zone cards
+const zoneCardBackgrounds = [
+  "bg-purple-100", // Soft lavender variation
+  "bg-green-100", // Mint green variation
+  "bg-pink-100", // Coral pink variation
+  "bg-yellow-50", // Golden yellow variation
+  "bg-blue-50", // Light blue variation
+  "bg-orange-50", // Light orange variation
+];
 
-      <div className="text-xs text-gray-500 mb-4">
-        <p>
-          Zone ID: {zone.zoneId} | Plot ID: {zone.plotId}
+export function ZoneCard({ zone }: ZoneCardProps) {
+  // Use zone ID to consistently assign colors
+  const backgroundClass =
+    zoneCardBackgrounds[zone.zoneId % zoneCardBackgrounds.length];
+
+  return (
+    <div
+      className={`${backgroundClass} rounded-2xl p-6 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 border-0`}
+    >
+      {/* Zone Title - Prominent and Clear */}
+      <h3 className="font-bold text-xl text-stone-800 mb-3 leading-tight">
+        {zone.name}
+      </h3>
+
+      {/* Address - Secondary but readable */}
+      <p className="text-base text-stone-600 mb-4 font-medium">
+        {zone.formattedAddress}
+      </p>
+
+      {/* Zone Details Section */}
+      <div className="bg-white/60 rounded-xl p-3 mb-4 text-sm text-stone-500">
+        <p className="font-medium">
+          Zone ID: <span className="text-amber-600">{zone.zoneId}</span> | Plot
+          ID: <span className="text-amber-600">{zone.plotId}</span>
         </p>
-        <p>
+        <p className="mt-1">
           {zone.street}, {zone.postalCode} {zone.city}
         </p>
       </div>
 
-      <div className="flex justify-between items-center text-xs mb-3">
-        <span className="text-blue-600 font-medium">
+      {/* Status and Entity Count */}
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-amber-600 font-bold text-sm bg-amber-50 px-3 py-1 rounded-full">
           {zone.entityCount} entities
         </span>
         <span
-          className={`px-3 py-1 rounded-full font-medium ${
+          className={`px-3 py-1 rounded-full font-bold text-sm ${
             zone.isPublic
-              ? "bg-green-100 text-green-800"
-              : "bg-orange-100 text-orange-800"
+              ? "bg-emerald-500 text-white"
+              : "bg-orange-400 text-white"
           }`}
         >
           {zone.isPublic ? "Public" : "Private"}
         </span>
       </div>
 
-      <div className="text-xs text-gray-400">
+      {/* Person Count - Subtle footer */}
+      <div className="text-sm text-stone-400 font-medium">
         {zone.personIds.length} person(s) linked
       </div>
     </div>

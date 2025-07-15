@@ -48,18 +48,26 @@ export default function Sidebar({ personId, personName }: SidebarProps) {
   };
 
   return (
-    <div className="bg-white shadow-lg h-screen w-64 fixed left-0 top-0 flex flex-col">
+    <div
+      className="h-screen w-72 fixed left-0 top-0 flex flex-col border-r-2 border-purple-200/50 backdrop-blur-sm shadow-xl"
+      style={{ backgroundColor: "#FFFFFF" }}
+    >
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b-2 border-purple-200/30">
         <div className="flex items-center space-x-3">
-          <div className="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center">
-            <User className="text-white" size={20} />
+          <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full w-12 h-12 flex items-center justify-center shadow-md">
+            <User className="text-stone-800" size={22} />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-800">
+            <h2 className="font-bold text-lg" style={{ color: "#542e39" }}>
               {personName || `Persoon ${personId}`}
             </h2>
-            <p className="text-sm text-gray-500">ID: {personId}</p>
+            <p
+              className="text-sm font-medium"
+              style={{ color: "#542e39", opacity: 0.8 }}
+            >
+              ID: {personId}
+            </p>
           </div>
         </div>
       </div>
@@ -72,26 +80,48 @@ export default function Sidebar({ personId, personName }: SidebarProps) {
               <button
                 onClick={() => handleNavigation(item)}
                 disabled={item.isDisabled}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${
                   item.isActive
-                    ? "bg-blue-600 text-white"
+                    ? "shadow-lg transform scale-[1.02]"
                     : item.isDisabled
-                    ? "text-gray-400 cursor-not-allowed hover:bg-gray-50"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "cursor-not-allowed"
+                    : "hover:shadow-md hover:scale-[1.01]"
                 }`}
+                style={{
+                  backgroundColor: item.isActive ? "#E4DECE" : "transparent",
+                  color: item.isActive
+                    ? "#542e39"
+                    : item.isDisabled
+                    ? "#542e39"
+                    : "#542e39",
+                  opacity: item.isDisabled ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!item.isActive && !item.isDisabled) {
+                    e.currentTarget.style.backgroundColor = "#E4DECE";
+                    e.currentTarget.style.color = "#542e39";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!item.isActive && !item.isDisabled) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#E4DECE";
+                  }
+                }}
               >
-                <span className={item.isDisabled ? "opacity-50" : ""}>
-                  {item.icon}
-                </span>
-                <span
-                  className={`font-medium ${
-                    item.isDisabled ? "opacity-50" : ""
-                  }`}
-                >
-                  {item.label}
-                </span>
+                <div className="flex items-center space-x-3 min-w-0 flex-1">
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span className="font-semibold truncate">{item.label}</span>
+                </div>
                 {item.isDisabled && (
-                  <span className="ml-auto text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
+                  <span
+                    className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2"
+                    style={{
+                      backgroundColor: "#E4DECE",
+                      color: "#542e39",
+                      border: "1px solid #542e39",
+                    }}
+                  >
                     Binnenkort
                   </span>
                 )}
@@ -102,13 +132,25 @@ export default function Sidebar({ personId, personName }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t-2 border-purple-200/30">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 font-semibold hover:shadow-md hover:scale-[1.01]"
+          style={{
+            color: "#542e39",
+            backgroundColor: "#E4DECE",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#542e39";
+            e.currentTarget.style.color = "#E4DECE";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#E4DECE";
+            e.currentTarget.style.color = "#542e39";
+          }}
         >
           <LogOut size={20} />
-          <span className="font-medium">Uitloggen</span>
+          <span className="font-semibold">Uitloggen</span>
         </button>
       </div>
     </div>

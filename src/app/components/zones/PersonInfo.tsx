@@ -1,4 +1,4 @@
-import { PersonEndpoint, PersonInfoProps } from "@/app/types/person";
+import { PersonInfoProps } from "@/app/types/person";
 
 export function PersonInfo({
   person,
@@ -7,23 +7,26 @@ export function PersonInfo({
   translationLang,
 }: PersonInfoProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">
+    <div className="bg-white/70 rounded-2xl shadow-lg p-8 mb-8 backdrop-blur-sm">
+      <h1 className="text-4xl font-bold text-stone-800 mb-4">
         Zones voor{" "}
         {person
           ? `${person.firstName} ${person.lastName}`
           : `Persoon ${personId}`}
       </h1>
 
-      <div className="text-sm text-gray-600 mb-4">
-        App Taal: {appLang} | Vertalingstaal: {translationLang}
+      <div className="text-base text-stone-600 mb-6 font-medium">
+        App Taal: <span className="text-amber-600">{appLang}</span> |
+        Vertalingstaal:{" "}
+        <span className="text-amber-600">{translationLang}</span>
       </div>
 
       {person && (
-        <div className="bg-blue-50 rounded-lg p-4 mb-4">
-          <h3 className="font-semibold text-blue-800">Persoon Informatie:</h3>
-          <p className="text-blue-700">
-            {person.firstName} {person.lastName} (ID: {person.personId})
+        <div className="bg-amber-50 rounded-xl p-4 mb-4 border-l-4 border-amber-400">
+          <h3 className="font-bold text-stone-800 mb-2">Persoon Informatie:</h3>
+          <p className="text-stone-700 font-medium">
+            {person.firstName} {person.lastName} (ID:{" "}
+            <span className="text-amber-600">{person.personId}</span>)
           </p>
         </div>
       )}
