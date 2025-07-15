@@ -1,17 +1,8 @@
-// src/app/services/encryptionService.ts - Updated (Secure Version)
-
-interface OAuthTokenResponse {
-  token: string;
-  expiresAt: string;
-}
-
-interface EncryptResponse {
-  encrypted: string;
-}
-
-interface DecryptResponse {
-  decrypted: any;
-}
+import {
+  DecryptResponse,
+  EncryptResponse,
+  OAuthTokenResponse,
+} from "@/app/types/ouath/encryption";
 
 class EncryptionService {
   private static tokenCache: {

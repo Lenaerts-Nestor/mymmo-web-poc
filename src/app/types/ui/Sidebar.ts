@@ -1,6 +1,8 @@
 export interface SidebarProps {
   personId: string;
   personName?: string;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 export interface NavItem {

@@ -1,4 +1,3 @@
-// src/app/api/auth/oauth/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 interface OAuthResponse {
@@ -20,7 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create form data for OAuth request
     const formData = new FormData();
     formData.append("client_secret", clientSecret);
 
