@@ -6,6 +6,7 @@ import { ZonesList } from "@/app/components/zones/ZonesList";
 import { PersonInfo } from "@/app/components/zones/PersonInfo";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
+import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { useZones } from "@/app/hooks/useZones";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
 
@@ -18,8 +19,28 @@ export default function ZonesPage() {
     searchParams.get("translationLang") ||
     APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
+  return (
+    <ProtectedRoute requiredPersonId={personId as string}>
+      <ZonesContent
+        personId={personId as string}
+        appLang={appLang}
+        translationLang={translationLang}
+      />
+    </ProtectedRoute>
+  );
+}
+
+function ZonesContent({
+  personId,
+  appLang,
+  translationLang,
+}: {
+  personId: string;
+  appLang: string;
+  translationLang: string;
+}) {
   const { zones, person, isLoading, error, refetch } = useZones(
-    personId as string,
+    personId,
     translationLang
   );
 

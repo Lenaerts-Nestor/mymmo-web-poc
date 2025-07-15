@@ -1,24 +1,26 @@
-// src/components/LoginForm.tsx
+// src/app/components/LoginForm.tsx
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import LanguageSelector from "./ui/LanguageSelector";
 import PersonSelector from "./ui/PersonSelector";
 import { appLanguages, deepLLanguages } from "../constants/languages";
+import SessionService from "../services/sessionService";
 
 //tijdelijk hier , //! verwijderen dit later
 const mockPersons = [
   { id: "925", name: "Persoon 925" },
-  { id: "2", name: "Persoon 2" },
+  { id: "778", name: "Persoon 778" },
 ];
 
 export default function LoginForm() {
   const [selectedPerson, setSelectedPerson] = useState("");
   const [appLanguage, setAppLanguage] = useState("nl");
   const [translationLanguage, setTranslationLanguage] = useState("nl");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handlePersonLogin = (e: React.FormEvent) => {
+  const handlePersonLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation: Check if person is selected
@@ -27,13 +29,29 @@ export default function LoginForm() {
       return;
     }
 
-    // Navigate to zones page with person ID and language parameters
-    const params = new URLSearchParams({
-      appLang: appLanguage,
-      translationLang: translationLanguage,
-    });
+    setIsLoading(true);
 
-    router.push(`/zones/${selectedPerson}?${params.toString()}`);
+    try {
+      // Create session for selected person
+      const sessionData = await SessionService.createSession(
+        selectedPerson,
+        appLanguage,
+        translationLanguage
+      );
+
+      // Navigate to zones page with person ID and language parameters
+      const params = new URLSearchParams({
+        appLang: sessionData.appLang,
+        translationLang: sessionData.translationLang,
+      });
+
+      router.push(`/zones/${selectedPerson}?${params.toString()}`);
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("Inloggen mislukt. Probeer het opnieuw.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -73,9 +91,14 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition-colors"
+          disabled={isLoading}
+          className={`w-full font-semibold py-2 rounded transition-colors ${
+            isLoading
+              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
         >
-          Inloggen als geselecteerde persoon
+          {isLoading ? "Inloggen..." : "Inloggen als geselecteerde persoon"}
         </button>
       </form>
     </div>
