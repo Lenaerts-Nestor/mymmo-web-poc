@@ -3,5 +3,4 @@ import { ReactNode } from "react";
 export interface DashboardLayoutProps {
   children: ReactNode;
   personId: string;
-  personName: string;
 }

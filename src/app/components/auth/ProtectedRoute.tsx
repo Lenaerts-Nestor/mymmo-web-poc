@@ -1,4 +1,5 @@
 // src/app/components/auth/ProtectedRoute.tsx
+"use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
@@ -76,6 +77,7 @@ export function ProtectedRoute({
     validateAccess();
   }, [requiredPersonId, router, fallbackUrl, user, userLoading]);
 
+  // Show minimal loading for fast validation
   if (userLoading || isValidating) {
     return (
       <div className="flex items-center justify-center min-h-screen">

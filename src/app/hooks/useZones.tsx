@@ -20,17 +20,21 @@ export function useZones(
     queryKey: ["zones", personId, translationLang],
     queryFn: async (): Promise<GetZonesByPersonResponse> => {
       const personIdNum = parseInt(personId);
+
+      // Use the cached API call with longer TTL for zones data
       return await MyMMOApiZone.getZonesByPerson(
         personIdNum,
         personIdNum,
         translationLang
       );
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    staleTime: 5 * 60 * 1000, // 5 minutes - React Query stale time
+    gcTime: 10 * 60 * 1000, // 10 minutes - React Query garbage collection time
     refetchOnWindowFocus: false,
     retry: 2,
     enabled: !!personId,
+    // Add refetch interval for data that might change
+    refetchInterval: 10 * 60 * 1000, // 10 minutes
   });
 
   // Transform data or provide defaults

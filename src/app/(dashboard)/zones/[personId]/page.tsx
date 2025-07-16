@@ -8,6 +8,7 @@ import { ZoneIntroCard } from "@/app/components/zones/ZoneIntroCard";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
+import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { useZones } from "@/app/hooks/useZones";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
@@ -27,11 +28,13 @@ export default function ZonesPage() {
 
   return (
     <ProtectedRoute requiredPersonId={personId as string}>
-      <ZonesContent
-        personId={personId as string}
-        appLang={appLang}
-        translationLang={translationLang}
-      />
+      <DashboardLayout personId={personId as string}>
+        <ZonesContent
+          personId={personId as string}
+          appLang={appLang}
+          translationLang={translationLang}
+        />
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }
@@ -74,7 +77,7 @@ function ZonesContent({
   }
 
   return (
-    <div className="max-w-9/10 mx-auto">
+    <div className="w-full mx-auto">
       <ZoneIntroCard
         person={person}
         personId={personId}

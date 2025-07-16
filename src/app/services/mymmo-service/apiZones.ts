@@ -15,6 +15,7 @@ import {
 class MyMMOApiZone {
   /**
    * Get zones by person ID
+   * Uses longer cache time since zones don't change frequently
    */
   static async getZonesByPerson(
     personId: number,
@@ -31,7 +32,9 @@ class MyMMOApiZone {
       const response =
         await EncryptionService.secureApiCall<GetZonesByPersonResponse>(
           "/service/mymmo-service/getZonesByPerson",
-          payload
+          payload,
+          8 * 60 * 1000, // 8 minutes cache - zones don't change frequently
+          true // Enable caching
         );
       return response;
     } catch (error) {
@@ -42,6 +45,7 @@ class MyMMOApiZone {
 
   /**
    * Get zones list (geographical)
+   * Cache for shorter time since location-based data might change
    */
   static async getZonesList(
     payload: GetZonesListPayload
@@ -50,7 +54,9 @@ class MyMMOApiZone {
       const response =
         await EncryptionService.secureApiCall<GetZonesListResponse>(
           "/service/mymmo-service/getZonesList",
-          payload
+          payload,
+          5 * 60 * 1000, // 5 minutes cache
+          true // Enable caching
         );
       return response;
     } catch (error) {
@@ -61,6 +67,7 @@ class MyMMOApiZone {
 
   /**
    * Get zones by filter
+   * Cache for moderate time
    */
   static async getZonesByFilter(
     payload: GetZonesByFilterPayload
@@ -69,7 +76,9 @@ class MyMMOApiZone {
       const response =
         await EncryptionService.secureApiCall<GetZonesByFilterResponse>(
           "/service/mymmo-service/getZonesByFilter",
-          payload
+          payload,
+          5 * 60 * 1000, // 5 minutes cache
+          true // Enable caching
         );
       return response;
     } catch (error) {
@@ -80,6 +89,7 @@ class MyMMOApiZone {
 
   /**
    * Create zone
+   * No caching for write operations
    */
   static async createZone(
     payload: CreateZonePayload
@@ -88,8 +98,14 @@ class MyMMOApiZone {
       const response =
         await EncryptionService.secureApiCall<CreateZoneResponse>(
           "/service/mymmo-service/createZone",
-          payload
+          payload,
+          0, // No cache for write operations
+          false // Disable caching
         );
+
+      // Clear relevant caches after creating a zone
+      EncryptionService.clearResponseCache();
+
       return response;
     } catch (error) {
       console.error("createZone failed:", error);
@@ -99,6 +115,7 @@ class MyMMOApiZone {
 
   /**
    * Update zone
+   * No caching for write operations
    */
   static async updateZone(
     payload: UpdateZonePayload
@@ -107,8 +124,14 @@ class MyMMOApiZone {
       const response =
         await EncryptionService.secureApiCall<UpdateZoneResponse>(
           "/service/mymmo-service/updateZone",
-          payload
+          payload,
+          0, // No cache for write operations
+          false // Disable caching
         );
+
+      // Clear relevant caches after updating a zone
+      EncryptionService.clearResponseCache();
+
       return response;
     } catch (error) {
       console.error("updateZone failed:", error);

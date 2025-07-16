@@ -10,8 +10,59 @@ class EncryptionService {
     expiresAt: number;
   } | null = null;
 
+  // API Response Cache for better performance
+  private static responseCache = new Map<
+    string,
+    {
+      data: any;
+      timestamp: number;
+      ttl: number;
+    }
+  >();
+
   /**
-   * Get OAuth token with 1-hour caching (via server-side API)
+   * Clear response cache (useful for testing or forced refresh)
+   */
+  static clearResponseCache(): void {
+    this.responseCache.clear();
+  }
+
+  /**
+   * Get cached response if available and valid
+   */
+  private static getCachedResponse<T>(cacheKey: string): T | null {
+    const cached = this.responseCache.get(cacheKey);
+
+    if (cached && Date.now() < cached.timestamp + cached.ttl) {
+      console.log("EncryptionService: Using cached response for", cacheKey);
+      return cached.data;
+    }
+
+    if (cached) {
+      // Remove expired cache entry
+      this.responseCache.delete(cacheKey);
+    }
+
+    return null;
+  }
+
+  /**
+   * Cache response data
+   */
+  private static setCachedResponse(
+    cacheKey: string,
+    data: any,
+    ttl: number
+  ): void {
+    this.responseCache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }
+
+  /**
+   * Get OAuth token with 45-minute caching (via server-side API)
    */
   static async getOAuthToken(): Promise<string> {
     const now = Date.now();
@@ -36,10 +87,10 @@ class EncryptionService {
 
       const data: OAuthTokenResponse = await response.json();
 
-      // Cache the token with 1-hour expiration
+      // Cache the token with 45-minute expiration (aligned with session)
       this.tokenCache = {
         token: data.token,
-        expiresAt: now + 60 * 60 * 1000, // 1 hour from now
+        expiresAt: now + 45 * 60 * 1000, // 45 minutes from now
       };
 
       return data.token;
@@ -112,9 +163,12 @@ class EncryptionService {
   }
 
   /**
-   * Complete secure API call flow: encrypt → call → decrypt
+   * Perform the actual secure API call (without caching)
    */
-  static async secureApiCall<T>(endpoint: string, payload: any): Promise<T> {
+  private static async performSecureApiCall<T>(
+    endpoint: string,
+    payload: any
+  ): Promise<T> {
     try {
       // Step 1: Encrypt the payload
       const encryptedPayload = await this.encryptData(payload);
@@ -144,6 +198,46 @@ class EncryptionService {
       const decryptedData = await this.decryptData<T>(cleanEncryptedResponse);
 
       return decryptedData;
+    } catch (error) {
+      console.error("Secure API call failed:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Complete secure API call flow with caching: encrypt → call → decrypt
+   * @param endpoint - API endpoint to call
+   * @param payload - Data to encrypt and send
+   * @param cacheTTL - Cache time-to-live in milliseconds (default: 5 minutes)
+   * @param useCache - Whether to use caching (default: true)
+   */
+  static async secureApiCall<T>(
+    endpoint: string,
+    payload: any,
+    cacheTTL: number = 5 * 60 * 1000, // 5 minutes default
+    useCache: boolean = true
+  ): Promise<T> {
+    // Create cache key based on endpoint and payload
+    const cacheKey = `${endpoint}:${JSON.stringify(payload)}`;
+
+    // Check cache first if enabled
+    if (useCache) {
+      const cachedResult = this.getCachedResponse<T>(cacheKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+    }
+
+    try {
+      // Perform the actual API call
+      const result = await this.performSecureApiCall<T>(endpoint, payload);
+
+      // Cache the result if enabled
+      if (useCache) {
+        this.setCachedResponse(cacheKey, result, cacheTTL);
+      }
+
+      return result;
     } catch (error) {
       console.error("Secure API call failed:", error);
       // TODO: Replace with proper UI notification in next step

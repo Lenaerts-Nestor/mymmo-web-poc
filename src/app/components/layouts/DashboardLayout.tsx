@@ -1,10 +1,21 @@
+// src/app/components/layouts/DashboardLayout.tsx
 "use client";
-import { DashboardLayoutProps } from "@/app/types/dashboard";
+import Sidebar from "@/app/components/Sidebar";
 
-export function DashboardLayout({
-  children,
-  personId,
-  personName,
-}: DashboardLayoutProps) {
-  return <div className="max-w-7xl mx-auto">{children}</div>;
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  personId: string;
+}
+
+export function DashboardLayout({ children, personId }: DashboardLayoutProps) {
+  return (
+    <div
+      className="min-h-screen"
+      style={{ background: "var(--primary-cream)" }}
+    >
+      <Sidebar />
+
+      <div className="max-w-7xl mx-auto">{children}</div>
+    </div>
+  );
 }

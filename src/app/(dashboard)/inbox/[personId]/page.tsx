@@ -1,3 +1,4 @@
+// src/app/(dashboard)/inbox/[personId]/page.tsx
 "use client";
 
 import { useParams } from "next/navigation";
@@ -41,7 +42,7 @@ export default function InboxPage() {
 
   return (
     <ProtectedRoute requiredPersonId={personId as string}>
-      <DashboardLayout personId={personId as string} personName="">
+      <DashboardLayout personId={personId as string}>
         <div className="max-w-7xl mx-auto px-4">
           <InboxHeader />
 

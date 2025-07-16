@@ -1,11 +1,10 @@
 // src/app/services/sessionService.ts
 import { SessionData } from "../types/ouath/session";
-import MyMMOApiZone from "./mymmo-service/apiZones";
 
 class SessionService {
   /**
    * Create a new session after person selection
-   * This will now fetch personName from the API and store it in the session
+   * Simple and fast - no API calls needed
    */
   static async createSession(
     personId: string,
@@ -15,39 +14,6 @@ class SessionService {
     try {
       console.log("SessionService: Creating session for person", personId);
 
-      // First, fetch person data to get the personName
-      let personName = `Person ${personId}`;
-
-      try {
-        const personIdNum = parseInt(personId);
-        console.log("SessionService: Fetching person data for", personIdNum);
-
-        const zonesResponse = await MyMMOApiZone.getZonesByPerson(
-          personIdNum,
-          personIdNum,
-          translationLang
-        );
-
-        if (zonesResponse.data.person?.[0]) {
-          const person = zonesResponse.data.person[0];
-          personName = `${person.firstName} ${person.lastName}`;
-          console.log("SessionService: Person name retrieved:", personName);
-        }
-      } catch (error) {
-        console.warn(
-          "SessionService: Failed to fetch person name, using fallback:",
-          error
-        );
-        // Continue with fallback personName
-      }
-
-      console.log("SessionService: Creating session with data:", {
-        personId,
-        personName,
-        appLang,
-        translationLang,
-      });
-
       const response = await fetch("/api/auth/session", {
         method: "POST",
         headers: {
@@ -55,7 +21,6 @@ class SessionService {
         },
         body: JSON.stringify({
           personId,
-          personName,
           appLang,
           translationLang,
         }),
@@ -74,6 +39,7 @@ class SessionService {
       throw error;
     }
   }
+
   /**
    * Get current session data
    */

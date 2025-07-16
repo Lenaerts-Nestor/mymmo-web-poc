@@ -2,11 +2,13 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import LanguageSelector from "./ui/LanguageSelector";
 import PersonSelector from "./ui/PersonSelector";
 import { appLanguages, deepLLanguages } from "../constants/languages";
 import SessionService from "../services/sessionService";
 import { useUser } from "../contexts/UserContext";
+import MyMMOApiZone from "../services/mymmo-service/apiZones";
 
 //tijdelijk hier , //! verwijderen dit later
 const mockPersons = [
@@ -21,6 +23,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { refreshUser } = useUser();
+  const queryClient = useQueryClient();
 
   const handlePersonLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,18 +40,37 @@ export default function LoginForm() {
     );
 
     try {
+      // Clear any existing session
       await SessionService.clearSession();
 
+      // Create session immediately - no API calls needed
       const sessionData = await SessionService.createSession(
         selectedPerson,
         appLanguage,
         translationLanguage
       );
 
+      // Update user context
       await refreshUser();
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Prefetch zones data while user is "logging in"
+      console.log("LoginForm: Prefetching zones data...");
+      const personIdNum = parseInt(selectedPerson);
 
+      // Prefetch zones data and store in React Query cache
+      queryClient.prefetchQuery({
+        queryKey: ["zones", selectedPerson, translationLanguage],
+        queryFn: () =>
+          MyMMOApiZone.getZonesByPerson(
+            personIdNum,
+            personIdNum,
+            translationLanguage
+          ),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes
+      });
+
+      // Navigate to zones page
       const targetUrl = `/zones/${selectedPerson}`;
       const params = new URLSearchParams({
         appLang: sessionData.appLang,
@@ -56,13 +78,15 @@ export default function LoginForm() {
       });
 
       const fullUrl = `${targetUrl}?${params.toString()}`;
-      router.refresh();
+
+      console.log("LoginForm: Navigating to:", fullUrl);
       router.push(fullUrl);
     } catch (error) {
+      console.error("Login failed:", error);
       alert("Inloggen mislukt. Probeer het opnieuw.");
-    } finally {
       setIsLoading(false);
     }
+    // Note: Don't set isLoading to false on success - we're navigating away
   };
 
   return (
