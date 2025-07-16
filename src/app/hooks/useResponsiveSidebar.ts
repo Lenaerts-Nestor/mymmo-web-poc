@@ -9,7 +9,6 @@ export function useResponsiveSidebar() {
       const mobile = window.innerWidth < 1024; // lg breakpoint
       setIsMobile(mobile);
 
-      // Auto-collapse on mobile
       if (mobile && !isCollapsed) {
         setIsCollapsed(true);
       }

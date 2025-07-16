@@ -3,12 +3,14 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { ZonesList } from "@/app/components/zones/ZonesList";
-import { PersonInfo } from "@/app/components/zones/PersonInfo";
+import { ZoneIntroCard } from "@/app/components/zones/ZoneIntroCard";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { useZones } from "@/app/hooks/useZones";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
+import { ZoneFilter } from "@/app/components/zones/zoneFilter";
+import { boolean } from "zod";
 
 export default function ZonesPage() {
   const { personId } = useParams();
@@ -19,12 +21,14 @@ export default function ZonesPage() {
     searchParams.get("translationLang") ||
     APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
+  const searchZone = searchParams.get("searchZone") || "";
   return (
     <ProtectedRoute requiredPersonId={personId as string}>
       <ZonesContent
         personId={personId as string}
         appLang={appLang}
         translationLang={translationLang}
+        searchZone={searchZone}
       />
     </ProtectedRoute>
   );
@@ -34,10 +38,12 @@ function ZonesContent({
   personId,
   appLang,
   translationLang,
+  searchZone,
 }: {
   personId: string;
   appLang: string;
   translationLang: string;
+  searchZone: string;
 }) {
   const { zones, person, isLoading, error, refetch } = useZones(
     personId,
@@ -70,13 +76,14 @@ function ZonesContent({
 
   return (
     <DashboardLayout personId={personId as string} personName={personName}>
-      <PersonInfo
+      <ZoneIntroCard
         person={person}
         personId={personId as string}
         appLang={appLang}
         translationLang={translationLang}
       />
-      <ZonesList zones={zones} isLoading={isLoading} />
+      <ZoneFilter />
+      <ZonesList zones={zones} isLoading={isLoading} search={searchZone} />
     </DashboardLayout>
   );
 }

@@ -1,6 +1,7 @@
 // src/types/apiEndpoints.ts
 
 import { PersonEndpoint } from "./person";
+import { Zone } from "./zones";
 
 // ===== COMMON API RESPONSE WRAPPER =====
 export interface ApiResponseWrapper<T> {
@@ -57,18 +58,18 @@ export interface GetZonesListResponse
     zones: Zone[];
   }> {}
 
-export interface Zone {
+export interface GetZonesByFilterPayload {
   zoneId: number;
-  name: string;
-  plotId: number;
-  isPublic: boolean;
-  formattedAddress: string;
-  street: string;
-  postalCode: string;
-  city: string;
-  entityCount: number;
-  personIds: number[];
+  personId: number;
 }
+
+export interface GetZonesByFilterResponse
+  extends ApiResponseWrapper<{
+    zoneId: number;
+    name: string;
+    plotId: number;
+    isPublic: boolean;
+  }> {}
 
 //endpoint interface for fetching zones
 export interface GetZonesByPersonResponse {

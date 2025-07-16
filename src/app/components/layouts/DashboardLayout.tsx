@@ -27,7 +27,7 @@ export function DashboardLayout({
           marginLeft: isCollapsed ? "0" : "var(--sidebar-width)",
         }}
       >
-        <div className="max-w-7xl mx-auto">{children}</div>
+        <div className="max-w-9/10 mx-auto">{children}</div>
       </main>
     </div>
   );

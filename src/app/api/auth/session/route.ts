@@ -1,16 +1,8 @@
-// src/app/api/auth/session/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { SessionData } from "@/app/types/ouath/session";
 
-export interface SessionData {
-  personId: string;
-  selectedAt: number;
-  expiresAt: number;
-  appLang: string;
-  translationLang: string;
-}
-
-const SESSION_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+const SESSION_DURATION = 60 * 60 * 1000; // 1 uur.
 const COOKIE_NAME = "mymmo-session";
 
 export async function POST(request: NextRequest) {
@@ -43,7 +35,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: SESSION_DURATION / 1000, // Convert to seconds
+      maxAge: SESSION_DURATION / 1000,
       path: "/",
     });
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+//deze functie is gemaakt om de encrypted data te decrypten , dit zal aangeroepen worden vanuit de encryptie service
 export async function POST(request: NextRequest) {
   try {
     const serviceRegistry = process.env.NEXT_PUBLIC_SERVICE_REGISTRY;

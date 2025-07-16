@@ -1,6 +1,6 @@
-// src/app/api/encryption/encrypt/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
+// deze functie is gemaakt om de data te encrypten , dit zal aangeroepen worden vanuit de encryptie service
 export async function POST(request: NextRequest) {
   try {
     const serviceRegistry = process.env.NEXT_PUBLIC_SERVICE_REGISTRY;

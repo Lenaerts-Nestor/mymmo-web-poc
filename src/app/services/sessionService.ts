@@ -1,6 +1,6 @@
 // src/app/services/sessionService.ts
 
-import { SessionData } from "../api/auth/session/route";
+import { SessionData } from "../types/ouath/session";
 
 class SessionService {
   /**

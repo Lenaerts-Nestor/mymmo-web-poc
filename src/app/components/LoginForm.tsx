@@ -23,7 +23,6 @@ export default function LoginForm() {
   const handlePersonLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation: Check if person is selected
     if (!selectedPerson) {
       alert("Selecteer een persoon om door te gaan.");
       return;

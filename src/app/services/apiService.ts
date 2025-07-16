@@ -11,6 +11,7 @@ import {
   // Zones List & Management
   GetZonesListPayload,
   GetZonesListResponse,
+  GetZonesByFilterPayload,
   CreateZonePayload,
   CreateZoneResponse,
   UpdateZonePayload,
@@ -37,6 +38,7 @@ import {
   UpdateCommunicationGroupResponse,
   GetZonesByPersonPayload,
   GetZonesByPersonResponse,
+  GetZonesByFilterResponse,
 } from "../types/apiEndpoints";
 
 class MyMMOAPI {
@@ -86,6 +88,28 @@ class MyMMOAPI {
       return response;
     } catch (error) {
       console.error("getZonesList failed:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get zones by filter
+   * Endpoint: /service/mymmo-service/getZonesByFilter
+   */
+
+  static async getZonesByFilter(
+    payload: GetZonesByFilterPayload
+  ): Promise<GetZonesByFilterResponse> {
+    try {
+      const response =
+        await EncryptionService.secureApiCall<GetZonesByFilterResponse>(
+          "/service/mymmo-service/getZonesByFilter",
+          payload
+        );
+
+      return response;
+    } catch (error) {
+      console.error("getZonesByFilter failed:", error);
       throw error;
     }
   }

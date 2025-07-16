@@ -40,20 +40,28 @@ function EmptyZonesState() {
   );
 }
 
-export function ZonesList({ zones, isLoading }: ZonesListProps) {
+export function ZonesList({ zones, isLoading, search }: ZonesListProps) {
   if (isLoading) return <ZonesListSkeleton />;
 
-  if (zones.length === 0) {
+  const filteredZones = search
+    ? zones.filter(
+        (zone) =>
+          zone.name.toLowerCase().includes(search.toLowerCase()) ||
+          zone.formattedAddress.toLowerCase().includes(search.toLowerCase())
+      )
+    : zones;
+
+  if (filteredZones.length === 0) {
     return <EmptyZonesState />;
   }
 
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
       <h2 className="text-3xl font-bold text-stone-800 mb-6">
-        Zones ({zones.length})
+        Zones ({filteredZones.length})
       </h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {zones.map((zone) => (
+        {filteredZones.map((zone) => (
           <ZoneCard key={zone.zoneId} zone={zone} />
         ))}
       </div>

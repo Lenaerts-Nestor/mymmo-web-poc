@@ -1,5 +1,5 @@
 // middleware.ts (in project root)
-import { SessionData } from "@/app/api/auth/session/route";
+import { SessionData } from "@/app/types/ouath/session";
 import { NextRequest, NextResponse } from "next/server";
 
 const COOKIE_NAME = "mymmo-session";

@@ -1,12 +1,7 @@
+import { OAuthResponse } from "@/app/types/ouath/oauth";
 import { NextRequest, NextResponse } from "next/server";
 
-interface OAuthResponse {
-  data: {
-    token: string;
-    expires_at: string;
-  };
-}
-
+// dit is de route voor het ophalen van een OAuth token, zal worden aangeroepen vanuit de encryptie service
 export async function POST(request: NextRequest) {
   try {
     const serviceRegistry = process.env.NEXT_PUBLIC_SERVICE_REGISTRY;

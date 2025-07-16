@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { SessionData } from "../api/auth/session/route";
 import SessionService from "../services/sessionService";
+import { SessionData } from "../types/ouath/session";
 
 export function useSession() {
   const [session, setSession] = useState<SessionData | null>(null);
