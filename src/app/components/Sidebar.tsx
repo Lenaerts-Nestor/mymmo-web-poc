@@ -2,17 +2,13 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  MapPin,
-  Inbox,
-  MessageCircle,
-  User,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { SidebarProps, NavItem } from "../types/ui/Sidebar";
 import SessionService from "../services/sessionService";
+import { SidebarHeader } from "./sidebar/sidebarHeader";
+import { SidebarNavigation } from "./sidebar/sidebarNavigation";
+import { SidebarFooter } from "./sidebar/sidebarFooter";
+import { SidebarToggleButton } from "./sidebar/sidebarToggleButton";
 
 export default function Sidebar({
   personId,
@@ -24,40 +20,6 @@ export default function Sidebar({
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const navItems: NavItem[] = [
-    {
-      id: "zones",
-      label: "Zones",
-      icon: <MapPin size={20} />,
-      href: `/zones/${personId}`,
-      isActive: pathname.startsWith(`/zones/${personId}`),
-    },
-    {
-      id: "inbox",
-      label: "Inbox",
-      icon: <Inbox size={20} />,
-      href: `/inbox/${personId}`,
-      isActive: pathname.startsWith(`/inbox/${personId}`),
-      isDisabled: true,
-    },
-    {
-      id: "conversations",
-      label: "Conversations",
-      icon: <MessageCircle size={20} />,
-      href: `/conversations/${personId}`,
-      isActive: pathname.startsWith(`/conversations/${personId}`),
-      isDisabled: true,
-    },
-  ];
-
-  const handleNavigation = (item: NavItem) => {
-    if (item.isDisabled) {
-      alert(`${item.label} pagina is nog niet geïmplementeerd.`);
-      return;
-    }
-    router.push(item.href);
-  };
-
   const handleLogout = async () => {
     if (isLoggingOut) return;
 
@@ -67,11 +29,9 @@ export default function Sidebar({
       // Clear session and OAuth cache
       await SessionService.logout();
 
-      // Redirect to login page
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // Even if logout API fails, redirect to login
       router.push("/login");
     } finally {
       setIsLoggingOut(false);
@@ -80,13 +40,6 @@ export default function Sidebar({
 
   const handleToggleClick = () => {
     onToggleCollapse();
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleToggleClick();
-    }
   };
 
   return (
@@ -103,151 +56,24 @@ export default function Sidebar({
           boxShadow: "var(--sidebar-shadow)",
         }}
       >
-        {/* Header */}
-        <div className="p-6 border-b-2 border-purple-200/30">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full w-12 h-12 flex items-center justify-center shadow-md">
-              <User className="text-stone-800" size={22} />
-            </div>
-            <div>
-              <h2 className="font-bold text-lg" style={{ color: "#542e39" }}>
-                {personName || `Persoon ${personId}`}
-              </h2>
-              <p
-                className="text-sm font-medium"
-                style={{ color: "#542e39", opacity: 0.8 }}
-              >
-                ID: {personId}
-              </p>
-            </div>
-          </div>
-        </div>
+        <SidebarHeader personName={personName} isCollapsed={isCollapsed} />
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => handleNavigation(item)}
-                  disabled={item.isDisabled}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${
-                    item.isActive
-                      ? "shadow-lg transform scale-[1.02]"
-                      : item.isDisabled
-                      ? "cursor-not-allowed"
-                      : "hover:shadow-md hover:scale-[1.01]"
-                  }`}
-                  style={{
-                    backgroundColor: item.isActive ? "#E4DECE" : "transparent",
-                    color: item.isActive
-                      ? "#542e39"
-                      : item.isDisabled
-                      ? "#542e39"
-                      : "#542e39",
-                    opacity: item.isDisabled ? 0.5 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!item.isActive && !item.isDisabled) {
-                      e.currentTarget.style.backgroundColor = "#542e39";
-                      e.currentTarget.style.color = "#542e39";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!item.isActive && !item.isDisabled) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <span className="flex-shrink-0">{item.icon}</span>
-                    <span className="font-semibold truncate">{item.label}</span>
-                  </div>
-                  {item.isDisabled && (
-                    <span
-                      className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2"
-                      style={{
-                        backgroundColor: "#E4DECE",
-                        color: "#542e39",
-                        border: "1px solid #542e39",
-                      }}
-                    >
-                      Binnenkort
-                    </span>
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Footer */}
-        <div className="p-4 border-t-2 border-purple-200/30">
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 font-semibold ${
-              isLoggingOut
-                ? "cursor-not-allowed opacity-50"
-                : "hover:shadow-md hover:scale-[1.01]"
-            }`}
-            style={{
-              color: "#542e39",
-              backgroundColor: "#E4DECE",
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoggingOut) {
-                e.currentTarget.style.backgroundColor = "#542e39";
-                e.currentTarget.style.color = "#E4DECE";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoggingOut) {
-                e.currentTarget.style.backgroundColor = "#E4DECE";
-                e.currentTarget.style.color = "#542e39";
-              }
-            }}
-          >
-            <LogOut size={20} />
-            <span className="font-semibold">
-              {isLoggingOut ? "Uitloggen..." : "Uitloggen"}
-            </span>
-          </button>
-        </div>
+        <SidebarNavigation
+          personId={personId}
+          pathname={pathname}
+          router={router}
+        />
+        <SidebarFooter
+          isLoggingOut={isLoggingOut}
+          handleLogout={handleLogout}
+        />
       </div>
 
       {/* Toggle Button */}
-      <button
-        onClick={handleToggleClick}
-        onKeyDown={handleKeyDown}
-        className={`fixed top-6 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out hover:shadow-xl z-50 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2 ${
-          isCollapsed ? "left-6 hover:scale-110" : "hover:scale-105"
-        }`}
-        style={{
-          width: "var(--toggle-button-size)",
-          height: "var(--toggle-button-size)",
-          left: isCollapsed ? "24px" : "calc(var(--sidebar-width) - 6px)",
-          backgroundColor: "var(--toggle-button-bg)",
-          color: "var(--toggle-button-fg)",
-          boxShadow: "var(--toggle-button-shadow)",
-        }}
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-expanded={!isCollapsed}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "var(--toggle-button-fg)";
-          e.currentTarget.style.color = "var(--toggle-button-bg)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "var(--toggle-button-bg)";
-          e.currentTarget.style.color = "var(--toggle-button-fg)";
-        }}
-      >
-        {isCollapsed ? (
-          <ChevronRight size={20} className="ml-0.5" />
-        ) : (
-          <ChevronLeft size={20} className="mr-0.5" />
-        )}
-      </button>
+      <SidebarToggleButton
+        handleToggleClick={handleToggleClick}
+        isCollapsed={isCollapsed}
+      />
 
       {/* Overlay for mobile when sidebar is open */}
       {!isCollapsed && (

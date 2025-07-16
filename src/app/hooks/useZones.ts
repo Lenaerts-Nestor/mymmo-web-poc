@@ -7,7 +7,7 @@ import { Zone } from "../types/zones";
 export function useZones(personId: string, translationLang: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [person, setPerson] = useState<PersonEndpoint | null>(null);
+  const [person, setPerson] = useState<PersonEndpoint>();
   const [error, setError] = useState<string | null>(null);
 
   const fetchZones = async () => {
@@ -24,8 +24,12 @@ export function useZones(personId: string, translationLang: string) {
         );
 
       if (response.status === 200) {
+        if (!response.data.person[0]) {
+          throw new Error("Persoon niet gevonden");
+        }
+
         setZones(response.data.zones);
-        setPerson(response.data.person[0] || null);
+        setPerson(response.data.person[0]);
       } else {
         setError(`API fout: Status ${response.status}`);
       }
@@ -43,7 +47,7 @@ export function useZones(personId: string, translationLang: string) {
 
   return {
     zones,
-    person,
+    person: person!,
     isLoading,
     error,
     refetch: fetchZones,

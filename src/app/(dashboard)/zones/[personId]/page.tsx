@@ -50,13 +50,9 @@ function ZonesContent({
     translationLang
   );
 
-  const personName = person
-    ? `${person.firstName} ${person.lastName}`
-    : undefined;
-
   if (isLoading) {
     return (
-      <DashboardLayout personId={personId as string} personName={personName}>
+      <DashboardLayout personId={personId as string} personName="Loading...">
         <div className="flex items-center justify-center min-h-screen">
           <LoadingSpinner message={UI_MESSAGES.LOADING.ZONES} />
         </div>
@@ -66,13 +62,15 @@ function ZonesContent({
 
   if (error) {
     return (
-      <DashboardLayout personId={personId as string} personName={personName}>
+      <DashboardLayout personId={personId as string} personName="">
         <div className="flex items-center justify-center min-h-screen">
           <ErrorDisplay error={error} onRetry={refetch} />
         </div>
       </DashboardLayout>
     );
   }
+
+  const personName = `${person.firstName} ${person.lastName}`;
 
   return (
     <DashboardLayout personId={personId as string} personName={personName}>
