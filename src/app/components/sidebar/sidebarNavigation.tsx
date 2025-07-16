@@ -39,6 +39,7 @@ export function SidebarNavigation({
       isDisabled: true,
     },
   ];
+
   return (
     <nav className="flex-1 p-4">
       <ul className="space-y-2">
@@ -47,49 +48,16 @@ export function SidebarNavigation({
             <button
               onClick={() => handleNavigation(item)}
               disabled={item.isDisabled}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${
-                item.isActive
-                  ? "shadow-lg transform scale-[1.02]"
-                  : item.isDisabled
-                  ? "cursor-not-allowed"
-                  : "hover:shadow-md hover:scale-[1.01]"
+              className={`nav-item ${item.isActive ? "nav-item--active" : ""} ${
+                item.isDisabled ? "nav-item--disabled" : ""
               }`}
-              style={{
-                backgroundColor: item.isActive ? "#E4DECE" : "transparent",
-                color: item.isActive
-                  ? "#542e39"
-                  : item.isDisabled
-                  ? "#542e39"
-                  : "#542e39",
-                opacity: item.isDisabled ? 0.5 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!item.isActive && !item.isDisabled) {
-                  e.currentTarget.style.backgroundColor = "#542e39";
-                  e.currentTarget.style.color = "#E4DECE";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!item.isActive && !item.isDisabled) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }
-              }}
             >
-              <div className="flex items-center space-x-3 min-w-0 flex-1">
-                <span className="flex-shrink-0">{item.icon}</span>
-                <span className="font-semibold truncate">{item.label}</span>
+              <div className="nav-item__content">
+                <span className="nav-item__icon">{item.icon}</span>
+                <span className="nav-item__label">{item.label}</span>
               </div>
               {item.isDisabled && (
-                <span
-                  className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2"
-                  style={{
-                    backgroundColor: "#E4DECE",
-                    color: "#542e39",
-                    border: "1px solid #542e39",
-                  }}
-                >
-                  Binnenkort
-                </span>
+                <span className="nav-item__badge">Binnenkort</span>
               )}
             </button>
           </li>

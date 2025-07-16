@@ -1,9 +1,7 @@
-// src/app/components/Sidebar.tsx
 "use client";
 import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser } from "../contexts/UserContext";
-import { useSidebar } from "../contexts/SidebarContext";
 import { SidebarHeader } from "./sidebar/sidebarHeader";
 import { SidebarNavigation } from "./sidebar/sidebarNavigation";
 import { SidebarFooter } from "./sidebar/sidebarFooter";
@@ -36,30 +34,24 @@ export default function Sidebar() {
   }
 
   return (
-    <>
-      {/* Sidebar */}
-      <div
-        className={`h-screen fixed left-0 top-0 flex flex-col border-r-2 backdrop-blur-sm transition-transform duration-300 ease-in-out z-40 sidebar-scroll `}
-        style={{
-          width: "var(--sidebar-width)",
-          backgroundColor: "var(--sidebar-bg)",
-          borderColor: "var(--sidebar-border)",
-          boxShadow: "var(--sidebar-shadow)",
-        }}
-      >
-        <SidebarHeader personName={user.personName} />
+    <div
+      className="h-screen fixed left-0 top-0 flex flex-col border-r-2 backdrop-blur-sm z-40 sidebar-scroll"
+      style={{
+        width: "var(--sidebar-width)",
+        backgroundColor: "var(--sidebar-bg)",
+        borderColor: "var(--sidebar-border)",
+        boxShadow: "var(--sidebar-shadow)",
+      }}
+    >
+      <SidebarHeader personName={user.personName} />
 
-        <SidebarNavigation
-          personId={user.personId}
-          pathname={pathname}
-          router={router}
-        />
+      <SidebarNavigation
+        personId={user.personId}
+        pathname={pathname}
+        router={router}
+      />
 
-        <SidebarFooter
-          isLoggingOut={isLoggingOut}
-          handleLogout={handleLogout}
-        />
-      </div>
-    </>
+      <SidebarFooter isLoggingOut={isLoggingOut} handleLogout={handleLogout} />
+    </div>
   );
 }

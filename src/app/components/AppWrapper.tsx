@@ -1,4 +1,3 @@
-// src/app/components/AppWrapper.tsx
 "use client";
 import { usePathname } from "next/navigation";
 import { UserProvider } from "../contexts/UserContext";
@@ -30,13 +29,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       style={{ background: "var(--primary-cream)" }}
     >
       {showSidebar && <Sidebar />}
-      <main
-        className={`transition-all duration-300 ease-in-out ${
-          showSidebar ? "dashboard-main" : ""
-        }`}
-      >
-        {children}
-      </main>
+      <main className={showSidebar ? "dashboard-main" : "p-8"}>{children}</main>
     </div>
   );
 }
