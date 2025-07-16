@@ -28,7 +28,7 @@ export function SidebarNavigation({
       icon: <Inbox size={20} />,
       href: `/inbox/${personId}`,
       isActive: pathname.startsWith(`/inbox/${personId}`),
-      isDisabled: true,
+      isDisabled: false,
     },
     {
       id: "conversations",

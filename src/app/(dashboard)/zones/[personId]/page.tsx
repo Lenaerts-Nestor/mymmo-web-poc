@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { ZonesList } from "@/app/components/zones/ZonesList";
 import { ZoneIntroCard } from "@/app/components/zones/ZoneIntroCard";
@@ -10,7 +11,6 @@ import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { useZones } from "@/app/hooks/useZones";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
 import { ZoneFilter } from "@/app/components/zones/zoneFilter";
-import { boolean } from "zod";
 
 export default function ZonesPage() {
   const { personId } = useParams();
@@ -21,14 +21,12 @@ export default function ZonesPage() {
     searchParams.get("translationLang") ||
     APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
-  const searchZone = searchParams.get("searchZone") || "";
   return (
     <ProtectedRoute requiredPersonId={personId as string}>
       <ZonesContent
         personId={personId as string}
         appLang={appLang}
         translationLang={translationLang}
-        searchZone={searchZone}
       />
     </ProtectedRoute>
   );
@@ -38,17 +36,22 @@ function ZonesContent({
   personId,
   appLang,
   translationLang,
-  searchZone,
 }: {
   personId: string;
   appLang: string;
   translationLang: string;
-  searchZone: string;
 }) {
   const { zones, person, isLoading, error, refetch } = useZones(
     personId,
     translationLang
   );
+
+  // Client-side search state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchChange = (search: string) => {
+    setSearchQuery(search);
+  };
 
   if (isLoading) {
     return (
@@ -80,8 +83,8 @@ function ZonesContent({
         appLang={appLang}
         translationLang={translationLang}
       />
-      <ZoneFilter />
-      <ZonesList zones={zones} isLoading={isLoading} search={searchZone} />
+      <ZoneFilter onSearchChange={handleSearchChange} />
+      <ZonesList zones={zones} isLoading={isLoading} search={searchQuery} />
     </DashboardLayout>
   );
 }
