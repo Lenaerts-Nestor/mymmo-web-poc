@@ -1,7 +1,9 @@
+// src/app/components/auth/ProtectedRoute.tsx
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { UI_MESSAGES } from "../../constants/app";
+import { useUser } from "../../contexts/UserContext";
 import SessionService from "../../services/sessionService";
 
 interface ProtectedRouteProps {
@@ -16,33 +18,47 @@ export function ProtectedRoute({
   fallbackUrl = "/login",
 }: ProtectedRouteProps) {
   const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isValidating, setIsValidating] = useState(true);
 
   useEffect(() => {
     const validateAccess = async () => {
       try {
-        setIsLoading(true);
+        setIsValidating(true);
+
+        // Wait for user context to load
+        if (userLoading) {
+          return;
+        }
+
+        // No user session - redirect to login
+        if (!user) {
+          console.warn("No user session found");
+          router.push(fallbackUrl);
+          return;
+        }
 
         // If a specific person ID is required, validate access to that person
         if (requiredPersonId) {
+          // Check if user's personId matches the required personId
+          if (user.personId !== requiredPersonId) {
+            console.warn(
+              `User ${user.personId} attempted to access person ${requiredPersonId} data`
+            );
+            router.push(fallbackUrl);
+            return;
+          }
+
+          // Double-check with session service for security
           const hasAccess = await SessionService.validatePersonAccess(
             requiredPersonId
           );
 
           if (!hasAccess) {
             console.warn(
-              `Unauthorized access attempt to person ${requiredPersonId}`
+              `Session validation failed for person ${requiredPersonId}`
             );
-            router.push(fallbackUrl);
-            return;
-          }
-        } else {
-          // Just check if there's a valid session
-          const session = await SessionService.getSession();
-
-          if (!session) {
-            console.warn("No valid session found");
             router.push(fallbackUrl);
             return;
           }
@@ -53,14 +69,14 @@ export function ProtectedRoute({
         console.error("Access validation failed:", error);
         router.push(fallbackUrl);
       } finally {
-        setIsLoading(false);
+        setIsValidating(false);
       }
     };
 
     validateAccess();
-  }, [requiredPersonId, router, fallbackUrl]);
+  }, [requiredPersonId, router, fallbackUrl, user, userLoading]);
 
-  if (isLoading) {
+  if (userLoading || isValidating) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner message={UI_MESSAGES.LOADING.SESSION} />

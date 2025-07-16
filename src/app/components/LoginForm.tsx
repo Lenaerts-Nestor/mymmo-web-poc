@@ -6,6 +6,7 @@ import LanguageSelector from "./ui/LanguageSelector";
 import PersonSelector from "./ui/PersonSelector";
 import { appLanguages, deepLLanguages } from "../constants/languages";
 import SessionService from "../services/sessionService";
+import { useUser } from "../contexts/UserContext";
 
 //tijdelijk hier , //! verwijderen dit later
 const mockPersons = [
@@ -19,6 +20,7 @@ export default function LoginForm() {
   const [translationLanguage, setTranslationLanguage] = useState("nl");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { refreshUser } = useUser();
 
   const handlePersonLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,24 +31,34 @@ export default function LoginForm() {
     }
 
     setIsLoading(true);
+    console.log(
+      "LoginForm: Starting login process for person:",
+      selectedPerson
+    );
 
     try {
-      // Create session for selected person
+      await SessionService.clearSession();
+
       const sessionData = await SessionService.createSession(
         selectedPerson,
         appLanguage,
         translationLanguage
       );
 
-      // Navigate to zones page with person ID and language parameters
+      await refreshUser();
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const targetUrl = `/zones/${selectedPerson}`;
       const params = new URLSearchParams({
         appLang: sessionData.appLang,
         translationLang: sessionData.translationLang,
       });
 
-      router.push(`/zones/${selectedPerson}?${params.toString()}`);
+      const fullUrl = `${targetUrl}?${params.toString()}`;
+      router.refresh();
+      router.push(fullUrl);
     } catch (error) {
-      console.error("Login failed:", error);
       alert("Inloggen mislukt. Probeer het opnieuw.");
     } finally {
       setIsLoading(false);

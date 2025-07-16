@@ -3,7 +3,6 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 export interface SidebarProps {
   personId: string;
   personName: string;
-  isCollapsed: boolean;
   onToggleCollapse: () => void;
 }
 
@@ -18,7 +17,6 @@ export interface NavItem {
 
 export interface SidebarHeaderProps {
   personName: string | undefined;
-  isCollapsed: boolean;
 }
 
 export interface SidebarFooterProps {

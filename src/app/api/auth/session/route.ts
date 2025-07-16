@@ -1,13 +1,15 @@
+// src/app/api/auth/session/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { SessionData } from "@/app/types/ouath/session";
 
-const SESSION_DURATION = 60 * 60 * 1000; // 1 uur.
+const SESSION_DURATION = 60 * 60 * 1000; // 1 hour
 const COOKIE_NAME = "mymmo-session";
 
 export async function POST(request: NextRequest) {
   try {
-    const { personId, appLang, translationLang } = await request.json();
+    const { personId, personName, appLang, translationLang } =
+      await request.json();
 
     if (!personId) {
       return NextResponse.json(
@@ -19,6 +21,7 @@ export async function POST(request: NextRequest) {
     const now = Date.now();
     const sessionData: SessionData = {
       personId,
+      personName: personName || `Person ${personId}`, // fallback if personName not provided
       selectedAt: now,
       expiresAt: now + SESSION_DURATION,
       appLang: appLang || "nl",

@@ -2,22 +2,16 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
-import { SidebarProps, NavItem } from "../types/ui/Sidebar";
-import SessionService from "../services/sessionService";
+import { useUser } from "../contexts/UserContext";
+import { useSidebar } from "../contexts/SidebarContext";
 import { SidebarHeader } from "./sidebar/sidebarHeader";
 import { SidebarNavigation } from "./sidebar/sidebarNavigation";
 import { SidebarFooter } from "./sidebar/sidebarFooter";
-import { SidebarToggleButton } from "./sidebar/sidebarToggleButton";
 
-export default function Sidebar({
-  personId,
-  personName,
-  isCollapsed,
-  onToggleCollapse,
-}: SidebarProps) {
+export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { user, logout } = useUser();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -26,9 +20,7 @@ export default function Sidebar({
     setIsLoggingOut(true);
 
     try {
-      // Clear session and OAuth cache
-      await SessionService.logout();
-
+      await logout();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -38,17 +30,16 @@ export default function Sidebar({
     }
   };
 
-  const handleToggleClick = () => {
-    onToggleCollapse();
-  };
+  // Don't render sidebar if no user session
+  if (!user) {
+    return null;
+  }
 
   return (
     <>
       {/* Sidebar */}
       <div
-        className={`h-screen fixed left-0 top-0 flex flex-col border-r-2 backdrop-blur-sm transition-transform duration-300 ease-in-out z-40 sidebar-scroll ${
-          isCollapsed ? "-translate-x-full" : "translate-x-0"
-        }`}
+        className={`h-screen fixed left-0 top-0 flex flex-col border-r-2 backdrop-blur-sm transition-transform duration-300 ease-in-out z-40 sidebar-scroll `}
         style={{
           width: "var(--sidebar-width)",
           backgroundColor: "var(--sidebar-bg)",
@@ -56,33 +47,19 @@ export default function Sidebar({
           boxShadow: "var(--sidebar-shadow)",
         }}
       >
-        <SidebarHeader personName={personName} isCollapsed={isCollapsed} />
+        <SidebarHeader personName={user.personName} />
 
         <SidebarNavigation
-          personId={personId}
+          personId={user.personId}
           pathname={pathname}
           router={router}
         />
+
         <SidebarFooter
           isLoggingOut={isLoggingOut}
           handleLogout={handleLogout}
         />
       </div>
-
-      {/* Toggle Button */}
-      <SidebarToggleButton
-        handleToggleClick={handleToggleClick}
-        isCollapsed={isCollapsed}
-      />
-
-      {/* Overlay for mobile when sidebar is open */}
-      {!isCollapsed && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-          onClick={handleToggleClick}
-          aria-hidden="true"
-        />
-      )}
     </>
   );
 }

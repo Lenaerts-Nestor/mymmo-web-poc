@@ -66,7 +66,7 @@ export function SidebarNavigation({
               onMouseEnter={(e) => {
                 if (!item.isActive && !item.isDisabled) {
                   e.currentTarget.style.backgroundColor = "#542e39";
-                  e.currentTarget.style.color = "#542e39";
+                  e.currentTarget.style.color = "#E4DECE";
                 }
               }}
               onMouseLeave={(e) => {
