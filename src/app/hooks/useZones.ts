@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { PersonEndpoint } from "@/app/types/person";
-import MyMMOAPI from "@/app/services/apiService";
 import { GetZonesByPersonResponse } from "../types/apiEndpoints";
 import { Zone } from "../types/zones";
+import MyMMOApiZone from "../services/mymmo-service/apiZones";
 
 export function useZones(personId: string, translationLang: string) {
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +17,7 @@ export function useZones(personId: string, translationLang: string) {
 
       const personIdNum = parseInt(personId);
       const response: GetZonesByPersonResponse =
-        await MyMMOAPI.getZonesByPerson(
+        await MyMMOApiZone.getZonesByPerson(
           personIdNum,
           personIdNum,
           translationLang
