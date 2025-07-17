@@ -14,6 +14,7 @@ import MyMMOApiZone from "../services/mymmo-service/apiZones";
 const mockPersons = [
   { id: "925", name: "Persoon 925" },
   { id: "778", name: "Persoon 778" },
+  { id: "1375", name: "Persoon 1375" },
 ];
 
 export default function LoginForm() {

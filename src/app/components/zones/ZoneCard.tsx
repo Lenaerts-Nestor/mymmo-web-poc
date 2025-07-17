@@ -1,3 +1,8 @@
+// src/app/components/zones/ZoneCard.tsx
+
+"use client";
+
+import { useRouter } from "next/navigation";
 import { ZoneCardProps } from "@/app/types/zones";
 
 //dit is gewoon om leuke kleuren te hebben voor de zones
@@ -12,12 +17,30 @@ const zoneCardBackgrounds = [
 ];
 
 export function ZoneCard({ zone }: ZoneCardProps) {
+  const router = useRouter();
+
   const backgroundClass =
     zoneCardBackgrounds[zone.zoneId % zoneCardBackgrounds.length];
 
+  const handleZoneClick = () => {
+    // Get personId from current URL or context
+    const pathSegments = window.location.pathname.split("/");
+    const personIdIndex =
+      pathSegments.findIndex((segment) => segment === "zones") + 1;
+    const personId = pathSegments[personIdIndex];
+
+    if (personId) {
+      // Navigate to threads page for this zone
+      router.push(`/zones/${personId}/threads/${zone.zoneId}`);
+    } else {
+      console.error("PersonId not found in URL");
+    }
+  };
+
   return (
     <div
-      className={`${backgroundClass} rounded-2xl p-6 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 border-0`}
+      onClick={handleZoneClick}
+      className={`${backgroundClass} rounded-2xl p-6 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 border-0 cursor-pointer`}
     >
       <h3 className="font-bold text-xl text-stone-800 mb-3 leading-tight">
         {zone.name}
