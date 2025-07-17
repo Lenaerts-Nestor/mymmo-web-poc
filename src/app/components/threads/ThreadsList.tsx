@@ -1,4 +1,4 @@
-// src/app/components/threads/ThreadsList.tsx
+// src/app/components/threads/ThreadsList.tsx - Updated with highlighting
 
 import { ThreadsListProps } from "@/app/types/threads";
 import { ThreadCard } from "./ThreadCard";
@@ -6,6 +6,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 import MyMMOApiThreads from "@/app/services/mymmo-thread-service/apiThreads";
+
+// Updated interface to include highlighting
+interface ExtendedThreadsListProps extends ThreadsListProps {
+  highlightThreadId?: string | null;
+}
 
 function ThreadsListSkeleton() {
   return (
@@ -51,7 +56,7 @@ function EmptyThreadsState() {
     <div className="text-center py-12 text-gray-500">
       <div className="text-6xl mb-6">💬</div>
       <p className="text-2xl font-bold mb-3 text-gray-700">
-        Geen threads gevonden
+        Geen conversaties gevonden
       </p>
       <p className="text-lg text-gray-500">
         Er zijn nog geen conversaties in deze zone.
@@ -65,7 +70,8 @@ export function ThreadsList({
   currentPersonId,
   isLoading,
   onThreadClick,
-}: ThreadsListProps) {
+  highlightThreadId,
+}: ExtendedThreadsListProps) {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -169,6 +175,7 @@ export function ThreadsList({
             thread={thread}
             currentPersonId={currentPersonId}
             onClick={handleThreadClick}
+            isHighlighted={highlightThreadId === thread._id}
           />
         ))}
       </div>

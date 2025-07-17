@@ -1,3 +1,4 @@
+//dit heb ik van de baas project overgenomen, ik heb momenteel geen toepasing voor dit.
 export const deepLLanguages = [
   { code: "bg", name: "Bulgaars" },
   { code: "cs", name: "Tsjechisch" },

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Thread, GetThreadsResponse } from "../types/threads";
 import MyMMOApiThreads from "../services/mymmo-thread-service/apiThreads";
+import { POLLING_INTERVALS } from "../constants/pollings_interval";
 
 interface UseThreadsResult {
   threads: Thread[];
@@ -30,10 +31,12 @@ export function useThreads(
       });
     },
 
+    //! dit is voor de snelheid van het aanroepen van de threads, als je wilt dat de threads sneller worden opgehaald, dan moet je deze waardes aanpassen
+    //! opletten dat de threads niet te vaak worden opgehaald, want dan krijg je een
     // OPTIMIZED FOR REAL-TIME FEEL
     staleTime: 0,
     gcTime: 2 * 60 * 1000,
-    refetchInterval: 10 * 1000,
+    refetchInterval: POLLING_INTERVALS.CONVERSATIONS,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
     refetchOnMount: true,

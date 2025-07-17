@@ -1,4 +1,5 @@
-// src/app/(dashboard)/zones/[personId]/page.tsx
+// src/app/(dashboard)/zones/[personId]/page.tsx - Updated with unread conversations
+
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
@@ -9,10 +10,11 @@ import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
-import { useZones } from "@/app/hooks/useZones";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
 import { ZoneFilter } from "@/app/components/zones/zoneFilter";
+import { useZonesWithUnreadCounts } from "@/app/hooks/useZonesWithUnreadCounts";
+import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
 
 export default function ZonesPage() {
   const { personId } = useParams();
@@ -48,16 +50,21 @@ function ZonesContent({
   appLang: string;
   translationLang: string;
 }) {
-  const { zones, person, isLoading, error, refetch } = useZones(
+  const { zones, person, isLoading, error, refetch } = useZonesWithUnreadCounts(
     personId,
     translationLang
   );
 
-  // Client-side search state
+  // Client-side search and filter state
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAllZones, setShowAllZones] = useState(false);
 
   const handleSearchChange = (search: string) => {
     setSearchQuery(search);
+  };
+
+  const handleToggleChange = (showAll: boolean) => {
+    setShowAllZones(showAll);
   };
 
   if (isLoading) {
@@ -84,8 +91,24 @@ function ZonesContent({
         appLang={appLang}
         translationLang={translationLang}
       />
-      <ZoneFilter onSearchChange={handleSearchChange} />
-      <ZonesList zones={zones} isLoading={isLoading} search={searchQuery} />
+
+      {/* Controls container */}
+      <div className="flex justify-between items-center mb-6">
+        <ZonesToggle
+          showAllZones={showAllZones}
+          onToggleChange={handleToggleChange}
+        />
+        <ZoneFilter onSearchChange={handleSearchChange} />
+      </div>
+
+      <ZonesList
+        zones={zones}
+        isLoading={isLoading}
+        search={searchQuery}
+        showAllZones={showAllZones}
+        personId={personId}
+        translationLang={translationLang}
+      />
     </div>
   );
 }

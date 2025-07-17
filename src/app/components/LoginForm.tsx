@@ -12,9 +12,10 @@ import MyMMOApiZone from "../services/mymmo-service/apiZones";
 
 //tijdelijk hier , //! verwijderen dit later
 const mockPersons = [
-  { id: "925", name: "Persoon 925" },
-  { id: "778", name: "Persoon 778" },
-  { id: "1375", name: "Persoon 1375" },
+  { id: "925", name: "Persoon 925" }, //random dirk rv ofzo. /random persoon
+  { id: "778", name: "Persoon 778" }, //mymmo-service support
+  { id: "1375", name: "Persoon 1375" }, //ik nestor / mijn persoon
+  { id: "1010", name: "Persoon 1010" }, //echte van  mymmo. dit is een echte persoon
 ];
 
 export default function LoginForm() {

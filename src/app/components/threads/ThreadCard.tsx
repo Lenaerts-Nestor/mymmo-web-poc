@@ -1,6 +1,11 @@
-// src/app/components/threads/ThreadCard.tsx
+// src/app/components/threads/ThreadCard.tsx - Updated with highlighting
 
 import { ThreadCardProps } from "@/app/types/threads";
+
+// Updated interface to include highlighting
+interface ExtendedThreadCardProps extends ThreadCardProps {
+  isHighlighted?: boolean;
+}
 
 // Helper function to format date
 const formatDate = (dateString: string): string => {
@@ -42,7 +47,8 @@ export function ThreadCard({
   thread,
   currentPersonId,
   onClick,
-}: ThreadCardProps) {
+  isHighlighted = false,
+}: ExtendedThreadCardProps) {
   const latestMessage = thread.latest_message;
   const lastSender = thread.followers.find(
     (follower) => follower.person_id === latestMessage.created_by
@@ -54,11 +60,26 @@ export function ThreadCard({
     }
   };
 
+  // Dynamic styling based on highlight status
+  const cardClasses = `
+    bg-white rounded-lg shadow-sm p-4 cursor-pointer transition-all duration-200 border
+    ${
+      isHighlighted
+        ? "border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200"
+        : "border-gray-200 hover:shadow-md"
+    }
+  `;
+
   return (
-    <div
-      onClick={handleClick}
-      className="bg-white rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow duration-200 border border-gray-200"
-    >
+    <div onClick={handleClick} className={cardClasses}>
+      {/* Highlight indicator */}
+      {isHighlighted && (
+        <div className="flex items-center space-x-2 mb-3 text-blue-600">
+          <span className="text-sm">🔍</span>
+          <span className="text-sm font-medium">Gemarkeerde conversatie</span>
+        </div>
+      )}
+
       {/* Header with sender info and time */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-3">
@@ -130,6 +151,14 @@ export function ThreadCard({
             {thread.followers.length !== 1 ? "s" : ""}
           </p>
         </div>
+
+        {/* Highlight animation */}
+        {isHighlighted && (
+          <div className="flex items-center space-x-1 text-blue-600">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+            <span className="text-xs">Nieuw</span>
+          </div>
+        )}
       </div>
     </div>
   );

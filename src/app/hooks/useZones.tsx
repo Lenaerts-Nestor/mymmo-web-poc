@@ -3,6 +3,7 @@ import { PersonEndpoint } from "@/app/types/person";
 import { GetZonesByPersonResponse } from "../types/apiEndpoints";
 import { Zone } from "../types/zones";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
+import { POLLING_INTERVALS } from "../constants/pollings_interval";
 
 interface UseZonesResult {
   zones: Zone[];
@@ -28,7 +29,7 @@ export function useZones(
         translationLang
       );
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - React Query stale time
+    staleTime: POLLING_INTERVALS.ZONES, // 5 minutes - React Query stale time
     gcTime: 10 * 60 * 1000, // 10 minutes - React Query garbage collection time
     refetchOnWindowFocus: false,
     retry: 2,

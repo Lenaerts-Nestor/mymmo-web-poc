@@ -1,47 +1,137 @@
-interface InboxCardProps {
-  department: string;
-  subtitle: string;
-  senderInitials: string;
-  senderName: string;
-  messagePreview: string;
-  messageCount: number;
-  date: string;
-}
+// src/app/components/inbox/InboxCard.tsx
 
-export function InboxCard({
-  department = "Support Team",
-  subtitle = "General support inquiries",
-  senderInitials = "AS",
-  senderName = "Alice Smith",
-  messagePreview = "Hi, I have a question about my order.",
-  messageCount = 2,
-  date = "15 jul",
-}: InboxCardProps) {
+import { InboxCardProps } from "@/app/types/inbox";
+
+// Helper function to format date
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const messageDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+
+  if (messageDate.getTime() === today.getTime()) {
+    return date.toLocaleTimeString("nl-NL", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else {
+    return date.toLocaleDateString("nl-NL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    });
+  }
+};
+
+// Helper function to get user initials
+const getInitials = (firstName: string, lastName: string): string => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+};
+
+// Helper function to truncate text
+const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
+};
+
+export function InboxCard({ item, onClick }: InboxCardProps) {
+  const { thread, zoneName, zoneDescription, unreadCount } = item;
+  const latestMessage = thread.latest_message;
+
+  const lastSender = thread.followers.find(
+    (follower) => follower.person_id === latestMessage.created_by
+  );
+
+  const handleClick = () => {
+    onClick(item.zoneId, thread._id);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+    <div
+      onClick={handleClick}
+      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+    >
+      {/* Zone Header */}
       <div className="flex justify-between items-start mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
-            {department}
-          </h2>
-          <p className="text-sm text-gray-500">{subtitle}</p>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            {zoneName}
+          </h3>
+          <p className="text-sm text-gray-500 mb-2">{zoneDescription}</p>
         </div>
-        <div className="text-right">
-          <div className="bg-gray-100 text-gray-700 text-sm px-2 py-1 rounded-full mb-1">
-            {messageCount}
-          </div>
-          <p className="text-sm text-gray-500">{date}</p>
+        <div className="flex items-center space-x-2">
+          {/* Unread count badge */}
+          <span className="bg-red-500 text-white text-sm px-3 py-1 rounded-full font-bold">
+            {unreadCount}
+          </span>
+          <p className="text-sm text-gray-500">
+            {formatDate(latestMessage.created_on)}
+          </p>
         </div>
       </div>
 
+      {/* Message Content */}
       <div className="flex items-start space-x-3">
-        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-sm font-medium text-gray-700">
-          {senderInitials}
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+          {lastSender?.profilePic ? (
+            <img
+              src={lastSender.profilePic}
+              alt={`${lastSender.firstName} ${lastSender.lastName}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-gray-600">
+              {lastSender
+                ? getInitials(lastSender.firstName, lastSender.lastName)
+                : "?"}
+            </span>
+          )}
         </div>
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-900 mb-1">{senderName}</p>
-          <p className="text-sm text-gray-600 line-clamp-2">{messagePreview}</p>
+
+        {/* Message Details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2 mb-1">
+            <p className="text-sm font-semibold text-gray-800">
+              {lastSender
+                ? `${lastSender.firstName} ${lastSender.lastName}`
+                : "Onbekend"}
+            </p>
+            {/* Zone indicator */}
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              Zone {item.zoneId}
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {truncateText(latestMessage.text, 120)}
+          </p>
+
+          {/* Communication group info (if available) */}
+          {thread.communication_group.group_name && (
+            <p className="text-xs text-gray-400 mt-2">
+              Groep: {thread.communication_group.group_name}
+            </p>
+          )}
         </div>
+      </div>
+
+      {/* Thread status indicator */}
+      <div className="flex justify-between items-center mt-4 pt-2 border-t border-gray-100">
+        <div className="flex items-center space-x-2">
+          {/* Dot indicator for unread */}
+          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+          <p className="text-xs text-gray-400">
+            {thread.followers.length} deelnemer
+            {thread.followers.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <p className="text-xs text-gray-400">
+          Klik om naar conversatie te gaan
+        </p>
       </div>
     </div>
   );
