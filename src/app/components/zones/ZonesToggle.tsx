@@ -1,4 +1,4 @@
-// src/app/components/zones/ZonesToggle.tsx
+// src/app/components/zones/ZonesToggle.tsx - Improved Design
 
 "use client";
 
@@ -24,24 +24,24 @@ export function ZonesToggle({
   };
 
   return (
-    <div className="bg-white/70 rounded-2xl shadow-lg p-4 backdrop-blur-sm">
+    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-4 w-full max-w-xl">
       <div className="flex items-center space-x-4">
         <span className="text-sm font-medium text-gray-700">
           Zone weergave:
         </span>
 
-        <div className="flex items-center space-x-2">
-          {/* Toggle switch */}
+        <div className="flex items-center space-x-3">
+          {/* Toggle switch - Improved smoothness */}
           <button
             onClick={handleToggle}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
               showAllZones ? "bg-blue-600" : "bg-gray-400"
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ${
-                showAllZones ? "translate-x-6" : "translate-x-1"
-              } ${isAnimating ? "scale-110" : ""}`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-200 ease-in-out shadow-sm ${
+                showAllZones ? "translate-x-7" : "translate-x-1"
+              } ${isAnimating ? "scale-105" : ""}`}
             />
           </button>
 

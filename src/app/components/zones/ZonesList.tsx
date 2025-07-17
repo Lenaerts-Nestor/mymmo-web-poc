@@ -1,4 +1,4 @@
-// src/app/components/zones/ZonesList.tsx - Updated with unread filtering
+// src/app/components/zones/ZonesList.tsx - Responsive Grid
 
 import { ZoneWithUnreadCount } from "@/app/hooks/useZonesWithUnreadCounts";
 import { ZoneCard } from "./ZoneCard";

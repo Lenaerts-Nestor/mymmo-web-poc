@@ -1,4 +1,4 @@
-// src/app/(dashboard)/zones/[personId]/page.tsx - Updated with unread conversations
+// src/app/(dashboard)/zones/[personId]/page.tsx - Responsive Design
 
 "use client";
 
@@ -84,31 +84,47 @@ function ZonesContent({
   }
 
   return (
-    <div className="w-full mx-auto">
-      <ZoneIntroCard
-        person={person}
-        personId={personId}
-        appLang={appLang}
-        translationLang={translationLang}
-      />
+    <div className="w-full min-h-screen">
+      {/* Container with better width usage */}
+      <div className="w-full px-6 py-6">
+        {/* Header Section */}
+        <div className="mb-6">
+          <ZoneIntroCard
+            person={person}
+            personId={personId}
+            appLang={appLang}
+            translationLang={translationLang}
+          />
+        </div>
 
-      {/* Controls container */}
-      <div className="flex justify-between items-center mb-6">
-        <ZonesToggle
+        {/* Controls Section */}
+        <div className="mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* Toggle Section */}
+            <div className="flex-1">
+              <ZonesToggle
+                showAllZones={showAllZones}
+                onToggleChange={handleToggleChange}
+              />
+            </div>
+
+            {/* Search Section */}
+            <div className="lg:w-80">
+              <ZoneFilter onSearchChange={handleSearchChange} />
+            </div>
+          </div>
+        </div>
+
+        {/* Zones List Section */}
+        <ZonesList
+          zones={zones}
+          isLoading={isLoading}
+          search={searchQuery}
           showAllZones={showAllZones}
-          onToggleChange={handleToggleChange}
+          personId={personId}
+          translationLang={translationLang}
         />
-        <ZoneFilter onSearchChange={handleSearchChange} />
       </div>
-
-      <ZonesList
-        zones={zones}
-        isLoading={isLoading}
-        search={searchQuery}
-        showAllZones={showAllZones}
-        personId={personId}
-        translationLang={translationLang}
-      />
     </div>
   );
 }

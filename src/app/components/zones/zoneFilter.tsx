@@ -1,3 +1,5 @@
+// src/app/components/zones/zoneFilter.tsx - Improved Design
+
 "use client";
 
 import { Search, X } from "lucide-react";
@@ -13,6 +15,7 @@ export function ZoneFilter({
   initialSearch = "",
 }: ZoneFilterProps) {
   const [searchItem, setSearchItem] = useState(initialSearch);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Debounce search to avoid excessive filtering
   useEffect(() => {
@@ -28,33 +31,49 @@ export function ZoneFilter({
     onSearchChange("");
   };
 
+  const handleFocus = () => setIsFocused(true);
+  const handleBlur = () => setIsFocused(false);
+
   return (
-    <div className="flex justify-end w-full mb-4">
-      <div className="bg-white/70 rounded-2xl shadow-lg p-3 mb-6 items-center flex relative">
-        <input
-          type="text"
-          placeholder="Search zones..."
-          className="w-64 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 pr-16"
-          value={searchItem}
-          onChange={(e) => setSearchItem(e.target.value)}
-        />
+    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-4">
+      <div className="relative">
+        <div
+          className={`relative flex items-center bg-white rounded-xl border-2 transition-all duration-200 ${
+            isFocused
+              ? "border-blue-500 shadow-md"
+              : "border-gray-200 hover:border-gray-300"
+          }`}
+        >
+          {/* Search icon */}
+          <Search
+            size={20}
+            className={`absolute left-3 transition-colors duration-200 ${
+              isFocused ? "text-blue-500" : "text-gray-400"
+            }`}
+          />
 
-        {/* Clear button */}
-        {searchItem && (
-          <button
-            onClick={clearSearch}
-            className="absolute right-12 text-gray-400 hover:text-gray-600 p-1"
-            aria-label="Clear search"
-          >
-            <X size={16} />
-          </button>
-        )}
+          {/* Input field */}
+          <input
+            type="text"
+            placeholder="Search zones..."
+            className="w-full pl-10 pr-10 py-3 bg-transparent border-none rounded-xl focus:outline-none text-gray-700 placeholder-gray-400"
+            value={searchItem}
+            onChange={(e) => setSearchItem(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          />
 
-        {/* Search icon */}
-        <Search
-          size={20}
-          className="absolute right-4 text-gray-500 pointer-events-none"
-        />
+          {/* Clear button */}
+          {searchItem && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 p-1 text-gray-400 hover:text-gray-600 transition-colors duration-200 hover:bg-gray-100 rounded-full"
+              aria-label="Clear search"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ export function DashboardLayout({ children, personId }: DashboardLayoutProps) {
     >
       <Sidebar />
 
-      <div className="max-w-7xl mx-auto">{children}</div>
+      <div className="size-auto mx-auto">{children}</div>
     </div>
   );
 }
