@@ -1,10 +1,10 @@
-import EncryptionService from "@/app/services/encryption/encryptionService";
+import ApiClient from "../encryption/apiClient";
 import {
   SendOtpPayload,
   SendOtpResponse,
   VerifyOtpPayload,
   VerifyOtpResponse,
-} from "@/app/types/apiEndpoints";
+} from "../../types/apiEndpoints";
 
 class MyMMOApiPhone {
   /**
@@ -13,7 +13,7 @@ class MyMMOApiPhone {
    */
   static async sendOtp(payload: SendOtpPayload): Promise<SendOtpResponse> {
     try {
-      const response = await EncryptionService.secureApiCall<SendOtpResponse>(
+      const response = await ApiClient.secureApiCall<SendOtpResponse>(
         "/service/mymmo-service/sendOtp",
         payload
       );
@@ -33,7 +33,7 @@ class MyMMOApiPhone {
     payload: VerifyOtpPayload
   ): Promise<VerifyOtpResponse> {
     try {
-      const response = await EncryptionService.secureApiCall<VerifyOtpResponse>(
+      const response = await ApiClient.secureApiCall<VerifyOtpResponse>(
         "/service/mymmo-service/verifyOtp",
         payload
       );

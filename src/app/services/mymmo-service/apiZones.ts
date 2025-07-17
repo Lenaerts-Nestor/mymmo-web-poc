@@ -11,6 +11,7 @@ import {
   UpdateZonePayload,
   UpdateZoneResponse,
 } from "../../types/apiEndpoints";
+import ApiClient from "../encryption/apiClient";
 
 class MyMMOApiZone {
   /**
@@ -29,13 +30,12 @@ class MyMMOApiZone {
     };
 
     try {
-      const response =
-        await EncryptionService.secureApiCall<GetZonesByPersonResponse>(
-          "/service/mymmo-service/getZonesByPerson",
-          payload,
-          8 * 60 * 1000, // 8 minutes cache - zones don't change frequently
-          true // Enable caching
-        );
+      const response = await ApiClient.secureApiCall<GetZonesByPersonResponse>(
+        "/service/mymmo-service/getZonesByPerson",
+        payload,
+        8 * 60 * 1000, // 8 minutes cache - zones don't change frequently
+        true // Enable caching
+      );
       return response;
     } catch (error) {
       console.error("getZonesByPerson failed:", error);
@@ -51,13 +51,12 @@ class MyMMOApiZone {
     payload: GetZonesListPayload
   ): Promise<GetZonesListResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<GetZonesListResponse>(
-          "/service/mymmo-service/getZonesList",
-          payload,
-          5 * 60 * 1000, // 5 minutes cache
-          true // Enable caching
-        );
+      const response = await ApiClient.secureApiCall<GetZonesListResponse>(
+        "/service/mymmo-service/getZonesList",
+        payload,
+        5 * 60 * 1000, // 5 minutes cache
+        true // Enable caching
+      );
       return response;
     } catch (error) {
       console.error("getZonesList failed:", error);
@@ -73,13 +72,12 @@ class MyMMOApiZone {
     payload: GetZonesByFilterPayload
   ): Promise<GetZonesByFilterResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<GetZonesByFilterResponse>(
-          "/service/mymmo-service/getZonesByFilter",
-          payload,
-          5 * 60 * 1000, // 5 minutes cache
-          true // Enable caching
-        );
+      const response = await ApiClient.secureApiCall<GetZonesByFilterResponse>(
+        "/service/mymmo-service/getZonesByFilter",
+        payload,
+        5 * 60 * 1000, // 5 minutes cache
+        true // Enable caching
+      );
       return response;
     } catch (error) {
       console.error("getZonesByFilter failed:", error);
@@ -95,16 +93,15 @@ class MyMMOApiZone {
     payload: CreateZonePayload
   ): Promise<CreateZoneResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<CreateZoneResponse>(
-          "/service/mymmo-service/createZone",
-          payload,
-          0, // No cache for write operations
-          false // Disable caching
-        );
+      const response = await ApiClient.secureApiCall<CreateZoneResponse>(
+        "/service/mymmo-service/createZone",
+        payload,
+        0, // No cache for write operations
+        false // Disable caching
+      );
 
       // Clear relevant caches after creating a zone
-      EncryptionService.clearResponseCache();
+      ApiClient.clearResponseCache();
 
       return response;
     } catch (error) {
@@ -121,16 +118,15 @@ class MyMMOApiZone {
     payload: UpdateZonePayload
   ): Promise<UpdateZoneResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<UpdateZoneResponse>(
-          "/service/mymmo-service/updateZone",
-          payload,
-          0, // No cache for write operations
-          false // Disable caching
-        );
+      const response = await ApiClient.secureApiCall<UpdateZoneResponse>(
+        "/service/mymmo-service/updateZone",
+        payload,
+        0, // No cache for write operations
+        false // Disable caching
+      );
 
       // Clear relevant caches after updating a zone
-      EncryptionService.clearResponseCache();
+      ApiClient.clearResponseCache();
 
       return response;
     } catch (error) {

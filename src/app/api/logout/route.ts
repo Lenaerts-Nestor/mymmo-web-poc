@@ -1,11 +1,11 @@
 // src/app/api/auth/logout/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import EncryptionService from "../../services/encryption/encryptionService";
+import ApiClient from "@/app/services/encryption/apiClient";
 
 export async function POST(request: NextRequest) {
   try {
     // Clear the OAuth token cache in encryption service
-    EncryptionService.clearTokenCache();
+    ApiClient.clearTokenCache();
 
     // Clear session cookie
     const response = NextResponse.json({

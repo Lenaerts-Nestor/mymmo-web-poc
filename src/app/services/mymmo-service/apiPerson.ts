@@ -1,4 +1,4 @@
-import EncryptionService from "../encryption/encryptionService";
+import ApiClient from "../encryption/apiClient";
 import {
   CreatePersonPayload,
   CreatePersonResponse,
@@ -17,11 +17,10 @@ class MyMMOApiPerson {
     payload: CreatePersonPayload
   ): Promise<CreatePersonResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<CreatePersonResponse>(
-          "/service/mymmo-service/createPerson",
-          payload
-        );
+      const response = await ApiClient.secureApiCall<CreatePersonResponse>(
+        "/service/mymmo-service/createPerson",
+        payload
+      );
       return response;
     } catch (error) {
       console.error("createPerson failed:", error);
@@ -37,11 +36,10 @@ class MyMMOApiPerson {
     payload: UpdatePersonPayload
   ): Promise<UpdatePersonResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<UpdatePersonResponse>(
-          "/service/mymmo-service/updatePerson",
-          payload
-        );
+      const response = await ApiClient.secureApiCall<UpdatePersonResponse>(
+        "/service/mymmo-service/updatePerson",
+        payload
+      );
       return response;
     } catch (error) {
       console.error("updatePerson failed:", error);
@@ -58,7 +56,7 @@ class MyMMOApiPerson {
   ): Promise<DeletePersonAccountResponse> {
     try {
       const response =
-        await EncryptionService.secureApiCall<DeletePersonAccountResponse>(
+        await ApiClient.secureApiCall<DeletePersonAccountResponse>(
           "/service/mymmo-service/deletePersonAccount",
           payload
         );

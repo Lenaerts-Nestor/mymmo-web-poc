@@ -1,4 +1,4 @@
-import EncryptionService from "../encryption/encryptionService";
+import ApiClient from "../encryption/apiClient";
 import {
   GetAllPropertiesPayload,
   GetAllPropertiesResponse,
@@ -15,11 +15,10 @@ class MyMMOApiProperties {
     payload: GetAllPropertiesPayload
   ): Promise<GetAllPropertiesResponse> {
     try {
-      const response =
-        await EncryptionService.secureApiCall<GetAllPropertiesResponse>(
-          "/service/mymmo-service/getAllProperties",
-          payload
-        );
+      const response = await ApiClient.secureApiCall<GetAllPropertiesResponse>(
+        "/service/mymmo-service/getAllProperties",
+        payload
+      );
       return response;
     } catch (error) {
       console.error("getAllProperties failed:", error);
@@ -36,7 +35,7 @@ class MyMMOApiProperties {
   ): Promise<GetActivePropertiesResponse> {
     try {
       const response =
-        await EncryptionService.secureApiCall<GetActivePropertiesResponse>(
+        await ApiClient.secureApiCall<GetActivePropertiesResponse>(
           "/service/mymmo-service/getActiveProperties",
           payload
         );
