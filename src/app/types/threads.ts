@@ -1,4 +1,4 @@
-// src/app/types/threads.ts
+// src/app/types/threads.ts - UPDATED WITH TOGGLE SUPPORT
 
 import { ApiResponseWrapper } from "./apiEndpoints";
 
@@ -69,6 +69,7 @@ export interface ThreadCardProps {
   thread: Thread;
   currentPersonId: number;
   onClick?: (threadId: string) => void;
+  isHighlighted?: boolean; // Add highlighting support
 }
 
 export interface ThreadsListProps {
@@ -76,20 +77,6 @@ export interface ThreadsListProps {
   currentPersonId: number;
   isLoading: boolean;
   onThreadClick?: (threadId: string) => void;
-}
-
-// ===== COMPONENT PROPS =====
-export interface ThreadCardProps {
-  thread: Thread;
-  currentPersonId: number;
-  onClick?: (threadId: string) => void;
-  isHighlighted?: boolean; // NEW: Add highlighting support
-}
-
-export interface ThreadsListProps {
-  threads: Thread[];
-  currentPersonId: number;
-  isLoading: boolean;
-  onThreadClick?: (threadId: string) => void;
-  highlightThreadId?: string | null; // NEW: Add highlighting support
+  highlightThreadId?: string | null; // Add highlighting support
+  showAllThreads?: boolean; // 🆕 NEW: Add toggle support for filtering
 }

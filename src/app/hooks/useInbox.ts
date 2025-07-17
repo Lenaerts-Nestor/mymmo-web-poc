@@ -1,6 +1,7 @@
-// src/app/hooks/useInbox.ts
+// src/app/hooks/useInbox.ts - PERFORMANCE OPTIMIZED
 
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { InboxData, UseInboxResult } from "../types/inbox";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
 import MyMMOApiThreads from "../services/mymmo-thread-service/apiThreads";
@@ -10,10 +11,36 @@ export function useInbox(
   personId: string,
   translationLang: string
 ): UseInboxResult {
+  const [isVisible, setIsVisible] = useState(true);
+
+  // 🎯 OPTIMIZED: Page visibility detection for smarter polling
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden);
+
+      // Debug logging voor performance monitoring
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "🔍 [INBOX] Page visibility changed:",
+          !document.hidden ? "VISIBLE" : "HIDDEN"
+        );
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["inbox", personId, translationLang],
     queryFn: async (): Promise<InboxData> => {
       const personIdNum = parseInt(personId);
+
+      // Debug logging voor API call monitoring
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 [INBOX] API call triggered for person:", personIdNum);
+      }
 
       // Step 1: Get all zones for this person
       const zonesResponse = await MyMMOApiZone.getZonesByPerson(
@@ -101,6 +128,14 @@ export function useInbox(
         0
       );
 
+      // Debug logging voor resultaat monitoring
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 [INBOX] Inbox data loaded:", {
+          itemsCount: inboxItems.length,
+          totalUnreadCount,
+        });
+      }
+
       return {
         items: inboxItems,
         totalUnreadCount,
@@ -108,14 +143,17 @@ export function useInbox(
       };
     },
 
-    //! dit is voor de snelheid van het aanroepen van de inbox messages, als je wilt dat de inbox messages sneller worden opgehaald, dan moet je deze waardes aanpassen
-    //! opletten dat de inbox messages niet te vaak worden opgehaald, want dan krijg je een error van de API
-
-    // Refresh every 10 seconds like threads
+    // 🎯 OPTIMIZED POLLING CONFIGURATION
+    // ⚡ PERFORMANCE: Verhoogd van 30s naar 45s voor minder API load
     staleTime: 0,
     gcTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: POLLING_INTERVALS.INBOX, // 30 seconds
-    refetchIntervalInBackground: true,
+
+    // ⚡ PERFORMANCE: Gebruik optimized interval (45s instead of 30s)
+    refetchInterval: isVisible ? POLLING_INTERVALS.INBOX : false,
+
+    // 🎯 OPTIMIZED: Geen background polling voor betere performance
+    refetchIntervalInBackground: false,
+
     refetchOnWindowFocus: true,
     refetchOnMount: true,
 
@@ -133,6 +171,18 @@ export function useInbox(
   const errorMessage = error
     ? "Fout bij het laden van inbox. Probeer het opnieuw."
     : null;
+
+  // Performance logging in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("🔍 [INBOX] Polling status:", {
+        enabled: isVisible,
+        interval: isVisible ? POLLING_INTERVALS.INBOX : "DISABLED",
+        itemsCount: inboxData.items.length,
+        totalUnreadCount: inboxData.totalUnreadCount,
+      });
+    }
+  }, [isVisible, inboxData.items.length, inboxData.totalUnreadCount]);
 
   return {
     inboxData,

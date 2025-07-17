@@ -1,4 +1,4 @@
-// src/app/components/threads/ThreadsList.tsx - Improved Design
+// src/app/components/threads/ThreadsList.tsx - WITH TOGGLE FILTERING
 
 import { ThreadsListProps } from "@/app/types/threads";
 import { ThreadCard } from "./ThreadCard";
@@ -7,9 +7,10 @@ import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 import MyMMOApiThreads from "@/app/services/mymmo-thread-service/apiThreads";
 
-// Updated interface to include highlighting
+// Updated interface to include highlighting and toggle
 interface ExtendedThreadsListProps extends ThreadsListProps {
   highlightThreadId?: string | null;
+  showAllThreads?: boolean; // 🆕 TOGGLE PROP
 }
 
 function ThreadsListSkeleton() {
@@ -51,15 +52,20 @@ function ThreadsListSkeleton() {
   );
 }
 
-function EmptyThreadsState() {
+// 🆕 EMPTY STATE COMPONENT - Updated for toggle context
+function EmptyThreadsState({ showAllThreads }: { showAllThreads: boolean }) {
   return (
     <div className="text-center py-16">
-      <div className="text-8xl mb-6">💬</div>
+      <div className="text-8xl mb-6">{showAllThreads ? "💬" : "📬"}</div>
       <h2 className="text-3xl font-bold mb-4 text-gray-700">
-        Geen conversaties gevonden
+        {showAllThreads
+          ? "Geen conversaties gevonden"
+          : "Geen ongelezen conversaties"}
       </h2>
       <p className="text-lg text-gray-500 mb-4">
-        Er zijn nog geen conversaties in deze zone.
+        {showAllThreads
+          ? "Er zijn nog geen conversaties in deze zone."
+          : "Alle conversaties zijn gelezen. Gebruik 'Alle conversaties' om alle threads te bekijken."}
       </p>
       <div className="inline-flex items-center space-x-2 text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -75,6 +81,7 @@ export function ThreadsList({
   isLoading,
   onThreadClick,
   highlightThreadId,
+  showAllThreads = true, // 🆕 DEFAULT: Show all threads
 }: ExtendedThreadsListProps) {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -123,19 +130,30 @@ export function ThreadsList({
 
   if (isLoading) return <ThreadsListSkeleton />;
 
-  if (threads.length === 0) {
+  // 🆕 APPLY FILTER: Filter threads based on toggle
+  let filteredThreads = threads;
+  if (!showAllThreads) {
+    filteredThreads = threads.filter((thread) => thread.unread_count > 0);
+  }
+
+  if (filteredThreads.length === 0) {
     return (
       <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
-        <EmptyThreadsState />
+        <EmptyThreadsState showAllThreads={showAllThreads} />
       </div>
     );
   }
 
-  // Calculate total unread messages
-  const totalUnreadCount = threads.reduce(
+  // Calculate total unread messages from filtered threads
+  const totalUnreadCount = filteredThreads.reduce(
     (sum, thread) => sum + thread.unread_count,
     0
   );
+
+  // Calculate statistics
+  const threadsWithUnreadCount = filteredThreads.filter(
+    (thread) => thread.unread_count > 0
+  ).length;
 
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
@@ -144,7 +162,8 @@ export function ThreadsList({
         {/* Left side - Title and Stats */}
         <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Conversaties ({threads.length})
+            {showAllThreads ? "Alle Conversaties" : "Ongelezen Conversaties"} (
+            {filteredThreads.length})
           </h2>
 
           <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -156,7 +175,16 @@ export function ThreadsList({
                 <span>•</span>
               </>
             )}
-            <span>Alle actieve conversaties in deze zone</span>
+            <span>
+              💬 {threadsWithUnreadCount} van {threads.length} conversaties
+              heeft ongelezen berichten
+            </span>
+            {!showAllThreads && (
+              <>
+                <span>•</span>
+                <span>🔍 Gefilterd op ongelezen</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -189,7 +217,7 @@ export function ThreadsList({
 
       {/* Threads grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {threads.map((thread) => (
+        {filteredThreads.map((thread) => (
           <ThreadCard
             key={thread._id}
             thread={thread}

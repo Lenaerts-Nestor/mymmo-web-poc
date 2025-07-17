@@ -1,4 +1,4 @@
-// src/app/(dashboard)/conversations/[personId]/[zoneId]/page.tsx - Improved Design
+// src/app/(dashboard)/conversations/[personId]/[zoneId]/page.tsx - WITH TOGGLE
 
 "use client";
 
@@ -59,51 +59,86 @@ function ConversationsContent({
     null
   );
 
-  const { threads, isLoading, error, refetch } = useThreads(
-    personId,
-    zoneId,
-    translationLang
-  );
+  // 🆕 TOGGLE STATE: Voor alle vs alleen ongelezen conversaties
+  const [showAllThreads, setShowAllThreads] = useState(true); // Standaard alle threads
 
-  // Handle thread highlighting from inbox navigation
+  // 🎯 PERFORMANCE: Track if this is an active chat page
+  const [isActivePage, setIsActivePage] = useState(true);
+
+  // Handle highlight from inbox navigation
   useEffect(() => {
-    const highlightParam = searchParams.get("highlight");
-    const storedHighlightId = localStorage.getItem("highlightThreadId");
+    const highlight = searchParams.get("highlight");
+    if (highlight) {
+      setHighlightThreadId(highlight);
 
-    if (highlightParam) {
-      setHighlightThreadId(highlightParam);
-      // Clear the URL parameter after setting highlight
-      const url = new URL(window.location.href);
-      url.searchParams.delete("highlight");
-      window.history.replaceState({}, "", url);
-    } else if (storedHighlightId) {
-      setHighlightThreadId(storedHighlightId);
-    }
-
-    // Clear localStorage highlight after a few seconds
-    if (storedHighlightId) {
-      const timeout = setTimeout(() => {
+      // Clear highlight from localStorage if it exists
+      const storedHighlight = localStorage.getItem("highlightThreadId");
+      if (storedHighlight) {
         localStorage.removeItem("highlightThreadId");
+      }
+
+      // Clear highlight after 3 seconds
+      const timer = setTimeout(() => {
         setHighlightThreadId(null);
       }, 3000);
-      return () => clearTimeout(timeout);
+
+      return () => clearTimeout(timer);
+    }
+
+    // Check for highlight in localStorage (from inbox)
+    const storedHighlight = localStorage.getItem("highlightThreadId");
+    if (storedHighlight) {
+      setHighlightThreadId(storedHighlight);
+      localStorage.removeItem("highlightThreadId");
+
+      // Clear highlight after 3 seconds
+      const timer = setTimeout(() => {
+        setHighlightThreadId(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 
-  // Store selected zone in localStorage for persistence
+  // 🎯 PERFORMANCE: Track page activity for smart polling
   useEffect(() => {
-    localStorage.setItem("selectedZoneId", zoneId);
-  }, [zoneId]);
+    const handleFocus = () => setIsActivePage(true);
+    const handleBlur = () => setIsActivePage(false);
+    const handleVisibilityChange = () => {
+      setIsActivePage(!document.hidden);
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  // 🎯 OPTIMIZED: Use context-aware polling for threads
+  const { threads, isLoading, error, refetch } = useThreads(
+    personId,
+    zoneId,
+    translationLang,
+    isActivePage // Pass activity context for smart polling
+  );
 
   const handleThreadClick = (threadId: string) => {
-    // For now, just log the click - messaging will be implemented later
-    console.log("Thread clicked:", threadId);
-    // TODO: Navigate to individual thread/conversation page
-    // router.push(`/conversations/${personId}/${zoneId}/thread/${threadId}`);
+    // Navigate to specific thread
+    router.push(`/conversations/${personId}/${zoneId}/thread/${threadId}`);
   };
 
   const handleBackToZones = () => {
     router.push(`/zones/${personId}`);
+  };
+
+  // 🆕 TOGGLE HANDLER
+  const handleToggleChange = (showAll: boolean) => {
+    setShowAllThreads(showAll);
   };
 
   if (isLoading) {
@@ -135,6 +170,15 @@ function ConversationsContent({
             threadsCount={threads.length}
             highlightThreadId={highlightThreadId}
             onBackToZones={handleBackToZones}
+            isActivePage={isActivePage}
+          />
+        </div>
+
+        {/* 🆕 TOGGLE SECTION */}
+        <div className="mb-6">
+          <ConversationsToggle
+            showAllThreads={showAllThreads}
+            onToggleChange={handleToggleChange}
           />
         </div>
 
@@ -145,12 +189,14 @@ function ConversationsContent({
           isLoading={isLoading}
           onThreadClick={handleThreadClick}
           highlightThreadId={highlightThreadId}
+          showAllThreads={showAllThreads} // 🆕 PASS TOGGLE STATE
         />
       </div>
     </div>
   );
 }
 
+// CONVERSATIONS HEADER COMPONENT (unchanged)
 function ConversationsHeader({
   personId,
   zoneId,
@@ -158,6 +204,7 @@ function ConversationsHeader({
   threadsCount,
   highlightThreadId,
   onBackToZones,
+  isActivePage,
 }: {
   personId: string;
   zoneId: string;
@@ -165,48 +212,120 @@ function ConversationsHeader({
   threadsCount: number;
   highlightThreadId: string | null;
   onBackToZones: () => void;
+  isActivePage: boolean;
 }) {
   return (
-    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-        {/* Left side - Navigation and Title */}
-        <div>
-          <button
-            onClick={onBackToZones}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-3 flex items-center space-x-2 transition-colors"
-          >
-            <span>←</span>
-            <span>Terug naar zones</span>
-          </button>
-
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
+    <div className="bg-white/70 rounded-2xl p-6 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-stone-800 mb-2">
             Conversaties
           </h1>
-
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-              Zone {zoneId}
+          <div className="flex items-center gap-4 text-sm text-stone-600">
+            <span>
+              {threadsCount} thread{threadsCount === 1 ? "" : "s"}
             </span>
-            <span>•</span>
-            <span>{threadsCount} conversaties gevonden</span>
-            <span>•</span>
-            <span>Taal: {translationLang.toUpperCase()}</span>
+            {highlightThreadId && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                Nieuw bericht gemarkeerd
+              </span>
+            )}
+            {/* 🎯 PERFORMANCE: Show polling status in development */}
+            {process.env.NODE_ENV === "development" && (
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  isActivePage
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {isActivePage
+                  ? "⚡ Fast polling (5s)"
+                  : "🐌 Slow polling (60s)"}
+              </span>
+            )}
           </div>
-
-          {highlightThreadId && (
-            <p className="text-sm text-blue-600 mt-2 bg-blue-50 px-3 py-1 rounded-full inline-block">
-              🔍 Gemarkeerde conversatie: {highlightThreadId}
-            </p>
-          )}
         </div>
 
-        {/* Right side - Status */}
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-500">Live updates</span>
+        <button
+          onClick={onBackToZones}
+          className="px-4 py-2 text-stone-600 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition-colors"
+        >
+          ← Terug naar zones
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 🆕 CONVERSATIONS TOGGLE COMPONENT
+function ConversationsToggle({
+  showAllThreads,
+  onToggleChange,
+}: {
+  showAllThreads: boolean;
+  onToggleChange: (showAll: boolean) => void;
+}) {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleToggle = () => {
+    setIsAnimating(true);
+    onToggleChange(!showAllThreads);
+
+    // Reset animation after a brief delay
+    setTimeout(() => setIsAnimating(false), 200);
+  };
+
+  return (
+    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-4 w-full max-w-xl">
+      <div className="flex items-center space-x-4">
+        <span className="text-sm font-medium text-gray-700">
+          Conversatie weergave:
+        </span>
+
+        <div className="flex items-center space-x-3">
+          {/* Toggle switch */}
+          <button
+            onClick={handleToggle}
+            className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              showAllThreads ? "bg-blue-600" : "bg-gray-400"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-200 ease-in-out shadow-sm ${
+                showAllThreads ? "translate-x-7" : "translate-x-1"
+              } ${isAnimating ? "scale-105" : ""}`}
+            />
+          </button>
+
+          {/* Labels */}
+          <div className="flex items-center space-x-3">
+            <span
+              className={`text-sm ${
+                !showAllThreads
+                  ? "font-semibold text-gray-900"
+                  : "text-gray-500"
+              }`}
+            >
+              💬 Alleen ongelezen conversaties
+            </span>
+            <span className="text-gray-300">|</span>
+            <span
+              className={`text-sm ${
+                showAllThreads ? "font-semibold text-gray-900" : "text-gray-500"
+              }`}
+            >
+              📋 Alle conversaties
+            </span>
           </div>
         </div>
+      </div>
+
+      {/* Status indicator */}
+      <div className="mt-2 text-xs text-gray-500">
+        {showAllThreads
+          ? "Alle conversaties worden getoond"
+          : "Alleen conversaties met ongelezen berichten worden getoond"}
       </div>
     </div>
   );

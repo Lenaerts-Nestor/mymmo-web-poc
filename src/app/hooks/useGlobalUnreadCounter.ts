@@ -1,4 +1,4 @@
-// src/app/hooks/useGlobalUnreadCounter.ts
+// src/app/hooks/useGlobalUnreadCounter.ts - PERFORMANCE OPTIMIZED
 
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -20,10 +20,18 @@ export function useGlobalUnreadCounter(
 ): GlobalUnreadCounterResult {
   const [isVisible, setIsVisible] = useState(true);
 
-  // Handle page visibility for efficient polling
+  // 🎯 OPTIMIZED: Enhanced page visibility detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       setIsVisible(!document.hidden);
+
+      // Debug logging voor performance monitoring
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "🔍 [GLOBAL_COUNTER] Page visibility changed:",
+          !document.hidden ? "VISIBLE" : "HIDDEN"
+        );
+      }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -35,6 +43,14 @@ export function useGlobalUnreadCounter(
     queryKey: ["globalUnreadCounter", personId, translationLang],
     queryFn: async (): Promise<number> => {
       const personIdNum = parseInt(personId);
+
+      // Debug logging voor API call monitoring
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          "🔍 [GLOBAL_COUNTER] API call triggered for person:",
+          personIdNum
+        );
+      }
 
       try {
         // Step 1: Get all zones for this person
@@ -77,6 +93,14 @@ export function useGlobalUnreadCounter(
           .flat()
           .reduce((sum, thread) => sum + thread.unread_count, 0);
 
+        // Debug logging voor resultaat monitoring
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "🔍 [GLOBAL_COUNTER] Total unread count:",
+            totalUnreadCount
+          );
+        }
+
         return totalUnreadCount;
       } catch (error) {
         console.error("Global unread counter failed:", error);
@@ -84,11 +108,17 @@ export function useGlobalUnreadCounter(
       }
     },
 
+    // 🎯 OPTIMIZED POLLING CONFIGURATION
     staleTime: 0,
     gcTime: 60 * 1000, // 1 minute
+
+    // ⚡ PERFORMANCE: Gebruik optimized interval (60s instead of 30s)
     refetchInterval:
-      enablePolling && isVisible ? POLLING_INTERVALS.GLOBAL_COUNTER : false, // 30 seconds when visible
-    refetchIntervalInBackground: false, // Don't poll in background
+      enablePolling && isVisible ? POLLING_INTERVALS.GLOBAL_COUNTER : false,
+
+    // 🎯 OPTIMIZED: Geen background polling voor betere performance
+    refetchIntervalInBackground: false,
+
     refetchOnWindowFocus: true,
     refetchOnMount: true,
 
@@ -99,6 +129,20 @@ export function useGlobalUnreadCounter(
 
   const totalUnreadCount = data || 0;
   const errorMessage = error ? "Fout bij unread counter" : null;
+
+  // Performance logging in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("🔍 [GLOBAL_COUNTER] Polling status:", {
+        enabled: enablePolling && isVisible,
+        interval:
+          enablePolling && isVisible
+            ? POLLING_INTERVALS.GLOBAL_COUNTER
+            : "DISABLED",
+        unreadCount: totalUnreadCount,
+      });
+    }
+  }, [enablePolling, isVisible, totalUnreadCount]);
 
   return {
     totalUnreadCount,
