@@ -1,6 +1,6 @@
 // src/app/api/auth/logout/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import EncryptionService from "../encryption/encryptionService";
+import EncryptionService from "../../services/encryption/encryptionService";
 
 export async function POST(request: NextRequest) {
   try {

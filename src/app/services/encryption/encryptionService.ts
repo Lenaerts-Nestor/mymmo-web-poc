@@ -10,7 +10,7 @@ class EncryptionService {
     expiresAt: number;
   } | null = null;
 
-  // API Response Cache for better performance
+  // OPTIMIZED: Different cache strategies for different data types
   private static responseCache = new Map<
     string,
     {
@@ -20,6 +20,54 @@ class EncryptionService {
     }
   >();
 
+  // OPTIMIZED: Cache configuration types
+  private static readonly CACHE_CONFIG: Record<
+    string,
+    { ttl: number; useCache: boolean }
+  > = {
+    // Real-time data - short cache
+    "/service/mymmo-thread-service/getThreads": {
+      ttl: 5 * 1000, // 5 seconds only
+      useCache: true,
+    },
+    // Semi-static data - medium cache
+    "/service/mymmo-service/getZonesByPerson": {
+      ttl: 2 * 60 * 1000, // 2 minutes
+      useCache: true,
+    },
+    // Static data - long cache
+    "/service/mymmo-service/getAllProperties": {
+      ttl: 10 * 60 * 1000, // 10 minutes
+      useCache: true,
+    },
+    // Write operations - no cache
+    "/service/mymmo-service/createZone": {
+      ttl: 0,
+      useCache: false,
+    },
+    "/service/mymmo-service/updateZone": {
+      ttl: 0,
+      useCache: false,
+    },
+  };
+
+  /**
+   * OPTIMIZED: Clear cache by endpoint pattern
+   */
+  static clearCacheByPattern(pattern: string): void {
+    const keysToDelete = Array.from(this.responseCache.keys()).filter((key) =>
+      key.includes(pattern)
+    );
+
+    keysToDelete.forEach((key) => {
+      this.responseCache.delete(key);
+    });
+
+    console.log(
+      `EncryptionService: Cleared ${keysToDelete.length} cache entries for pattern: ${pattern}`
+    );
+  }
+
   /**
    * Clear response cache (useful for testing or forced refresh)
    */
@@ -28,47 +76,87 @@ class EncryptionService {
   }
 
   /**
-   * Get cached response if available and valid
+   * OPTIMIZED: Smart cache key generation
    */
-  private static getCachedResponse<T>(cacheKey: string): T | null {
+  private static generateCacheKey(endpoint: string, payload: any): string {
+    // For threads, include timestamp to prevent stale data
+    if (endpoint.includes("getThreads")) {
+      const { zoneId, personId, type, transLangId } = payload;
+      return `${endpoint}:${zoneId}:${personId}:${type}:${transLangId}`;
+    }
+
+    // For other endpoints, use full payload
+    return `${endpoint}:${JSON.stringify(payload)}`;
+  }
+
+  /**
+   * OPTIMIZED: Get cached response with better logic
+   */
+  private static getCachedResponse<T>(
+    cacheKey: string,
+    endpoint: string
+  ): T | null {
     const cached = this.responseCache.get(cacheKey);
+    const config = this.CACHE_CONFIG[endpoint] || {
+      ttl: 5 * 60 * 1000,
+      useCache: true,
+    };
+
+    if (!config.useCache) {
+      return null;
+    }
 
     if (cached && Date.now() < cached.timestamp + cached.ttl) {
-      console.log("EncryptionService: Using cached response for", cacheKey);
+      console.log(`EncryptionService: Cache HIT for ${endpoint}`);
       return cached.data;
     }
 
     if (cached) {
       // Remove expired cache entry
       this.responseCache.delete(cacheKey);
+      console.log(`EncryptionService: Cache EXPIRED for ${endpoint}`);
     }
 
     return null;
   }
 
   /**
-   * Cache response data
+   * OPTIMIZED: Cache response with endpoint-specific TTL
    */
   private static setCachedResponse(
     cacheKey: string,
     data: any,
-    ttl: number
+    endpoint: string
   ): void {
+    const config = this.CACHE_CONFIG[endpoint] || {
+      ttl: 5 * 60 * 1000,
+      useCache: true,
+    };
+
+    if (!config.useCache || config.ttl === 0) {
+      return;
+    }
+
     this.responseCache.set(cacheKey, {
       data,
       timestamp: Date.now(),
-      ttl,
+      ttl: config.ttl,
     });
+
+    console.log(
+      `EncryptionService: Cache SET for ${endpoint} (TTL: ${config.ttl}ms)`
+    );
   }
 
   /**
-   * Get OAuth token with 45-minute caching (via server-side API)
+   * OPTIMIZED: Get OAuth token with better caching
    */
   static async getOAuthToken(): Promise<string> {
     const now = Date.now();
+    const bufferTime = 2 * 60 * 1000; // 2 minutes buffer before expiry
 
-    // Check if we have a valid cached token
-    if (this.tokenCache && now < this.tokenCache.expiresAt) {
+    // Check if we have a valid cached token with buffer
+    if (this.tokenCache && now < this.tokenCache.expiresAt - bufferTime) {
       return this.tokenCache.token;
     }
 
@@ -87,16 +175,15 @@ class EncryptionService {
 
       const data: OAuthTokenResponse = await response.json();
 
-      // Cache the token with 45-minute expiration (aligned with session)
+      // Cache the token with 43-minute expiration (2 min buffer from 45 min)
       this.tokenCache = {
         token: data.token,
-        expiresAt: now + 45 * 60 * 1000, // 45 minutes from now
+        expiresAt: now + 43 * 60 * 1000,
       };
 
       return data.token;
     } catch (error) {
       console.error("OAuth token retrieval failed:", error);
-      // TODO: Replace with proper UI notification in next step
       alert("Authenticatie mislukt. Probeer het opnieuw.");
       throw error;
     }
@@ -126,7 +213,6 @@ class EncryptionService {
       return data.encrypted;
     } catch (error) {
       console.error("Data encryption failed:", error);
-      // TODO: Replace with proper UI notification in next step
       alert("Data versleuteling mislukt. Probeer het opnieuw.");
       throw error;
     }
@@ -156,7 +242,6 @@ class EncryptionService {
       return data.decrypted as T;
     } catch (error) {
       console.error("Data decryption failed:", error);
-      // TODO: Replace with proper UI notification in next step
       alert("Data ontsleuteling mislukt. Probeer het opnieuw.");
       throw error;
     }
@@ -205,24 +290,28 @@ class EncryptionService {
   }
 
   /**
-   * Complete secure API call flow with caching: encrypt → call → decrypt
-   * @param endpoint - API endpoint to call
-   * @param payload - Data to encrypt and send
-   * @param cacheTTL - Cache time-to-live in milliseconds (default: 5 minutes)
-   * @param useCache - Whether to use caching (default: true)
+   * OPTIMIZED: Complete secure API call flow with intelligent caching
    */
   static async secureApiCall<T>(
     endpoint: string,
     payload: any,
-    cacheTTL: number = 5 * 60 * 1000, // 5 minutes default
-    useCache: boolean = true
+    cacheTTL?: number, // Optional override
+    useCache?: boolean // Optional override
   ): Promise<T> {
-    // Create cache key based on endpoint and payload
-    const cacheKey = `${endpoint}:${JSON.stringify(payload)}`;
+    // Use endpoint-specific config or provided overrides
+    const config = this.CACHE_CONFIG[endpoint] || {
+      ttl: 5 * 60 * 1000,
+      useCache: true,
+    };
+    const finalTTL = cacheTTL !== undefined ? cacheTTL : config.ttl;
+    const finalUseCache = useCache !== undefined ? useCache : config.useCache;
+
+    // Create optimized cache key
+    const cacheKey = this.generateCacheKey(endpoint, payload);
 
     // Check cache first if enabled
-    if (useCache) {
-      const cachedResult = this.getCachedResponse<T>(cacheKey);
+    if (finalUseCache && finalTTL > 0) {
+      const cachedResult = this.getCachedResponse<T>(cacheKey, endpoint);
       if (cachedResult) {
         return cachedResult;
       }
@@ -233,17 +322,36 @@ class EncryptionService {
       const result = await this.performSecureApiCall<T>(endpoint, payload);
 
       // Cache the result if enabled
-      if (useCache) {
-        this.setCachedResponse(cacheKey, result, cacheTTL);
+      if (finalUseCache && finalTTL > 0) {
+        this.setCachedResponse(cacheKey, result, endpoint);
+      }
+
+      // OPTIMIZED: Clear related caches for write operations
+      if (
+        endpoint.includes("create") ||
+        endpoint.includes("update") ||
+        endpoint.includes("delete")
+      ) {
+        this.clearCacheByPattern("getThreads");
+        this.clearCacheByPattern("getZonesByPerson");
       }
 
       return result;
     } catch (error) {
       console.error("Secure API call failed:", error);
-      // TODO: Replace with proper UI notification in next step
       alert("API aanroep mislukt. Probeer het opnieuw.");
       throw error;
     }
+  }
+
+  /**
+   * OPTIMIZED: Force refresh specific endpoint
+   */
+  static async forceRefresh<T>(endpoint: string, payload: any): Promise<T> {
+    const cacheKey = this.generateCacheKey(endpoint, payload);
+    this.responseCache.delete(cacheKey);
+
+    return this.secureApiCall<T>(endpoint, payload, 0, false);
   }
 
   /**

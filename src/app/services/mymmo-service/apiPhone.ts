@@ -1,4 +1,4 @@
-import EncryptionService from "@/app/api/encryption/encryptionService";
+import EncryptionService from "@/app/services/encryption/encryptionService";
 import {
   SendOtpPayload,
   SendOtpResponse,

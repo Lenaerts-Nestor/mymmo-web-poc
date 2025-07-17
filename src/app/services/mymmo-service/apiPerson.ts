@@ -1,4 +1,4 @@
-import EncryptionService from "../../api/encryption/encryptionService";
+import EncryptionService from "../encryption/encryptionService";
 import {
   CreatePersonPayload,
   CreatePersonResponse,

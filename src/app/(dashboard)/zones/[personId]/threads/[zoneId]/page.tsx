@@ -85,18 +85,23 @@ function ThreadsContent({
 
   return (
     <div className="w-full mx-auto">
-      {/* Header info */}
+      {/* Header info with polling status */}
       <div className="mb-6">
         <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Zone Conversaties
-          </h1>
-          <p className="text-gray-600 mb-2">
-            Zone ID: {zoneId} | Persoon ID: {personId}
-          </p>
-          <p className="text-sm text-gray-500">
-            Gevonden: {threads.length} threads | Translation: {translationLang}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                Zone Conversaties
+              </h1>
+              <p className="text-gray-600 mb-2">
+                Zone ID: {zoneId} | Persoon ID: {personId}
+              </p>
+              <p className="text-sm text-gray-500">
+                Gevonden: {threads.length} threads | Translation:{" "}
+                {translationLang}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

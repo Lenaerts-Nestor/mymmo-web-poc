@@ -22,7 +22,6 @@ export function useThreads(
       const personIdNum = parseInt(personId);
       const zoneIdNum = parseInt(zoneId);
 
-      // Call the threads API
       return await MyMMOApiThreads.getThreads({
         zoneId: zoneIdNum,
         personId: personIdNum,
@@ -30,16 +29,20 @@ export function useThreads(
         transLangId: transLangId,
       });
     },
-    staleTime: 1 * 60 * 1000, // 1 minute - threads change more frequently
-    gcTime: 5 * 60 * 1000, // 5 minutes - React Query garbage collection time
+
+    // OPTIMIZED FOR REAL-TIME FEEL
+    staleTime: 0,
+    gcTime: 2 * 60 * 1000,
+    refetchInterval: 10 * 1000,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
-    retry: 2,
+    refetchOnMount: true,
+
+    retry: 1,
+    retryDelay: 1000,
     enabled: !!personId && !!zoneId,
-    // Add refetch interval for real-time updates
-    refetchInterval: 30 * 1000, // 30 seconds - similar to CEO-POC pattern
   });
 
-  // Transform data or provide defaults
   const threads = data?.data || [];
   const errorMessage = error
     ? "Fout bij het laden van threads. Probeer het opnieuw."
