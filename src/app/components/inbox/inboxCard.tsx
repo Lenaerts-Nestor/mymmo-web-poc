@@ -1,4 +1,4 @@
-// src/app/components/inbox/InboxCard.tsx
+// src/app/components/inbox/inboxCard.tsx - Improved Design
 
 import { InboxCardProps } from "@/app/types/inbox";
 
@@ -53,17 +53,21 @@ export function InboxCard({ item, onClick }: InboxCardProps) {
   return (
     <div
       onClick={handleClick}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer hover:border-blue-300"
     >
       {/* Zone Header */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            {zoneName}
-          </h3>
-          <p className="text-sm text-gray-500 mb-2">{zoneDescription}</p>
+          <div className="flex items-center space-x-2 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">{zoneName}</h3>
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+              Zone {item.zoneId}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500">{zoneDescription}</p>
         </div>
-        <div className="flex items-center space-x-2">
+
+        <div className="flex items-center space-x-3">
           {/* Unread count badge */}
           <span className="bg-red-500 text-white text-sm px-3 py-1 rounded-full font-bold">
             {unreadCount}
@@ -75,9 +79,9 @@ export function InboxCard({ item, onClick }: InboxCardProps) {
       </div>
 
       {/* Message Content */}
-      <div className="flex items-start space-x-3">
+      <div className="flex items-start space-x-4">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
           {lastSender?.profilePic ? (
             <img
               src={lastSender.profilePic}
@@ -95,43 +99,43 @@ export function InboxCard({ item, onClick }: InboxCardProps) {
 
         {/* Message Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1">
+          <div className="flex items-center space-x-2 mb-2">
             <p className="text-sm font-semibold text-gray-800">
               {lastSender
                 ? `${lastSender.firstName} ${lastSender.lastName}`
                 : "Onbekend"}
             </p>
-            {/* Zone indicator */}
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-              Zone {item.zoneId}
-            </span>
+            {/* Message time */}
+            <p className="text-xs text-gray-400">
+              {formatDate(latestMessage.created_on)}
+            </p>
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {truncateText(latestMessage.text, 120)}
+
+          <p className="text-sm text-gray-700 leading-relaxed mb-3">
+            {truncateText(latestMessage.text, 150)}
           </p>
 
           {/* Communication group info (if available) */}
           {thread.communication_group.group_name && (
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 mb-2">
               Groep: {thread.communication_group.group_name}
             </p>
           )}
-        </div>
-      </div>
 
-      {/* Thread status indicator */}
-      <div className="flex justify-between items-center mt-4 pt-2 border-t border-gray-100">
-        <div className="flex items-center space-x-2">
-          {/* Dot indicator for unread */}
-          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-          <p className="text-xs text-gray-400">
-            {thread.followers.length} deelnemer
-            {thread.followers.length !== 1 ? "s" : ""}
-          </p>
+          {/* Action hint */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <p className="text-xs text-gray-400">
+                {thread.followers.length} deelnemer
+                {thread.followers.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <p className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+              Klik om naar conversatie te gaan →
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-gray-400">
-          Klik om naar conversatie te gaan
-        </p>
       </div>
     </div>
   );

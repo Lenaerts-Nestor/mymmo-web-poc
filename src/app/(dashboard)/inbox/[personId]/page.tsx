@@ -1,4 +1,4 @@
-// src/app/(dashboard)/inbox/[personId]/page.tsx
+// src/app/(dashboard)/inbox/[personId]/page.tsx - Responsive Design
 
 "use client";
 
@@ -92,19 +92,26 @@ function InboxContent({
   }
 
   return (
-    <div className="w-full mx-auto">
-      <InboxHeader
-        totalUnreadCount={inboxData.totalUnreadCount}
-        lastUpdated={inboxData.lastUpdated}
-        onManualRefresh={handleManualRefresh}
-        isRefreshing={isManualRefreshing}
-      />
+    <div className="w-full min-h-screen">
+      {/* Container with better width usage */}
+      <div className="w-full px-6 py-6">
+        {/* Header Section */}
+        <div className="mb-6">
+          <InboxHeader
+            totalUnreadCount={inboxData.totalUnreadCount}
+            lastUpdated={inboxData.lastUpdated}
+            onManualRefresh={handleManualRefresh}
+            isRefreshing={isManualRefreshing}
+          />
+        </div>
 
-      <InboxList
-        inboxData={inboxData}
-        isLoading={isLoading}
-        onItemClick={handleItemClick}
-      />
+        {/* Inbox List Section */}
+        <InboxList
+          inboxData={inboxData}
+          isLoading={isLoading}
+          onItemClick={handleItemClick}
+        />
+      </div>
     </div>
   );
 }

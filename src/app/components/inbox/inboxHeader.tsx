@@ -1,4 +1,4 @@
-// src/app/components/inbox/InboxHeader.tsx
+// src/app/components/inbox/inboxHeader.tsx - Improved Design
 
 import { RefreshCw } from "lucide-react";
 import { InboxHeaderProps } from "@/app/types/inbox";
@@ -30,17 +30,19 @@ export function InboxHeader({
   isRefreshing,
 }: InboxHeaderProps) {
   return (
-    <div className="bg-white/70 rounded-2xl shadow-lg p-6 mb-6 backdrop-blur-sm">
-      <div className="flex justify-between items-center">
+    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        {/* Left side - Title and Info */}
         <div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
             Inbox
             {totalUnreadCount > 0 && (
-              <span className="ml-4 bg-red-500 text-white text-xl px-4 py-1 rounded-full font-bold">
+              <span className="ml-3 bg-red-500 text-white text-xl px-3 py-1 rounded-full font-bold">
                 {totalUnreadCount}
               </span>
             )}
           </h1>
+
           <p className="text-gray-600 mb-2">
             {totalUnreadCount === 0
               ? "Geen ongelezen berichten"
@@ -48,12 +50,13 @@ export function InboxHeader({
                   totalUnreadCount === 1 ? "bericht" : "berichten"
                 } uit alle zones`}
           </p>
+
           <p className="text-sm text-gray-500">
             Laatste update: {formatLastUpdated(lastUpdated)}
           </p>
         </div>
 
-        {/* Status indicators and refresh button */}
+        {/* Right side - Controls */}
         <div className="flex items-center space-x-4">
           {/* Live status indicator */}
           <div className="flex items-center space-x-2">

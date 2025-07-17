@@ -1,4 +1,4 @@
-// src/app/components/inbox/InboxList.tsx
+// src/app/components/inbox/InboxList.tsx - Improved Design
 
 import { InboxData } from "@/app/types/inbox";
 import { InboxCard } from "./inboxCard";
@@ -15,7 +15,7 @@ function InboxListSkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse"
+          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 animate-pulse"
         >
           {/* Zone Header skeleton */}
           <div className="flex justify-between items-start mb-4">
@@ -58,15 +58,19 @@ function InboxListSkeleton() {
 
 function EmptyInboxState() {
   return (
-    <div className="text-center py-16 text-gray-500">
+    <div className="text-center py-16">
       <div className="text-8xl mb-6">📬</div>
-      <p className="text-3xl font-bold mb-4 text-gray-700">Inbox is leeg</p>
+      <h2 className="text-3xl font-bold mb-4 text-gray-700">Inbox is leeg</h2>
       <p className="text-lg text-gray-500 mb-2">
         Geen ongelezen berichten gevonden.
       </p>
       <p className="text-sm text-gray-400">
         Nieuwe berichten verschijnen hier automatisch.
       </p>
+      <div className="inline-flex items-center space-x-2 text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-full mt-6">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+        <span>Automatisch bijgewerkt</span>
+      </div>
     </div>
   );
 }
@@ -86,7 +90,7 @@ export function InboxList({
 
   if (inboxData.items.length === 0) {
     return (
-      <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
+      <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
         <EmptyInboxState />
       </div>
     );
@@ -94,15 +98,25 @@ export function InboxList({
 
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          Ongelezen berichten ({inboxData.items.length})
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Berichten uit alle zones, gesorteerd op nieuwste eerst
-        </p>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Ongelezen berichten ({inboxData.items.length})
+          </h2>
+          <p className="text-gray-600 text-sm">
+            Berichten uit alle zones, gesorteerd op nieuwste eerst
+          </p>
+        </div>
+
+        {/* Live indicator */}
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm text-gray-500">Live updates</span>
+        </div>
       </div>
 
+      {/* Messages list */}
       <div className="space-y-4">
         {inboxData.items.map((item) => (
           <InboxCard
