@@ -1,4 +1,4 @@
-// src/app/components/threads/ThreadCard.tsx - Updated with highlighting
+// src/app/components/threads/ThreadCard.tsx - Improved Design
 
 import { ThreadCardProps } from "@/app/types/threads";
 
@@ -60,13 +60,15 @@ export function ThreadCard({
     }
   };
 
-  // Dynamic styling based on highlight status
+  // Dynamic styling based on highlight status and unread status
   const cardClasses = `
-    bg-white rounded-lg shadow-sm p-4 cursor-pointer transition-all duration-200 border
+    bg-white rounded-2xl shadow-sm p-6 cursor-pointer transition-all duration-200 border
     ${
       isHighlighted
         ? "border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200"
-        : "border-gray-200 hover:shadow-md"
+        : thread.unread_count > 0
+        ? "border-red-200 hover:border-red-300 hover:shadow-md"
+        : "border-gray-200 hover:border-gray-300 hover:shadow-md"
     }
   `;
 
@@ -74,17 +76,17 @@ export function ThreadCard({
     <div onClick={handleClick} className={cardClasses}>
       {/* Highlight indicator */}
       {isHighlighted && (
-        <div className="flex items-center space-x-2 mb-3 text-blue-600">
+        <div className="flex items-center space-x-2 mb-3 text-blue-600 bg-blue-100 p-2 rounded-lg">
           <span className="text-sm">🔍</span>
           <span className="text-sm font-medium">Gemarkeerde conversatie</span>
         </div>
       )}
 
-      {/* Header with sender info and time */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-3">
+      {/* Header with sender info and unread badge */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3 flex-1">
           {/* Avatar */}
-          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
             {lastSender?.profilePic ? (
               <img
                 src={lastSender.profilePic}
@@ -100,9 +102,9 @@ export function ThreadCard({
             )}
           </div>
 
-          {/* Sender name */}
-          <div>
-            <p className="text-sm font-semibold text-gray-800">
+          {/* Sender info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-800 truncate">
               {lastSender
                 ? `${lastSender.firstName} ${lastSender.lastName}`
                 : "Onbekend"}
@@ -115,34 +117,37 @@ export function ThreadCard({
 
         {/* Unread count badge */}
         {thread.unread_count > 0 && (
-          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold flex-shrink-0">
             {thread.unread_count}
           </span>
         )}
       </div>
 
       {/* Message content */}
-      <div className="mb-2">
-        <p className="text-gray-800 text-sm leading-relaxed">
+      <div className="mb-4">
+        <p className="text-gray-700 text-sm leading-relaxed">
           {truncateText(latestMessage.text, 120)}
         </p>
       </div>
 
       {/* Communication group info (if available) */}
       {thread.communication_group.group_name && (
-        <div className="mt-3 pt-2 border-t border-gray-100">
+        <div className="mb-4 p-2 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500">
-            Groep: {thread.communication_group.group_name}
+            Groep:{" "}
+            <span className="font-medium">
+              {thread.communication_group.group_name}
+            </span>
           </p>
         </div>
       )}
 
-      {/* Thread status indicator */}
-      <div className="flex justify-between items-center mt-3">
+      {/* Footer with thread info */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
         <div className="flex items-center space-x-2">
-          {/* Dot indicator for unread */}
+          {/* Activity indicator */}
           {thread.dot && (
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
           )}
 
           {/* Followers count */}
@@ -152,13 +157,32 @@ export function ThreadCard({
           </p>
         </div>
 
-        {/* Highlight animation */}
-        {isHighlighted && (
-          <div className="flex items-center space-x-1 text-blue-600">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-            <span className="text-xs">Nieuw</span>
-          </div>
-        )}
+        {/* Status indicators */}
+        <div className="flex items-center space-x-2">
+          {/* Highlight animation */}
+          {isHighlighted && (
+            <div className="flex items-center space-x-1 text-blue-600">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+              <span className="text-xs font-medium">Nieuw</span>
+            </div>
+          )}
+
+          {/* Unread indicator */}
+          {thread.unread_count > 0 && !isHighlighted && (
+            <div className="flex items-center space-x-1 text-red-600">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium">Ongelezen</span>
+            </div>
+          )}
+
+          {/* Read indicator */}
+          {thread.unread_count === 0 && !isHighlighted && (
+            <div className="flex items-center space-x-1 text-green-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-xs">Gelezen</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

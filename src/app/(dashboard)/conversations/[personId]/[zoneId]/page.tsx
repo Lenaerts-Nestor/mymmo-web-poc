@@ -1,4 +1,4 @@
-// src/app/(dashboard)/conversations/[personId]/[zoneId]/page.tsx
+// src/app/(dashboard)/conversations/[personId]/[zoneId]/page.tsx - Improved Design
 
 "use client";
 
@@ -123,54 +123,91 @@ function ConversationsContent({
   }
 
   return (
-    <div className="w-full mx-auto">
-      {/* Header info with zone navigation */}
-      <div className="mb-6">
-        <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <button
-                onClick={handleBackToZones}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-2 flex items-center space-x-1"
-              >
-                <span>←</span>
-                <span>Terug naar zones</span>
-              </button>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                Conversaties
-              </h1>
-              <p className="text-gray-600 mb-2">
-                Zone ID: {zoneId} | Persoon ID: {personId}
-              </p>
-              <p className="text-sm text-gray-500">
-                Gevonden: {threads.length} conversaties | Translation:{" "}
-                {translationLang}
-              </p>
-              {highlightThreadId && (
-                <p className="text-sm text-blue-600 mt-2">
-                  🔍 Gemarkeerde conversatie: {highlightThreadId}
-                </p>
-              )}
-            </div>
+    <div className="w-full min-h-screen">
+      {/* Container with better width usage */}
+      <div className="w-full px-6 py-6">
+        {/* Header Section */}
+        <div className="mb-6">
+          <ConversationsHeader
+            personId={personId}
+            zoneId={zoneId}
+            translationLang={translationLang}
+            threadsCount={threads.length}
+            highlightThreadId={highlightThreadId}
+            onBackToZones={handleBackToZones}
+          />
+        </div>
 
-            {/* Zone selection indicator */}
-            <div className="text-right">
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                Zone {zoneId} geselecteerd
-              </div>
-            </div>
+        {/* Threads List Section */}
+        <ThreadsList
+          threads={threads}
+          currentPersonId={parseInt(personId)}
+          isLoading={isLoading}
+          onThreadClick={handleThreadClick}
+          highlightThreadId={highlightThreadId}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ConversationsHeader({
+  personId,
+  zoneId,
+  translationLang,
+  threadsCount,
+  highlightThreadId,
+  onBackToZones,
+}: {
+  personId: string;
+  zoneId: string;
+  translationLang: string;
+  threadsCount: number;
+  highlightThreadId: string | null;
+  onBackToZones: () => void;
+}) {
+  return (
+    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        {/* Left side - Navigation and Title */}
+        <div>
+          <button
+            onClick={onBackToZones}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-3 flex items-center space-x-2 transition-colors"
+          >
+            <span>←</span>
+            <span>Terug naar zones</span>
+          </button>
+
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
+            Conversaties
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+              Zone {zoneId}
+            </span>
+            <span>•</span>
+            <span>{threadsCount} conversaties gevonden</span>
+            <span>•</span>
+            <span>Taal: {translationLang.toUpperCase()}</span>
+          </div>
+
+          {highlightThreadId && (
+            <p className="text-sm text-blue-600 mt-2 bg-blue-50 px-3 py-1 rounded-full inline-block">
+              🔍 Gemarkeerde conversatie: {highlightThreadId}
+            </p>
+          )}
+        </div>
+
+        {/* Right side - Status */}
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm text-gray-500">Live updates</span>
           </div>
         </div>
       </div>
-
-      {/* Enhanced ThreadsList with highlighting */}
-      <ThreadsList
-        threads={threads}
-        currentPersonId={parseInt(personId)}
-        isLoading={isLoading}
-        onThreadClick={handleThreadClick}
-        highlightThreadId={highlightThreadId}
-      />
     </div>
   );
 }
