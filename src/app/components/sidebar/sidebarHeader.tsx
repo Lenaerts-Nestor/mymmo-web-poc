@@ -8,7 +8,7 @@ export function SidebarHeader() {
   };
 
   return (
-    <div className="flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4 border-b border-gray-500 ">
       <button
         onClick={handleProfileClick}
         className="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium hover:shadow-md hover:scale-[1.02]"

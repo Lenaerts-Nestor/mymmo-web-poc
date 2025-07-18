@@ -1,4 +1,4 @@
-// src/app/components/chat/ChatHeader.tsx
+// src/app/components/chat/ChatHeader.tsx - Clean & Minimalist Mymmo Design
 
 import { ArrowLeft } from "lucide-react";
 
@@ -22,33 +22,49 @@ export function ChatHeader({
   onMarkAsRead,
 }: ChatHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-800 px-6 py-4 rounded-t-xl ">
+    <div className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-4 py-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2.5 hover:bg-gray-100 rounded-xl transition-all duration-200 text-gray-600 hover:text-gray-900 shadow-sm border border-gray-200 hover:border-gray-300"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <div>
-            <h1 className="text-xl font-bold text-stone-800">Conversatie</h1>
-            <div className="flex items-center gap-4 text-sm text-stone-600">
-              <span>
-                {messagesCount} bericht{messagesCount === 1 ? "" : "en"}
-              </span>
-              {unreadCount > 0 && (
-                <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                  {unreadCount} ongelezen
+          <div className="flex items-center gap-3">
+            {/* Chat icon */}
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center shadow-md text-white font-semibold text-sm"
+              style={{
+                background: "linear-gradient(135deg, #e4dece 0%, #d4c4a8 100%)",
+              }}
+            >
+              <span style={{ color: "#6b4e3d" }}>💬</span>
+            </div>
+
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">Conversatie</h1>
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <span className="font-medium">
+                  {messagesCount}{" "}
+                  {messagesCount === 1 ? "bericht" : "berichten"}
                 </span>
-              )}
-              {/* Development polling indicator */}
-              {process.env.NODE_ENV === "development" && (
-                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                  ⚡ Real-time (5s)
-                </span>
-              )}
+
+                {unreadCount > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md">
+                    {unreadCount} ongelezen
+                  </span>
+                )}
+
+                {/* Live indicator */}
+                <div className="flex items-center gap-1.5 bg-green-100 px-2 py-1 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-sm"></div>
+                  <span className="text-xs font-medium text-green-700">
+                    Live
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -56,7 +72,10 @@ export function ChatHeader({
         {unreadCount > 0 && (
           <button
             onClick={onMarkAsRead}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            className="px-4 py-2.5 text-white rounded-xl transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+            style={{
+              background: "linear-gradient(135deg, #b8b3e6 0%, #a8a0d9 100%)",
+            }}
           >
             Markeer als gelezen
           </button>
