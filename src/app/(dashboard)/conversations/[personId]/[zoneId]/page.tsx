@@ -119,6 +119,17 @@ function ConversationsContent({
     };
   }, []);
 
+  // 🎯 FIX: Update localStorage with current zoneId when page loads
+  useEffect(() => {
+    if (zoneId) {
+      console.log(
+        "🔍 [CONVERSATIONS] Updating localStorage with current zoneId:",
+        zoneId
+      );
+      localStorage.setItem("selectedZoneId", zoneId);
+    }
+  }, [zoneId]);
+
   // 🎯 OPTIMIZED: Use context-aware polling for threads
   const { threads, isLoading, error, refetch } = useThreads(
     personId,

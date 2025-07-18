@@ -1,4 +1,4 @@
-// src/app/hooks/useThreadDetails.ts - REAL-TIME CHAT HOOK
+// src/app/hooks/useThreadDetails.ts - DEBUG VERSION (DISABLE AUTO-MARK-AS-READ)
 
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -23,7 +23,7 @@ export function useThreadDetails(
   threadId: string,
   personId: string,
   transLangId: string,
-  isActiveChatPage: boolean = true // Context awareness for real-time polling
+  isActiveChatPage: boolean = true
 ): UseThreadDetailsResult {
   const [isVisible, setIsVisible] = useState(true);
   const [isUserActive, setIsUserActive] = useState(true);
@@ -76,10 +76,10 @@ export function useThreadDetails(
 
   // 🎯 SMART POLLING: Determine optimal polling interval
   const getPollingInterval = (): number | false => {
-    if (!isVisible) return false; // Hidden tab = no polling
-    if (!isActiveChatPage) return 60 * 1000; // Background chat = 60s
-    if (!isUserActive) return 30 * 1000; // Idle user = 30s
-    return POLLING_INTERVALS.CONVERSATIONS; // Active chat = 5s (real-time!)
+    if (!isVisible) return false;
+    if (!isActiveChatPage) return 60 * 1000;
+    if (!isUserActive) return 30 * 1000;
+    return POLLING_INTERVALS.CONVERSATIONS;
   };
 
   const pollingInterval = getPollingInterval();
@@ -107,17 +107,14 @@ export function useThreadDetails(
     },
 
     // 🎯 REAL-TIME CONFIGURATION
-    staleTime: 0, // Always consider data stale for real-time updates
-    gcTime: 1 * 60 * 1000, // 1 minute garbage collection
-
-    // ⚡ PERFORMANCE: Smart polling interval
+    staleTime: 0,
+    gcTime: 1 * 60 * 1000,
     refetchInterval: pollingInterval,
-    refetchIntervalInBackground: false, // No background polling
-
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
 
-    retry: 2, // Retry twice for reliability
+    retry: 2,
     retryDelay: 1000,
     enabled: !!threadId && !!personId,
   });
@@ -126,10 +123,21 @@ export function useThreadDetails(
   const markAsRead = async () => {
     try {
       const personIdNum = parseInt(personId);
+
+      // 🚨 DEBUG: Log before calling threadStatusUpdate
+      console.log("🚨 [DEBUG] About to call threadStatusUpdate:", {
+        threadId,
+        personId: personIdNum,
+        endpoint: "/service/mymmo-thread-service/threadStatusUpdate",
+      });
+
       await MyMMOApiThreads.updateThreadStatus({
         threadId,
         personId: personIdNum,
+        archiveStatus: false,
       });
+
+      console.log("🚨 [DEBUG] threadStatusUpdate completed successfully");
 
       // Force refresh thread details after marking as read
       await refetch();
@@ -138,7 +146,7 @@ export function useThreadDetails(
         console.log("🔍 [THREAD_DETAILS] Thread marked as read:", threadId);
       }
     } catch (error) {
-      console.error("Failed to mark thread as read:", error);
+      console.error("🚨 [DEBUG] threadStatusUpdate FAILED:", error);
     }
   };
 
@@ -180,22 +188,39 @@ export function useThreadDetails(
     unreadMessages.length,
   ]);
 
-  // 🎯 AUTO-MARK AS READ: When user views thread with unread messages
+  // 🚨 DEBUG: DISABLE AUTO-MARK AS READ TEMPORARILY
+  // Comment out this useEffect to test if auto-mark-as-read is causing the issue
+  /*
   useEffect(() => {
-    if (
-      isActiveChatPage &&
-      isVisible &&
-      isUserActive &&
-      unreadMessages.length > 0
-    ) {
-      // Mark as read after 2 seconds of viewing
+    if (isActiveChatPage && isVisible && isUserActive && unreadMessages.length > 0) {
+      console.log('🚨 [DEBUG] Auto-mark-as-read would trigger in 2 seconds...');
       const markReadTimer = setTimeout(() => {
+        console.log('🚨 [DEBUG] Auto-mark-as-read TRIGGERED - calling markAsRead()');
         markAsRead();
       }, 2000);
 
-      return () => clearTimeout(markReadTimer);
+      return () => {
+        console.log('🚨 [DEBUG] Auto-mark-as-read timer CANCELLED');
+        clearTimeout(markReadTimer);
+      };
     }
   }, [isActiveChatPage, isVisible, isUserActive, unreadMessages.length]);
+  */
+
+  // 🚨 DEBUG: Show warning that auto-mark-as-read is disabled
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development" && unreadMessages.length > 0) {
+      console.log("🚨 [DEBUG] AUTO-MARK-AS-READ IS DISABLED FOR TESTING");
+      console.log(
+        "🚨 [DEBUG] Thread has",
+        unreadMessages.length,
+        "unread messages"
+      );
+      console.log(
+        '🚨 [DEBUG] Use the manual "Markeer als gelezen" button to test'
+      );
+    }
+  }, [unreadMessages.length]);
 
   return {
     messages: allMessages,

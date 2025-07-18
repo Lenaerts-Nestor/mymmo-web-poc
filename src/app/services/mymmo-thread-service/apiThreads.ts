@@ -53,6 +53,7 @@ export interface SaveMessageResponse {
 export interface ThreadStatusUpdatePayload {
   threadId: string;
   personId: number;
+  archiveStatus?: boolean;
 }
 
 export interface ThreadStatusUpdateResponse {

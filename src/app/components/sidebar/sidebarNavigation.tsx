@@ -1,4 +1,4 @@
-// src/app/components/sidebar/sidebarNavigation.tsx - Fixed: Handle missing UnreadCounterProvider
+// src/app/components/sidebar/sidebarNavigation.tsx - FIXED NAVIGATION BUG
 
 import { NavItem, SidebarNavigationProps } from "@/app/types/ui/Sidebar";
 import { MapPin, Inbox, MessageCircle } from "lucide-react";
@@ -23,23 +23,47 @@ export function SidebarNavigation({
     );
   }
 
+  // 🆕 HELPER: Extract zoneId from current URL
+  const getCurrentZoneId = (): string | null => {
+    // Check if we're currently on a conversations page
+    const conversationsMatch = pathname.match(/^\/conversations\/\d+\/(\d+)/);
+    if (conversationsMatch) {
+      return conversationsMatch[1]; // Return current zoneId from URL
+    }
+    return null;
+  };
+
   const handleNavigation = (item: NavItem) => {
     if (item.isDisabled) {
       alert(`${item.label} pagina is nog niet geïmplementeerd.`);
       return;
     }
 
-    // Handle conversations click
+    // 🎯 FIXED: Handle conversations click with smart zone detection
     if (item.id === "conversations") {
-      const selectedZoneId = localStorage.getItem("selectedZoneId");
+      // 1. First priority: Use current URL zoneId if we're already on conversations
+      const currentZoneId = getCurrentZoneId();
 
-      if (selectedZoneId) {
-        router.push(`/conversations/${personId}/${selectedZoneId}`);
-      } else {
-        router.push(`/zones/${personId}`);
+      if (currentZoneId) {
+        console.log("🔍 [SIDEBAR] Using current URL zoneId:", currentZoneId);
+        router.push(`/conversations/${personId}/${currentZoneId}`);
+        return;
       }
+
+      // 2. Second priority: Use localStorage if available
+      const selectedZoneId = localStorage.getItem("selectedZoneId");
+      if (selectedZoneId) {
+        console.log("🔍 [SIDEBAR] Using localStorage zoneId:", selectedZoneId);
+        router.push(`/conversations/${personId}/${selectedZoneId}`);
+        return;
+      }
+
+      // 3. Fallback: Go to zones page for zone selection
+      console.log("🔍 [SIDEBAR] No zoneId found, redirecting to zones");
+      router.push(`/zones/${personId}`);
       return;
     }
+
     router.push(item.href);
   };
 
@@ -58,7 +82,7 @@ export function SidebarNavigation({
       href: `/inbox/${personId}`,
       isActive: pathname.startsWith(`/inbox/${personId}`),
       isDisabled: false,
-      unreadCount: totalUnreadCount, // Add unread counter
+      unreadCount: totalUnreadCount,
     },
     {
       id: "conversations",
@@ -66,7 +90,7 @@ export function SidebarNavigation({
       icon: <MessageCircle size={20} />,
       href: `/conversations/${personId}`, // This will be handled by the click handler
       isActive: pathname.startsWith(`/conversations/${personId}`),
-      isDisabled: false, // Enable conversations
+      isDisabled: false,
     },
   ];
 
@@ -83,26 +107,13 @@ export function SidebarNavigation({
               }`}
             >
               <div className="nav-item__content">
-                <span className="nav-item__icon">{item.icon}</span>
+                <div className="nav-item__icon">{item.icon}</div>
                 <span className="nav-item__label">{item.label}</span>
-
-                {/* Unread counter for inbox */}
-                {item.id === "inbox" &&
-                  item.unreadCount &&
-                  item.unreadCount > 0 && (
-                    <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                      {item.unreadCount}
-                    </span>
-                  )}
-
-                {/* Loading indicator for inbox counter */}
-                {item.id === "inbox" && counterLoading && (
-                  <span className="ml-2 w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></span>
-                )}
               </div>
 
-              {item.isDisabled && (
-                <span className="nav-item__badge">Binnenkort</span>
+              {/* Unread count badge */}
+              {item.unreadCount && item.unreadCount > 0 && (
+                <span className="nav-item__badge">{item.unreadCount}</span>
               )}
             </button>
           </li>
