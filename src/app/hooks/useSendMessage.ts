@@ -1,4 +1,4 @@
-// src/app/hooks/useSendMessage.ts - OPTIMISTIC UPDATES FOR INSTANT FEEL
+// src/app/hooks/useSendMessage.ts - ENHANCED: Smoother Real-time Updates
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -60,7 +60,7 @@ export function useSendMessage(
           ...oldData,
           data: {
             ...oldData.data,
-            // Add to readMessages (assuming user sent it)
+            // Add to readMessages (assuming user sent it, so it's "read" for them)
             readMessages: [
               ...(oldData.data.readMessages || []),
               optimisticMessage,
@@ -71,7 +71,7 @@ export function useSendMessage(
 
       // Debug logging
       if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [SEND_MESSAGE] Optimistic update applied:", {
+        console.log("🚀 [SEND_MESSAGE] Optimistic update applied:", {
           threadId,
           messageText: text.substring(0, 50) + "...",
           tempId: optimisticMessage._id,
@@ -86,23 +86,30 @@ export function useSendMessage(
         completed: false,
       });
 
-      // 🎯 SUCCESS: Force refresh to get real message data
-      await queryClient.invalidateQueries({
-        queryKey: ["threadDetails", threadId],
-      });
-
-      // Also refresh thread lists to update last message
-      await queryClient.invalidateQueries({
-        queryKey: ["threads"],
-      });
-
-      // 🎯 FIX: Also invalidate zones cache to update unread counts
-      await queryClient.invalidateQueries({
-        queryKey: ["zonesWithUnread"],
-      });
+      // 🎯 SUCCESS: Enhanced cache invalidation for immediate updates across all views
+      // 🔧 ENHANCED: Better unread counter updates
+      await Promise.all([
+        // Core thread caches
+        queryClient.invalidateQueries({
+          queryKey: ["threadDetails", threadId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["threads"],
+        }),
+        // Unread counter caches
+        queryClient.invalidateQueries({
+          queryKey: ["zonesWithUnread"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["globalUnreadCounter"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["inbox"],
+        }),
+      ]);
 
       if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [SEND_MESSAGE] Message sent successfully:", {
+        console.log("✅ [SEND_MESSAGE] Message sent successfully:", {
           messageId: response.data.messageId,
           threadId,
         });
@@ -110,7 +117,7 @@ export function useSendMessage(
 
       return true;
     } catch (sendError) {
-      console.error("Failed to send message:", sendError);
+      console.error("❌ [SEND_MESSAGE] Failed to send message:", sendError);
 
       // 🔄 ROLLBACK: Remove optimistic message on failure
       queryClient.setQueryData(cacheKey, (oldData: any) => {
@@ -130,7 +137,7 @@ export function useSendMessage(
       setError("Bericht kon niet worden verzonden. Probeer het opnieuw.");
 
       if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [SEND_MESSAGE] Rollback applied due to error");
+        console.log("🔄 [SEND_MESSAGE] Rollback applied due to error");
       }
 
       return false;

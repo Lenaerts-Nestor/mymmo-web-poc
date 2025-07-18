@@ -1,6 +1,7 @@
-//! PERFORMANCE OPTIMIZED POLLING INTERVALS
-//! Hier bepaal je de pollings intervallen voor de verschillende hooks
-//! Deze intervallen worden gebruikt in de hooks om de data te verversen
+// src/app/constants/pollings_interval.ts - OPTIMIZED FOR REAL-TIME CHAT
+
+//! 🚀 REAL-TIME OPTIMIZED POLLING INTERVALS
+//! Deze intervallen zijn geoptimaliseerd voor smooth real-time chat experience
 //!
 //! 🎛️  BOSS CONTROLS: Verhoog/verlaag deze waardes om API load te beheersen
 //! ⚡ Lagere waardes = sneller updates maar meer API calls
@@ -8,52 +9,69 @@
 
 export const POLLING_INTERVALS = {
   // 🔄 GLOBAL COUNTER (Sidebar red numbers)
-  // Was: 30s -> Nu: 60s (Boss: verhoog naar 90s of 120s indien gewenst)
-  GLOBAL_COUNTER: 60 * 1000, // 60 seconden - voor sidebar unread counts
+  // Moderate interval for global updates
+  GLOBAL_COUNTER: 45 * 1000, // 45 seconden - sidebar unread counts
 
   // 📬 INBOX PAGE
-  // Was: 30s -> Nu: 45s (Boss: verhoog naar 60s voor minder API load)
-  INBOX: 45 * 1000, // 45 seconden - inbox pagina refresh
+  // Regular interval for inbox refresh
+  INBOX: 30 * 1000, // 30 seconden - inbox pagina refresh
 
-  // 💬 CONVERSATIONS (Active chat)
-  // Was: 30s -> Nu: 5s voor real-time gevoel (Boss: verhoog naar 10s indien gewenst)
-  CONVERSATIONS: 5 * 1000, // 5 seconden - active chat real-time
+  // 💬 CONVERSATIONS (Active chat) - MOST IMPORTANT FOR REAL-TIME
+  // ⚡ ULTRA FAST for active chat to feel instant
+  CONVERSATIONS: 3 * 1000, // 3 seconden - active chat ULTRA real-time
 
   // 💬 CONVERSATIONS BACKGROUND (Chat not in focus)
-  // Nieuw: Voor chat threads die niet actief bekeken worden
-  CONVERSATIONS_BACKGROUND: 60 * 1000, // 60 seconden - background chat refresh
+  // Slower when chat is not actively being viewed
+  CONVERSATIONS_BACKGROUND: 30 * 1000, // 30 seconden - background chat refresh
 
   // 🗺️ ZONES PAGE
-  // Was: 30s -> Nu: 10 minuten (zones veranderen zelden)
-  ZONES: 10 * 60 * 1000, // 10 minuten - zones refresh
+  // Longer interval since zones change less frequently
+  ZONES: 5 * 60 * 1000, // 5 minuten - zones refresh
 } as const;
 
 // 🎯 CONTEXT-AWARE POLLING HELPER
-// Deze functie bepaalt welk interval te gebruiken op basis van pagina context
+// 🔧 FIXED: Consistent lowercase context strings
 export const getContextualPollingInterval = (
   context: "active-chat" | "background-chat" | "other"
 ) => {
   switch (context) {
     case "active-chat":
-      return POLLING_INTERVALS.CONVERSATIONS; // 5s voor real-time
+      return POLLING_INTERVALS.CONVERSATIONS; // 3s voor ultra real-time
     case "background-chat":
-      return POLLING_INTERVALS.CONVERSATIONS_BACKGROUND; // 60s voor background
+      return POLLING_INTERVALS.CONVERSATIONS_BACKGROUND; // 30s voor background
     case "other":
     default:
       return false; // Stop polling voor andere pagina's
   }
 };
 
-// 📊 API LOAD VERGELIJKING:
-// Voor 1 gebruiker met 3 tabs open:
+// 🆕 CONTEXT HELPER: Get consistent context string
+export const getPollingContext = (
+  isVisible: boolean,
+  isUserActive: boolean,
+  isActivePage: boolean
+): "active-chat" | "background-chat" | "other" => {
+  if (!isVisible) return "other"; // Tab hidden = no polling
+  if (!isUserActive) return "background-chat"; // User idle = slow polling
+  if (isActivePage) return "active-chat"; // Active chat = fast polling
+  return "background-chat"; // Default = slow polling
+};
+
+// 📊 API LOAD ANALYSIS:
+// Voor 1 gebruiker met 1 active chat tab:
 //
-// ❌ VOOR OPTIMALISATIE (30s interval):
-// - 4 hooks × 3 tabs × 120 calls/uur = 1,440 API calls/uur
+// ✅ OPTIMIZED FOR REAL-TIME CHAT:
+// - Active chat: 1 tab × 1200 calls/uur = 1200 calls/uur (3s interval)
+// - Background polling: Stops when tab not active
+// - Global counter: 1 tab × 80 calls/uur = 80 calls/uur (45s interval)
+// - Inbox: 1 tab × 120 calls/uur = 120 calls/uur (30s interval)
+// - Totaal actieve chat: ~1400 calls/uur
 //
-// ✅ NA OPTIMALISATIE:
-// - Global counter: 1 tab × 60 calls/uur = 60 calls/uur
-// - Active chat: 1 tab × 720 calls/uur = 720 calls/uur
-// - Background: 2 tabs × 60 calls/uur = 120 calls/uur
-// - Totaal: 900 calls/uur (37% reductie!)
+// 🎯 SMART FEATURES:
+// - Polling stops when tab is hidden
+// - Polling slows down when user is idle
+// - Optimistic updates reduce perceived latency
+// - Cache invalidation ensures immediate updates
 //
-// 🏆 Voor 10 gebruikers: 14,400 → 9,000 calls/uur (4,500 calls minder!)
+// 🏆 Trade-off: Meer API calls voor active chat, maar veel betere UX
+// 💡 Boss can increase CONVERSATIONS interval to 5s if API load too high

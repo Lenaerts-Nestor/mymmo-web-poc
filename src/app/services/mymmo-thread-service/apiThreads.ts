@@ -1,9 +1,9 @@
-// src/app/services/mymmo-thread-service/apiThreads.ts - ENHANCED WITH MESSAGING
+// src/app/services/mymmo-thread-service/apiThreads.ts - FIXED WITH CORRECT ENDPOINTS
 
 import ApiClient from "../encryption/apiClient";
 import { GetThreadsPayload, GetThreadsResponse } from "../../types/threads";
 
-// ===== NEW MESSAGE TYPES =====
+// ===== MESSAGE TYPES =====
 export interface ThreadMessage {
   _id: string;
   text: string;
@@ -62,22 +62,24 @@ export interface ThreadStatusUpdateResponse {
   };
 }
 
+// 🆕 Thread Last Access Update Interface (for correct unread counter updates)
+export interface ThreadLastAccessUpdatePayload {
+  threadId: string;
+  personId: number;
+}
+
 class MyMMOApiThreads {
   /**
    * Get threads with smart caching for real-time updates
-   * Uses 5-second cache TTL for smooth real-time feel
    */
   static async getThreads(
     payload: GetThreadsPayload
   ): Promise<GetThreadsResponse> {
     try {
-      // Use the optimized ApiClient
-      // No need to specify cache params - it uses endpoint-specific config
       const response = await ApiClient.secureApiCall<GetThreadsResponse>(
         "/service/mymmo-thread-service/getThreads",
         payload
       );
-
       return response;
     } catch (error) {
       console.error("getThreads failed:", error);
@@ -86,8 +88,7 @@ class MyMMOApiThreads {
   }
 
   /**
-   * 🆕 Get thread details with messages
-   * REAL-TIME: Short cache for active chat experience
+   * Get thread details with messages - OPTIMIZED FOR REAL-TIME
    */
   static async getThreadDetails(
     payload: GetThreadDetailsPayload
@@ -96,10 +97,9 @@ class MyMMOApiThreads {
       const response = await ApiClient.secureApiCall<GetThreadDetailsResponse>(
         "/service/mymmo-thread-service/getThreadDetails",
         payload,
-        3 * 1000, // 3 seconds cache for real-time feel
-        true // Enable caching
+        2 * 1000, // 2 seconds cache for ultra real-time feel
+        true
       );
-
       return response;
     } catch (error) {
       console.error("getThreadDetails failed:", error);
@@ -108,8 +108,7 @@ class MyMMOApiThreads {
   }
 
   /**
-   * 🆕 Send message to thread
-   * NO CACHE: Always fresh for write operations
+   * Send message to thread - ENHANCED CACHE INVALIDATION
    */
   static async saveMessage(
     payload: SaveMessagePayload
@@ -118,13 +117,14 @@ class MyMMOApiThreads {
       const response = await ApiClient.secureApiCall<SaveMessageResponse>(
         "/service/mymmo-thread-service/saveMessage",
         payload,
-        0, // No cache for write operations
-        false // Disable caching
+        0,
+        false
       );
 
-      // Clear thread details cache to force refresh
+      // 🚀 ENHANCED: Clear multiple caches for immediate updates
       ApiClient.clearCacheByPattern("getThreadDetails");
       ApiClient.clearCacheByPattern("getThreads");
+      ApiClient.clearCacheByPattern("getZonesByPerson"); // Also clear zones to update unread counts
 
       return response;
     } catch (error) {
@@ -134,8 +134,7 @@ class MyMMOApiThreads {
   }
 
   /**
-   * 🆕 Update thread status (mark as read)
-   * NO CACHE: Always fresh for write operations
+   * 🔧 FIXED: Update thread status (mark as completed) - DIFFERENT FROM MARK AS READ
    */
   static async updateThreadStatus(
     payload: ThreadStatusUpdatePayload
@@ -145,8 +144,8 @@ class MyMMOApiThreads {
         await ApiClient.secureApiCall<ThreadStatusUpdateResponse>(
           "/service/mymmo-thread-service/threadStatusUpdate",
           payload,
-          0, // No cache for write operations
-          false // Disable caching
+          0,
+          false
         );
 
       // Clear relevant caches after status update
@@ -161,8 +160,66 @@ class MyMMOApiThreads {
   }
 
   /**
+   * 🆕 NEW: Update thread last access (CORRECT endpoint for mark as read)
+   * This is the RIGHT endpoint that updates last_accessed for unread counts
+   */
+  static async updateThreadLastAccess(payload: {
+    threadId: string;
+    personId: number;
+  }): Promise<ThreadStatusUpdateResponse> {
+    try {
+      // 🔧 TRY CORRECT ENDPOINT: Send personId and let backend handle it
+      const response =
+        await ApiClient.secureApiCall<ThreadStatusUpdateResponse>(
+          "/service/mymmo-thread-service/threadLastAccessUpdate",
+          {
+            threadId: payload.threadId,
+            personId: payload.personId, // Try camelCase first
+          },
+          0,
+          false
+        );
+
+      // 🚀 IMMEDIATE: Clear caches for instant read status update
+      ApiClient.clearCacheByPattern("getThreadDetails");
+      ApiClient.clearCacheByPattern("getThreads");
+      ApiClient.clearCacheByPattern("getZonesByPerson");
+
+      return response;
+    } catch (error) {
+      console.error(
+        "updateThreadLastAccess with personId failed, trying personid:",
+        error
+      );
+
+      // 🔧 FALLBACK: Try lowercase 'personid' if camelCase fails
+      try {
+        const response =
+          await ApiClient.secureApiCall<ThreadStatusUpdateResponse>(
+            "/service/mymmo-thread-service/threadLastAccessUpdate",
+            {
+              threadId: payload.threadId,
+              personid: payload.personId, // Try lowercase
+            },
+            0,
+            false
+          );
+
+        // Clear caches on success
+        ApiClient.clearCacheByPattern("getThreadDetails");
+        ApiClient.clearCacheByPattern("getThreads");
+        ApiClient.clearCacheByPattern("getZonesByPerson");
+
+        return response;
+      } catch (fallbackError) {
+        console.error("Both personId and personid failed:", fallbackError);
+        throw fallbackError;
+      }
+    }
+  }
+
+  /**
    * Force refresh threads (bypass cache)
-   * Useful for manual refresh or after important actions
    */
   static async refreshThreads(
     payload: GetThreadsPayload
@@ -172,7 +229,6 @@ class MyMMOApiThreads {
         "/service/mymmo-thread-service/getThreads",
         payload
       );
-
       return response;
     } catch (error) {
       console.error("refreshThreads failed:", error);
@@ -181,8 +237,7 @@ class MyMMOApiThreads {
   }
 
   /**
-   * 🆕 Force refresh thread details (bypass cache)
-   * Useful after sending message or marking as read
+   * Force refresh thread details (bypass cache)
    */
   static async refreshThreadDetails(
     payload: GetThreadDetailsPayload
@@ -192,7 +247,6 @@ class MyMMOApiThreads {
         "/service/mymmo-thread-service/getThreadDetails",
         payload
       );
-
       return response;
     } catch (error) {
       console.error("refreshThreadDetails failed:", error);
@@ -202,15 +256,13 @@ class MyMMOApiThreads {
 
   /**
    * Clear threads cache manually
-   * Useful when you know data has changed
    */
   static clearThreadsCache(): void {
     ApiClient.clearCacheByPattern("getThreads");
   }
 
   /**
-   * 🆕 Clear thread details cache manually
-   * Useful when you know messages have changed
+   * Clear thread details cache manually
    */
   static clearThreadDetailsCache(): void {
     ApiClient.clearCacheByPattern("getThreadDetails");
