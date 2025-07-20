@@ -1,6 +1,6 @@
-// src/app/hooks/useThreads.ts - CONTEXT-AWARE PERFORMANCE OPTIMIZED
+// src/app/hooks/useThreads.ts - ENHANCED: Socket.io + React Query Hybrid
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Thread, GetThreadsResponse } from "../types/threads";
 import MyMMOApiThreads from "../services/mymmo-thread-service/apiThreads";
@@ -8,12 +8,16 @@ import {
   POLLING_INTERVALS,
   getContextualPollingInterval,
 } from "../constants/pollings_interval";
+import { useSocket } from "./useSocket";
 
 interface UseThreadsResult {
   threads: Thread[];
   isLoading: boolean;
   error: string | null;
   refetch: () => void;
+  // 🆕 NEW: Socket status
+  isSocketConnected: boolean;
+  socketStatus: string;
 }
 
 export function useThreads(
@@ -24,6 +28,34 @@ export function useThreads(
 ): UseThreadsResult {
   const [isVisible, setIsVisible] = useState(true);
   const [isUserActive, setIsUserActive] = useState(true);
+  const queryClient = useQueryClient();
+
+  // 🚀 SOCKET INTEGRATION: Listen for thread updates
+  const { isConnected: isSocketConnected, status: socketStatus } = useSocket({
+    personId: parseInt(personId),
+    onThreadUpdate: (data) => {
+      // Real-time thread list update
+      console.log("🔥 Real-time thread update received:", data);
+
+      // Invalidate threads cache for instant UI updates
+      queryClient.invalidateQueries({
+        queryKey: ["threads", personId, zoneId, transLangId],
+      });
+
+      // Also invalidate inbox for unread counter updates
+      queryClient.invalidateQueries({
+        queryKey: ["inbox"],
+      });
+    },
+    onMessage: (data) => {
+      // Message received - update thread list for unread counts and last message
+      console.log("🔥 Message received - updating thread list");
+
+      queryClient.invalidateQueries({
+        queryKey: ["threads", personId, zoneId, transLangId],
+      });
+    },
+  });
 
   // 🎯 OPTIMIZED: Enhanced visibility and activity detection
   useEffect(() => {
@@ -80,7 +112,20 @@ export function useThreads(
   };
 
   const pollingContext = getPollingContext();
-  const pollingInterval = getContextualPollingInterval(pollingContext);
+  let pollingInterval = getContextualPollingInterval(pollingContext);
+
+  // 🚀 OPTIMIZATION: Reduce polling when socket is connected
+  if (isSocketConnected && pollingInterval) {
+    // Reduce polling by 80% when socket is active - socket provides real-time updates
+    pollingInterval = pollingInterval * 5; // 3s becomes 15s, 30s becomes 2.5min
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "⚡ Socket connected - reducing threads polling interval to:",
+        pollingInterval
+      );
+    }
+  }
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["threads", personId, zoneId, transLangId],
@@ -95,6 +140,7 @@ export function useThreads(
           zoneId: zoneIdNum,
           context: pollingContext,
           interval: pollingInterval,
+          socketConnected: isSocketConnected,
         });
       }
 
@@ -106,11 +152,17 @@ export function useThreads(
       });
     },
 
-    // 🎯 OPTIMIZED POLLING CONFIGURATION
-    staleTime: isActiveChatPage ? 0 : 30 * 1000, // Active chat = always fresh, background = 30s stale
+    // 🎯 HYBRID POLLING CONFIGURATION
+    staleTime: isSocketConnected
+      ? isActiveChatPage
+        ? 30 * 1000
+        : 60 * 1000 // Longer stale time when socket active
+      : isActiveChatPage
+      ? 0
+      : 30 * 1000, // Shorter stale time without socket
     gcTime: 2 * 60 * 1000, // 2 minutes
 
-    // ⚡ PERFORMANCE: Context-aware polling interval
+    // ⚡ PERFORMANCE: Context-aware polling interval (reduced when socket active)
     refetchInterval: pollingInterval,
 
     // 🎯 OPTIMIZED: No background polling for better performance
@@ -139,6 +191,8 @@ export function useThreads(
         isUserActive,
         isActiveChatPage,
         threadsCount: threads.length,
+        socketConnected: isSocketConnected,
+        socketStatus,
       });
     }
   }, [
@@ -148,6 +202,8 @@ export function useThreads(
     isUserActive,
     isActiveChatPage,
     threads.length,
+    isSocketConnected,
+    socketStatus,
   ]);
 
   return {
@@ -155,5 +211,8 @@ export function useThreads(
     isLoading,
     error: errorMessage,
     refetch,
+    // 🆕 NEW: Socket status
+    isSocketConnected,
+    socketStatus,
   };
 }

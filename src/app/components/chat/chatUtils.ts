@@ -1,51 +1,89 @@
-// src/app/components/chat/chatUtils.ts
+// src/app/components/chat/chatUtils.ts - Chat Utility Functions
 
-import { ThreadMessage } from "@/app/services/mymmo-thread-service/apiThreads";
-
-export function shouldShowTime(
-  messages: ThreadMessage[],
-  index: number
-): boolean {
-  if (index === messages.length - 1) return true; // Always show time for last message
-
-  const currentMessage = messages[index];
-  const nextMessage = messages[index + 1];
-
-  if (!nextMessage) return true;
-
-  // Show time if next message is from different person
-  if (currentMessage.created_by !== nextMessage.created_by) return true;
-
-  // Show time if more than 5 minutes between messages
-  const currentTime = new Date(currentMessage.created_on).getTime();
-  const nextTime = new Date(nextMessage.created_on).getTime();
-  const timeDiff = nextTime - currentTime;
-
-  return timeDiff > 5 * 60 * 1000; // 5 minutes
+export interface ThreadMessage {
+  _id: string;
+  text: string;
+  created_on: string;
+  created_by: number;
+  [key: string]: any;
 }
 
+/**
+ * Determines if timestamp should be shown for a message
+ * Shows time if more than 5 minutes passed since previous message
+ */
+export function shouldShowTime(
+  currentMessage: ThreadMessage,
+  previousMessage: ThreadMessage | null
+): boolean {
+  if (!previousMessage) return true;
+
+  const currentTime = new Date(currentMessage.created_on).getTime();
+  const previousTime = new Date(previousMessage.created_on).getTime();
+  const timeDifference = currentTime - previousTime;
+
+  // Show time if more than 5 minutes passed
+  return timeDifference > 5 * 60 * 1000;
+}
+
+/**
+ * Formats timestamp for display
+ */
 export function formatMessageTime(timestamp: string): string {
   const date = new Date(timestamp);
   const now = new Date();
-  const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-  if (diffInHours < 24) {
+  // If today, show only time
+  if (date.toDateString() === now.toDateString()) {
     return date.toLocaleTimeString("nl-NL", {
       hour: "2-digit",
       minute: "2-digit",
     });
-  } else if (diffInHours < 24 * 7) {
-    return date.toLocaleDateString("nl-NL", {
-      weekday: "short",
+  }
+
+  // If yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Gisteren ${date.toLocaleTimeString("nl-NL", {
       hour: "2-digit",
       minute: "2-digit",
-    });
-  } else {
+    })}`;
+  }
+
+  // If within current year, show date without year
+  if (date.getFullYear() === now.getFullYear()) {
     return date.toLocaleDateString("nl-NL", {
-      day: "2-digit",
-      month: "2-digit",
+      day: "numeric",
+      month: "short",
       hour: "2-digit",
       minute: "2-digit",
     });
   }
+
+  // Full date
+  return date.toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Groups messages by date for display
+ */
+export function groupMessagesByDate(messages: ThreadMessage[]) {
+  const groups: { [key: string]: ThreadMessage[] } = {};
+
+  messages.forEach((message) => {
+    const date = new Date(message.created_on).toDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(message);
+  });
+
+  return groups;
 }

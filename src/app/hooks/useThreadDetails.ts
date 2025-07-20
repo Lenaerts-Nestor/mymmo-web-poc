@@ -1,7 +1,7 @@
-// src/app/hooks/useThreadDetails.ts - FIXED: Auto Mark-as-Read & Real-time Updates
+// src/app/hooks/useThreadDetails.ts - ENHANCED: Socket.io + React Query Hybrid
 
-import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
 import MyMMOApiThreads, {
   GetThreadDetailsPayload,
   GetThreadDetailsResponse,
@@ -12,6 +12,7 @@ import {
   getContextualPollingInterval,
   getPollingContext,
 } from "../constants/pollings_interval";
+import { useSocket } from "./useSocket";
 
 interface UseThreadDetailsResult {
   messages: ThreadMessage[];
@@ -21,6 +22,10 @@ interface UseThreadDetailsResult {
   error: string | null;
   refetch: () => void;
   markAsRead: () => Promise<void>;
+  // 🆕 NEW: Socket-related functions
+  sendMessageViaSocket: (text: string) => Promise<boolean>;
+  isSocketConnected: boolean;
+  socketStatus: string;
 }
 
 export function useThreadDetails(
@@ -31,6 +36,30 @@ export function useThreadDetails(
 ): UseThreadDetailsResult {
   const [isVisible, setIsVisible] = useState(true);
   const [isUserActive, setIsUserActive] = useState(true);
+  const queryClient = useQueryClient();
+
+  // 🚀 SOCKET INTEGRATION: Initialize socket for this thread
+  const {
+    isConnected: isSocketConnected,
+    status: socketStatus,
+    sendSocketMessage,
+    lastError: socketError,
+  } = useSocket({
+    threadId,
+    personId: parseInt(personId),
+    onMessage: (data) => {
+      // Real-time message received - instantly update cache
+      console.log("🔥 Real-time message received for thread:", threadId, data);
+
+      // Immediately invalidate and refetch for instant updates
+      queryClient.invalidateQueries({
+        queryKey: ["threadDetails", threadId, personId, transLangId],
+      });
+    },
+    onError: (error) => {
+      console.error("🔴 Socket error in thread details:", error);
+    },
+  });
 
   // 🎯 REAL-TIME: Enhanced visibility and activity detection
   useEffect(() => {
@@ -78,13 +107,28 @@ export function useThreadDetails(
     };
   }, []);
 
-  // 🎯 SMART POLLING: Determine optimal polling interval using consistent context
+  // 🎯 HYBRID POLLING: Reduce polling when socket is connected
   const pollingContext = getPollingContext(
     isVisible,
     isUserActive,
     isActiveChatPage
   );
-  const pollingInterval = getContextualPollingInterval(pollingContext);
+
+  // 🚀 OPTIMIZATION: Reduce polling intervals when socket is connected
+  let pollingInterval = getContextualPollingInterval(pollingContext);
+
+  // If socket is connected, we can afford to poll much less frequently
+  if (isSocketConnected && pollingInterval) {
+    // Reduce polling by 90% when socket is active - socket provides real-time updates
+    pollingInterval = pollingInterval * 10; // 3s becomes 30s, 30s becomes 5min
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "⚡ Socket connected - reducing polling interval to:",
+        pollingInterval
+      );
+    }
+  }
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["threadDetails", threadId, personId, transLangId],
@@ -97,7 +141,8 @@ export function useThreadDetails(
           threadId,
           personId: personIdNum,
           interval: pollingInterval,
-          context: pollingContext, // 🔧 FIXED: Use consistent context variable
+          context: pollingContext,
+          socketConnected: isSocketConnected,
         });
       }
 
@@ -108,8 +153,8 @@ export function useThreadDetails(
       });
     },
 
-    // 🎯 REAL-TIME CONFIGURATION
-    staleTime: 0, // Always fresh for active chat
+    // 🎯 HYBRID CONFIGURATION: Socket primary, polling as backup
+    staleTime: isSocketConnected ? 30 * 1000 : 0, // Longer stale time when socket is active
     gcTime: 1 * 60 * 1000, // 1 minute
     refetchInterval: pollingInterval,
     refetchIntervalInBackground: false,
@@ -121,107 +166,132 @@ export function useThreadDetails(
     enabled: !!threadId && !!personId,
   });
 
-  // 🔧 FIXED: Mark as read using CORRECT endpoint that updates last_accessed
-  const markAsRead = async () => {
-    try {
-      const personIdNum = parseInt(personId);
-
-      console.log("🔧 [FIXED] Using threadLastAccessUpdate endpoint:", {
-        threadId,
-        personId: personIdNum,
-        endpoint: "/service/mymmo-thread-service/threadLastAccessUpdate",
-        note: "This endpoint updates last_accessed for unread counts",
-      });
-
-      // 🚀 CORRECT: Use the endpoint that actually updates last_accessed
-      await MyMMOApiThreads.updateThreadLastAccess({
-        threadId,
-        personId: personIdNum,
-      });
-
-      console.log("✅ [FIXED] Thread last_accessed updated successfully");
-
-      // Force refresh thread details after marking as read
-      await refetch();
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [THREAD_DETAILS] Thread marked as read:", threadId);
-      }
-    } catch (error) {
-      console.error("❌ [ERROR] markAsRead failed:", error);
-    }
-  };
-
-  // Transform data
-  const threadData = data?.data;
-  const readMessages = threadData?.readMessages || [];
-  const unreadMessages = threadData?.unreadMessages || [];
-
-  // Combine and sort all messages by timestamp
+  // Extract messages from API response
+  const readMessages = data?.data?.readMessages || [];
+  const unreadMessages = data?.data?.unreadMessages || [];
   const allMessages = [...readMessages, ...unreadMessages].sort(
     (a, b) =>
       new Date(a.created_on).getTime() - new Date(b.created_on).getTime()
   );
 
-  const errorMessage = error
-    ? "Fout bij het laden van berichten. Probeer het opnieuw."
-    : null;
+  // 🆕 ENHANCED: Mark as read function with socket awareness
+  const markAsRead = useCallback(async () => {
+    try {
+      const personIdNum = parseInt(personId);
+      await MyMMOApiThreads.updateThreadLastAccess({
+        threadId,
+        personId: personIdNum,
+      });
+
+      // Immediately invalidate caches for instant UI update
+      queryClient.invalidateQueries({
+        queryKey: ["threadDetails", threadId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["threads"],
+      });
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("✅ [THREAD_DETAILS] Marked as read:", threadId);
+      }
+    } catch (error) {
+      console.error("❌ [THREAD_DETAILS] Mark as read failed:", error);
+    }
+  }, [threadId, personId, queryClient]);
+
+  // 🆕 NEW: Send message via socket with fallback to HTTP
+  const sendMessageViaSocket = useCallback(
+    async (text: string): Promise<boolean> => {
+      const personIdNum = parseInt(personId);
+
+      if (isSocketConnected) {
+        // Try socket first for instant delivery
+        console.log("🚀 Sending message via socket...");
+        const socketSuccess = sendSocketMessage({
+          threadId,
+          text,
+          createdBy: personIdNum,
+          completed: false,
+        });
+
+        if (socketSuccess) {
+          // Socket message sent - the response will trigger cache invalidation
+          // No need to manually update cache, socket events will handle it
+          return true;
+        }
+      }
+
+      // Fallback to HTTP API if socket fails
+      console.log("📡 Fallback: Sending message via HTTP API...");
+      try {
+        await MyMMOApiThreads.saveMessage({
+          threadId,
+          text,
+          createdBy: personIdNum,
+          completed: false,
+        });
+
+        // HTTP success - manually invalidate caches
+        queryClient.invalidateQueries({
+          queryKey: ["threadDetails", threadId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["threads"],
+        });
+
+        return true;
+      } catch (error) {
+        console.error("❌ HTTP message send failed:", error);
+        return false;
+      }
+    },
+    [threadId, personId, isSocketConnected, sendSocketMessage, queryClient]
+  );
+
+  // Auto-mark as read when user opens the chat
+  useEffect(() => {
+    if (unreadMessages.length > 0 && isActiveChatPage && isVisible) {
+      // Auto-mark as read after a short delay to ensure user sees the messages
+      const markAsReadTimer = setTimeout(() => {
+        markAsRead();
+      }, 1000);
+
+      return () => clearTimeout(markAsReadTimer);
+    }
+  }, [unreadMessages.length, isActiveChatPage, isVisible, markAsRead]);
+
+  const errorMessage =
+    error || socketError
+      ? "Fout bij het laden van berichten. Probeer het opnieuw."
+      : null;
 
   // Performance logging in development
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      console.log("🔍 [THREAD_DETAILS] Polling status:", {
+      console.log("🔍 [THREAD_DETAILS] Status:", {
         threadId,
+        context: pollingContext,
         interval: pollingInterval,
-        context: pollingContext, // 🔧 FIXED: Use consistent context
         isVisible,
         isUserActive,
         isActiveChatPage,
         messagesCount: allMessages.length,
         unreadCount: unreadMessages.length,
+        socketConnected: isSocketConnected,
+        socketStatus,
       });
     }
   }, [
     threadId,
+    pollingContext,
     pollingInterval,
-    pollingContext, // 🔧 FIXED: Use context variable in dependency
     isVisible,
     isUserActive,
     isActiveChatPage,
     allMessages.length,
     unreadMessages.length,
-  ]);
-
-  // ✅ FIXED: Re-enabled auto-mark-as-read with proper conditions
-  useEffect(() => {
-    if (
-      isActiveChatPage &&
-      isVisible &&
-      isUserActive &&
-      unreadMessages.length > 0 &&
-      !isLoading // Don't auto-mark while loading
-    ) {
-      console.log("✅ [AUTO-MARK-AS-READ] Triggering in 3 seconds...", {
-        unreadCount: unreadMessages.length,
-        threadId,
-      });
-
-      const markReadTimer = setTimeout(() => {
-        console.log("✅ [AUTO-MARK-AS-READ] EXECUTING - calling markAsRead()");
-        markAsRead();
-      }, 3000); // 3 seconds delay to ensure user has seen the messages
-
-      return () => {
-        console.log("✅ [AUTO-MARK-AS-READ] Timer cancelled");
-        clearTimeout(markReadTimer);
-      };
-    }
-  }, [
-    isActiveChatPage,
-    isVisible,
-    isUserActive,
-    unreadMessages.length,
-    isLoading,
+    isSocketConnected,
+    socketStatus,
   ]);
 
   return {
@@ -232,5 +302,9 @@ export function useThreadDetails(
     error: errorMessage,
     refetch,
     markAsRead,
+    // 🆕 NEW: Socket-enhanced functions
+    sendMessageViaSocket,
+    isSocketConnected,
+    socketStatus,
   };
 }
