@@ -1,4 +1,4 @@
-// src/app/contexts/SocketContext.tsx
+// src/app/contexts/SocketContext.tsx - REAL-TIME CHAT OPTIMIZED
 "use client";
 
 import React, {
@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
   useRef,
+  useCallback,
 } from "react";
 import io from "socket.io-client";
 
@@ -18,15 +19,40 @@ export type SocketStatus =
   | "reconnecting"
   | "error";
 
-// Socket context interface
+// Real-time message interface
+export interface RealtimeMessage {
+  _id: string;
+  text: string;
+  created_on: string;
+  created_by: number;
+  thread_id: string;
+  attachments?: any[];
+  isOptimistic?: boolean;
+}
+
+// Socket context interface - ENHANCED FOR REAL-TIME CHAT
 interface SocketContextType {
   socket: ReturnType<typeof io> | null;
   status: SocketStatus;
   isConnected: boolean;
   lastError: string | null;
-  joinRoom: (roomId: string, userId: number) => void;
-  leaveRoom: (roomId: string, userId: number) => void;
-  emit: (event: string, data: any) => void;
+
+  // Room management
+  joinThreadRoom: (threadId: string, zoneId: string) => void;
+  leaveThreadRoom: (threadId: string, zoneId: string) => void;
+
+  // Message handling
+  sendMessage: (
+    threadId: string,
+    text: string,
+    createdBy: number
+  ) => Promise<boolean>;
+  onMessageReceived: (callback: (message: RealtimeMessage) => void) => void;
+  offMessageReceived: (callback: (message: RealtimeMessage) => void) => void;
+
+  // Thread updates
+  onThreadUpdate: (callback: (data: any) => void) => void;
+  offThreadUpdate: (callback: (data: any) => void) => void;
 }
 
 // Create context
@@ -35,8 +61,8 @@ const SocketContext = createContext<SocketContextType | null>(null);
 // Provider props
 interface SocketProviderProps {
   children: React.ReactNode;
-  personId?: number; // User ID for socket connection
-  enabled?: boolean; // Allow enabling/disabling socket connection
+  personId?: number;
+  enabled?: boolean;
 }
 
 export function SocketProvider({
@@ -47,13 +73,21 @@ export function SocketProvider({
   const [socket, setSocket] = useState<ReturnType<typeof io> | null>(null);
   const [status, setStatus] = useState<SocketStatus>("disconnected");
   const [lastError, setLastError] = useState<string | null>(null);
+
+  // Track current rooms
+  const currentRooms = useRef<Set<string>>(new Set());
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
+
+  // Callback refs for real-time events
+  const messageCallbacks = useRef<Set<(message: RealtimeMessage) => void>>(
+    new Set()
+  );
+  const threadUpdateCallbacks = useRef<Set<(data: any) => void>>(new Set());
 
   // Create socket connection
   useEffect(() => {
     if (!enabled || !personId) {
-      // Disconnect if disabled or no user
       if (socket) {
         socket.disconnect();
         setSocket(null);
@@ -75,13 +109,12 @@ export function SocketProvider({
 
     // Create socket instance
     const newSocket = io(socketUrl, {
-      transports: ["websocket", "polling"], // Fallback to polling if websocket fails
+      transports: ["websocket", "polling"],
       timeout: 20000,
       reconnection: true,
       reconnectionAttempts: maxReconnectAttempts,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      // Removed maxHttpBufferSize as it's not supported in client options
     });
 
     // Connection event handlers
@@ -91,26 +124,33 @@ export function SocketProvider({
       setLastError(null);
       reconnectAttempts.current = 0;
 
-      // 🔧 FIXED: Join user to their personal room (following backend logic for non-mobile-v2 apps)
+      // 🚀 CRITICAL: Join as mobile-v2 to trigger room-based backend
       newSocket.emit("join_socket", {
-        roomId: personId.toString(), // ✅ CORRECT: Use personId as roomId for web app
+        roomId: personId.toString(),
         userId: personId,
-        appName: "mymmo-web-poc",
+        appName: "Mymmo-mobile-app-v2", // ✅ TRIGGERS NEW VERSION BACKEND
       });
 
-      console.log(`🏠 Joined personal room: ${personId}`);
+      console.log(`🏠 Joined as mobile-v2 user: ${personId}`);
+
+      // Rejoin any rooms we were in before disconnect
+      currentRooms.current.forEach((roomId) => {
+        newSocket.emit("join_socket", {
+          roomId,
+          userId: personId,
+          appName: "Mymmo-mobile-app-v2",
+        });
+        console.log(`🔄 Rejoined room: ${roomId}`);
+      });
     });
 
     newSocket.on("disconnect", (reason: string) => {
       console.log("❌ Socket disconnected:", reason);
       setStatus("disconnected");
 
-      // Handle different disconnect reasons
       if (reason === "io server disconnect") {
-        // Server initiated disconnect - don't auto-reconnect
         setLastError("Server disconnected");
       } else {
-        // Client-side disconnect - will auto-reconnect
         setStatus("reconnecting");
       }
     });
@@ -134,43 +174,48 @@ export function SocketProvider({
       reconnectAttempts.current = 0;
     });
 
-    newSocket.on("reconnect_attempt", (attemptNumber: number) => {
-      console.log("🔄 Reconnection attempt:", attemptNumber);
-      setStatus("reconnecting");
-    });
+    // 🚀 REAL-TIME MESSAGE HANDLER
+    newSocket.on("receive_thread_message", (data: any) => {
+      console.log("💬 Real-time message received:", data);
 
-    newSocket.on("reconnect_error", (error: Error) => {
-      console.error("🔴 Reconnection error:", error);
-    });
-
-    newSocket.on("reconnect_failed", () => {
-      console.error("❌ Reconnection failed");
-      setStatus("error");
-      setLastError("Reconnection failed");
-    });
-
-    // Debug: Log all socket events in development
-    if (process.env.NODE_ENV === "development") {
-      // Use a more compatible way to log all events
-      const originalEmit = newSocket.emit.bind(newSocket);
-      newSocket.emit = (event: string, ...args: any[]) => {
-        console.log("📤 Socket event sent:", event, args);
-        return originalEmit(event, ...args);
+      const message: RealtimeMessage = {
+        _id: data._id || `temp-${Date.now()}`,
+        text: data.text || "",
+        created_on: data.created_on || new Date().toISOString(),
+        created_by: data.created_by || 0,
+        thread_id: data.thread_id || "",
+        attachments: data.attachments || [],
+        isOptimistic: false,
       };
 
-      // Listen for common events using standard event listeners
-      const commonEvents = [
-        "connect",
-        "disconnect",
-        "error",
-        "message",
-        "newMessage",
-        "messageUpdate",
-      ];
-      commonEvents.forEach((eventName) => {
-        newSocket.on(eventName, (...args: any[]) => {
-          console.log(`📡 Socket event received: ${eventName}`, args);
-        });
+      // Notify all message callbacks
+      messageCallbacks.current.forEach((callback) => {
+        try {
+          callback(message);
+        } catch (error) {
+          console.error("Error in message callback:", error);
+        }
+      });
+    });
+
+    // 🚀 THREAD UPDATE HANDLER
+    newSocket.on("update_thread_screen", (data: any) => {
+      console.log("📋 Thread update received:", data);
+
+      // Notify all thread update callbacks
+      threadUpdateCallbacks.current.forEach((callback) => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error("Error in thread update callback:", error);
+        }
+      });
+    });
+
+    // Debug logging in development
+    if (process.env.NODE_ENV === "development") {
+      newSocket.onAny((eventName, ...args) => {
+        console.log(`📡 Socket event: ${eventName}`, args);
       });
     }
 
@@ -179,51 +224,135 @@ export function SocketProvider({
     // Cleanup on unmount
     return () => {
       console.log("🧹 Cleaning up socket connection");
+      currentRooms.current.clear();
       newSocket.disconnect();
       setSocket(null);
       setStatus("disconnected");
     };
   }, [enabled, personId]);
 
-  // Helper functions
-  const joinRoom = (roomId: string, userId: number) => {
-    if (socket && status === "connected") {
-      console.log("🏠 Joining room:", roomId);
+  // 🚀 JOIN THREAD ROOM (for real-time chat)
+  const joinThreadRoom = useCallback(
+    (threadId: string, zoneId: string) => {
+      if (!socket || !personId || status !== "connected") return;
+
+      console.log("🎯 Joining thread room:", threadId, "zone:", zoneId);
+
+      // Join both thread and zone rooms
       socket.emit("join_socket", {
-        roomId,
-        userId,
-        appName: "mymmo-web-poc",
+        roomId: threadId,
+        userId: personId,
+        appName: "Mymmo-mobile-app-v2",
       });
-    }
-  };
 
-  const leaveRoom = (roomId: string, userId: number) => {
-    if (socket && status === "connected") {
-      console.log("🚪 Leaving room:", roomId);
+      socket.emit("join_socket", {
+        roomId: zoneId,
+        userId: personId,
+        appName: "Mymmo-mobile-app-v2",
+      });
+
+      currentRooms.current.add(threadId);
+      currentRooms.current.add(zoneId);
+    },
+    [socket, personId, status]
+  );
+
+  // 🚀 LEAVE THREAD ROOM
+  const leaveThreadRoom = useCallback(
+    (threadId: string, zoneId: string) => {
+      if (!socket || !personId) return;
+
+      console.log("🚪 Leaving thread room:", threadId, "zone:", zoneId);
+
       socket.emit("leave_socket", {
-        roomId,
-        userId,
+        roomId: threadId,
+        userId: personId,
       });
-    }
-  };
 
-  const emit = (event: string, data: any) => {
-    if (socket && status === "connected") {
-      console.log("📤 Emitting event:", event, data);
-      socket.emit(event, data);
-    } else {
-      console.warn("⚠️ Cannot emit - socket not connected:", { event, status });
-    }
-  };
+      socket.emit("leave_socket", {
+        roomId: zoneId,
+        userId: personId,
+      });
+
+      currentRooms.current.delete(threadId);
+      currentRooms.current.delete(zoneId);
+    },
+    [socket, personId]
+  );
+
+  // 🚀 SEND MESSAGE VIA SOCKET
+  const sendMessage = useCallback(
+    async (
+      threadId: string,
+      text: string,
+      createdBy: number
+    ): Promise<boolean> => {
+      if (!socket || status !== "connected") {
+        console.warn("⚠️ Cannot send message - socket not connected");
+        return false;
+      }
+
+      console.log("📤 Sending message via socket:", {
+        threadId,
+        text,
+        createdBy,
+      });
+
+      try {
+        socket.emit("send_thread_message", {
+          threadId,
+          text,
+          createdBy,
+          completed: false,
+          attachments: [],
+          appName: "Mymmo-mobile-app-v2", // ✅ CRITICAL FOR BACKEND ROUTING
+        });
+
+        return true;
+      } catch (error) {
+        console.error("❌ Socket send error:", error);
+        return false;
+      }
+    },
+    [socket, status]
+  );
+
+  // 🚀 MESSAGE CALLBACK MANAGEMENT
+  const onMessageReceived = useCallback(
+    (callback: (message: RealtimeMessage) => void) => {
+      messageCallbacks.current.add(callback);
+    },
+    []
+  );
+
+  const offMessageReceived = useCallback(
+    (callback: (message: RealtimeMessage) => void) => {
+      messageCallbacks.current.delete(callback);
+    },
+    []
+  );
+
+  // 🚀 THREAD UPDATE CALLBACK MANAGEMENT
+  const onThreadUpdate = useCallback((callback: (data: any) => void) => {
+    threadUpdateCallbacks.current.add(callback);
+  }, []);
+
+  const offThreadUpdate = useCallback((callback: (data: any) => void) => {
+    threadUpdateCallbacks.current.delete(callback);
+  }, []);
 
   const contextValue: SocketContextType = {
     socket,
     status,
     isConnected: status === "connected",
     lastError,
-    joinRoom,
-    leaveRoom,
-    emit,
+    joinThreadRoom,
+    leaveThreadRoom,
+    sendMessage,
+    onMessageReceived,
+    offMessageReceived,
+    onThreadUpdate,
+    offThreadUpdate,
   };
 
   return (

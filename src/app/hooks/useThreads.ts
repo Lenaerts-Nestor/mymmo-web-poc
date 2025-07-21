@@ -1,14 +1,14 @@
-// src/app/hooks/useThreads.ts - ENHANCED: Socket.io + React Query Hybrid
+// src/app/hooks/useThreads.ts - ENHANCED: Socket.io + React Query Hybrid for Thread Lists
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Thread, GetThreadsResponse } from "../types/threads";
 import MyMMOApiThreads from "../services/mymmo-thread-service/apiThreads";
+import { useSocketContext } from "../contexts/SocketContext";
 import {
   POLLING_INTERVALS,
   getContextualPollingInterval,
 } from "../constants/pollings_interval";
-import { useSocket } from "./useSocket";
 
 interface UseThreadsResult {
   threads: Thread[];
@@ -24,18 +24,24 @@ export function useThreads(
   personId: string,
   zoneId: string,
   transLangId: string,
-  isActiveChatPage: boolean = false // 🎯 NEW: Context awareness
+  isActiveChatPage: boolean = false
 ): UseThreadsResult {
   const [isVisible, setIsVisible] = useState(true);
   const [isUserActive, setIsUserActive] = useState(true);
   const queryClient = useQueryClient();
 
-  // 🚀 SOCKET INTEGRATION: Listen for thread updates
-  const { isConnected: isSocketConnected, status: socketStatus } = useSocket({
-    personId: parseInt(personId),
-    onThreadUpdate: (data) => {
-      // Real-time thread list update
-      console.log("🔥 Real-time thread update received:", data);
+  // 🚀 SOCKET INTEGRATION for thread list updates
+  const {
+    isConnected: isSocketConnected,
+    status: socketStatus,
+    onThreadUpdate,
+    offThreadUpdate,
+  } = useSocketContext();
+
+  // 🚀 SOCKET EVENT HANDLER for thread list updates
+  useEffect(() => {
+    const handleThreadUpdate = (data: any) => {
+      console.log("🔥 Thread list update received:", data);
 
       // Invalidate threads cache for instant UI updates
       queryClient.invalidateQueries({
@@ -46,16 +52,28 @@ export function useThreads(
       queryClient.invalidateQueries({
         queryKey: ["inbox"],
       });
-    },
-    onMessage: (data) => {
-      // Message received - update thread list for unread counts and last message
-      console.log("🔥 Message received - updating thread list");
 
+      // Invalidate zones for global unread counts
       queryClient.invalidateQueries({
-        queryKey: ["threads", personId, zoneId, transLangId],
+        queryKey: ["zonesWithUnread"],
       });
-    },
-  });
+    };
+
+    // Register socket listener
+    onThreadUpdate(handleThreadUpdate);
+
+    // Cleanup
+    return () => {
+      offThreadUpdate(handleThreadUpdate);
+    };
+  }, [
+    queryClient,
+    personId,
+    zoneId,
+    transLangId,
+    onThreadUpdate,
+    offThreadUpdate,
+  ]);
 
   // 🎯 OPTIMIZED: Enhanced visibility and activity detection
   useEffect(() => {
@@ -117,7 +135,7 @@ export function useThreads(
   // 🚀 OPTIMIZATION: Reduce polling when socket is connected
   if (isSocketConnected && pollingInterval) {
     // Reduce polling by 80% when socket is active - socket provides real-time updates
-    pollingInterval = pollingInterval * 5; // 3s becomes 15s, 30s becomes 2.5min
+    pollingInterval = pollingInterval * 5; // 5s becomes 25s, 60s becomes 5min
 
     if (process.env.NODE_ENV === "development") {
       console.log(
