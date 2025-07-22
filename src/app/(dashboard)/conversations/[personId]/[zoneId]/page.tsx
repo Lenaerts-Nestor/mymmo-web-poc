@@ -1,4 +1,4 @@
-// src/app/(dashboard)/conversations/[personId]/[zoneId]/page.tsx - WITH TOGGLE
+// src/app/(dashboard)/conversations/[personId]/[zoneId]/page.tsx - FIXED CONTEXT
 
 "use client";
 
@@ -10,18 +10,36 @@ import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { useThreads } from "@/app/hooks/threads/useThreads";
-import { useUser } from "@/app/contexts/UserContext";
+import { useUnifiedApp } from "@/app/contexts/UnifiedAppContext"; // FIXED: Use unified context
 import { APP_CONFIG } from "@/app/constants/app";
 
 export default function ConversationsPage() {
   const { personId, zoneId } = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUnifiedApp(); // FIXED: Use unified context
+
+  // Wait for user context to be ready
+  if (isUserLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading user session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If no user after loading, redirect to login
+  if (!user) {
+    window.location.href = "/login";
+    return null;
+  }
 
   const translationLang =
     searchParams.get("translationLang") ||
-    user?.translationLang ||
+    user.translationLang ||
     APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
   // Handle case where no zone is selected
@@ -155,7 +173,7 @@ function ConversationsContent({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner message="Conversaties laden..." />
+        <LoadingSpinner />
       </div>
     );
   }

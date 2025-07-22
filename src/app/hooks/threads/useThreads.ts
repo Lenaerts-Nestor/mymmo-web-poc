@@ -1,9 +1,9 @@
-// src/app/hooks/threads/useThreads.ts - REFACTORED: Clean Threads Hook
+// src/app/hooks/threads/useThreads.ts - FIXED CONTEXT USAGE
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Thread, GetThreadsResponse } from "../../types/threads";
 import MyMMOApiThreads from "../../services/mymmo-thread-service/apiThreads";
-import { useThreadPolling } from "./useThreadPolling";
+import { useUnifiedApp } from "../../contexts/UnifiedAppContext"; // FIXED: Use unified context
 
 interface UseThreadsResult {
   threads: Thread[];
@@ -22,6 +22,7 @@ export function useThreads(
   isActiveChatPage: boolean = false
 ): UseThreadsResult {
   const queryClient = useQueryClient();
+  const { isSocketConnected, socketStatus } = useUnifiedApp(); // FIXED: Use unified context
 
   // Handle thread updates via socket
   const handleThreadUpdate = (data: any) => {
@@ -42,21 +43,14 @@ export function useThreads(
     });
   };
 
-  // Get polling configuration with socket integration
-  const {
-    interval,
-    staleTime,
-    gcTime,
-    refetchOnWindowFocus,
-    refetchOnMount,
-    refetchIntervalInBackground,
-    pollingContext,
-    isSocketConnected,
-    socketStatus,
-  } = useThreadPolling({
-    enabled: true,
-    onThreadUpdate: handleThreadUpdate,
-  });
+  // Simplified polling - use unified socket status
+  const pollingInterval = isActiveChatPage
+    ? isSocketConnected
+      ? 30000
+      : 5000 // 30s with socket, 5s without
+    : isSocketConnected
+    ? 60000
+    : 30000; // 60s with socket, 30s without
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["threads", personId, zoneId, transLangId],
@@ -69,8 +63,8 @@ export function useThreads(
         console.log("🔍 [THREADS] API call triggered:", {
           personId: personIdNum,
           zoneId: zoneIdNum,
-          context: pollingContext,
-          interval,
+          isActiveChatPage,
+          interval: pollingInterval,
           socketConnected: isSocketConnected,
         });
       }
@@ -83,13 +77,13 @@ export function useThreads(
       });
     },
 
-    // Use the optimized polling configuration
-    staleTime,
-    gcTime,
-    refetchInterval: interval,
-    refetchIntervalInBackground,
-    refetchOnWindowFocus,
-    refetchOnMount,
+    // Simplified polling configuration
+    staleTime: isSocketConnected ? 30000 : 0,
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: pollingInterval,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
 
     retry: 1,
     retryDelay: 1000,
@@ -108,6 +102,6 @@ export function useThreads(
     refetch,
     isSocketConnected,
     socketStatus,
-    pollingContext,
+    pollingContext: isActiveChatPage ? "active-chat" : "background-chat",
   };
 }

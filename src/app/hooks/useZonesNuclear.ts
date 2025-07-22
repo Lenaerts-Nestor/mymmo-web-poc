@@ -1,8 +1,8 @@
-// src/app/hooks/nuclear/useZonesNuclear.ts - NUCLEAR CLEANUP
+// src/app/hooks/useZonesNuclear.ts - IMPROVED LOADING COORDINATION
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useUnifiedApp } from "../contexts/UnifiedAppContext";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
 import { PersonEndpoint } from "../types/person";
@@ -25,17 +25,27 @@ export function useZonesNuclear(
   personId: string,
   translationLang: string
 ): UseZonesNuclearResult {
-  const { zoneUnreadCounts, updateZoneUnreadCount, isSocketConnected } =
-    useUnifiedApp();
+  const {
+    zoneUnreadCounts,
+    updateZoneUnreadCount,
+    isSocketConnected,
+    isHydrated,
+  } = useUnifiedApp();
   const personIdNum = parseInt(personId);
 
+  // Track loading states more granularly
+  const [hasInitializedCounters, setHasInitializedCounters] = useState(false);
+
   // ===== PERMANENT ZONE CACHE (No Expiration) =====
-  const { data, isLoading, error, refetch } = useQuery({
+  const {
+    data,
+    isLoading: isQueryLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["zones_permanent", personId, translationLang],
     queryFn: async () => {
-      console.log(
-        "🏗️ [ZONES_NUCLEAR] Loading zones metadata (permanent cache)"
-      );
+      console.log("🏗️ [ZONES_NUCLEAR] Loading zones metadata");
 
       const response = await MyMMOApiZone.getZonesByPerson(
         personIdNum,
@@ -52,37 +62,30 @@ export function useZonesNuclear(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!personId,
+    enabled: !!personId, // Start loading immediately when personId is available
   });
 
-  // ===== INITIALIZE ZONE COUNTERS ON SOCKET CONNECTION =====
+  // ===== INITIALIZE ZONE COUNTERS =====
   useEffect(() => {
-    if (!isSocketConnected || !data?.zones) return;
+    if (!data?.zones || hasInitializedCounters || !isHydrated) return;
 
     console.log(
-      "🔌 [ZONES_NUCLEAR] Socket connected, initializing zone counters"
+      "🔌 [ZONES_NUCLEAR] Initializing",
+      data.zones.length,
+      "zone counters"
     );
 
-    // Initialize all zone counters to 0 if not already set
+    // Initialize all zone counters to 0 (this doesn't need to block rendering)
     data.zones.forEach((zone: Zone) => {
-      if (!zoneUnreadCounts.has(zone.zoneId)) {
-        updateZoneUnreadCount(zone.zoneId, 0);
-      }
+      updateZoneUnreadCount(zone.zoneId, 0);
     });
 
-    // Request fresh counter data from server
-    // This could be a socket emit or API call depending on your backend
-    // socket.emit("request_zone_counters", { personId: personIdNum, zones: data.zones.map(z => z.zoneId) });
-  }, [
-    isSocketConnected,
-    data?.zones,
-    zoneUnreadCounts,
-    updateZoneUnreadCount,
-    personIdNum,
-  ]);
+    setHasInitializedCounters(true);
+  }, [data?.zones, hasInitializedCounters, isHydrated, updateZoneUnreadCount]);
 
   // ===== COMBINE CACHED ZONES WITH LIVE COUNTERS =====
   const zonesWithUnreadCounts = useMemo<ZoneWithUnreadCount[]>(() => {
+    // Show zones immediately when available, even if counters aren't initialized
     if (!data?.zones) return [];
 
     return data.zones.map((zone: Zone) => {
@@ -94,24 +97,30 @@ export function useZonesNuclear(
         hasUnreadMessages: unreadCount > 0,
       };
     });
-  }, [data?.zones, zoneUnreadCounts]);
+  }, [data?.zones, zoneUnreadCounts]); // Removed hasInitializedCounters dependency
+
+  // ===== SIMPLIFIED LOADING STATE =====
+  const isLoading =
+    isQueryLoading || // Loading zones data
+    (!isHydrated && (data?.zones?.length || 0) > 0); // Hydrating with existing data
 
   // ===== PERFORMANCE LOGGING =====
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
-      console.log("🏗️ [ZONES_NUCLEAR] Performance stats:", {
+      console.log("🏗️ [ZONES_NUCLEAR] State:", {
+        isHydrated,
+        isQueryLoading,
+        hasInitializedCounters,
         zonesCount: zonesWithUnreadCounts.length,
-        totalUnread: Array.from(zoneUnreadCounts.values()).reduce(
-          (sum, count) => sum + count,
-          0
-        ),
-        cacheHit: !isLoading,
+        isLoading,
         socketConnected: isSocketConnected,
       });
     }
   }, [
+    isHydrated,
+    isQueryLoading,
+    hasInitializedCounters,
     zonesWithUnreadCounts.length,
-    zoneUnreadCounts,
     isLoading,
     isSocketConnected,
   ]);
@@ -119,7 +128,7 @@ export function useZonesNuclear(
   return {
     zones: zonesWithUnreadCounts,
     person: data?.person?.[0] || ({} as PersonEndpoint),
-    isLoading,
+    isLoading: !!isLoading, // Ensure boolean, never undefined
     error: error ? "Failed to load zones" : null,
     refetch,
   };
@@ -134,6 +143,8 @@ export function useInboxNuclear(personId: string, translationLang: string) {
 
   // ===== FILTER ZONES WITH UNREAD MESSAGES =====
   const inboxItems = useMemo(() => {
+    if (isLoading) return []; // Don't process while loading
+
     return zones
       .filter((zone) => zone.hasUnreadMessages)
       .map((zone) => ({
@@ -198,7 +209,7 @@ export function useInboxNuclear(personId: string, translationLang: string) {
           },
         },
       }));
-  }, [zones, personId]);
+  }, [zones, personId, isLoading]);
 
   const totalUnreadCount = useMemo(() => {
     return inboxItems.reduce((sum, item) => sum + item.unreadCount, 0);

@@ -1,10 +1,10 @@
-// src/app/components/auth/ProtectedRoute.tsx
+// src/app/components/auth/ProtectedRoute.tsx - FIXED CONTEXT
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { UI_MESSAGES } from "../../constants/app";
-import { useUser } from "../../contexts/UserContext";
+import { useUnifiedApp } from "../../contexts/UnifiedAppContext"; // FIXED: Use unified context
 import SessionService from "../../services/sessionService";
 
 interface ProtectedRouteProps {
@@ -19,7 +19,7 @@ export function ProtectedRoute({
   fallbackUrl = "/login",
 }: ProtectedRouteProps) {
   const router = useRouter();
-  const { user, isLoading: userLoading } = useUser();
+  const { user, isUserLoading } = useUnifiedApp(); // FIXED: Use unified context
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
 
@@ -29,7 +29,7 @@ export function ProtectedRoute({
         setIsValidating(true);
 
         // Wait for user context to load
-        if (userLoading) {
+        if (isUserLoading) {
           return;
         }
 
@@ -75,13 +75,13 @@ export function ProtectedRoute({
     };
 
     validateAccess();
-  }, [requiredPersonId, router, fallbackUrl, user, userLoading]);
+  }, [requiredPersonId, router, fallbackUrl, user, isUserLoading]);
 
   // Show minimal loading for fast validation
-  if (userLoading || isValidating) {
+  if (isUserLoading || isValidating) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner message={UI_MESSAGES.LOADING.SESSION} />
+        <LoadingSpinner />
       </div>
     );
   }

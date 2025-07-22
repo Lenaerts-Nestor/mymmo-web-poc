@@ -352,11 +352,12 @@ export const ZonesListNuclear = memo(function ZonesListNuclear({
     [filteredZones]
   );
 
-  if (isLoading) {
+  // Show skeleton only if completely loading (no zones available yet)
+  if (isLoading && zones.length === 0) {
     return <ZonesListSkeletonNuclear />;
   }
 
-  if (filteredZones.length === 0) {
+  if (filteredZones.length === 0 && !isLoading) {
     return <EmptyZonesStateNuclear showAllZones={showAllZones} />;
   }
 
@@ -366,13 +367,18 @@ export const ZonesListNuclear = memo(function ZonesListNuclear({
         <div>
           <h2 className="text-3xl font-bold text-stone-800 mb-2">
             {showAllZones ? "Alle Zones" : "Zones met Ongelezen Berichten"} (
-            {filteredZones.length})
+            {filteredZones.length}
+            {isLoading && (
+              <span className="animate-pulse ml-1 text-blue-500">...</span>
+            )}
+            )
           </h2>
 
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <span>
               🔔 {stats.totalUnreadCount} ongelezen{" "}
               {stats.totalUnreadCount === 1 ? "bericht" : "berichten"}
+              {isLoading && <span className="animate-pulse ml-1">⟳</span>}
             </span>
             <span>•</span>
             <span>
@@ -389,16 +395,56 @@ export const ZonesListNuclear = memo(function ZonesListNuclear({
         </div>
 
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-gray-500">Live updates</span>
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isLoading
+                ? "bg-blue-500 animate-pulse"
+                : "bg-green-500 animate-pulse"
+            }`}
+          ></div>
+          <span className="text-sm text-gray-500">
+            {isLoading ? "Loading zones..." : "Live updates"}
+          </span>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredZones.map((zone) => (
-          <ZoneCardNuclear key={zone.zoneId} zone={zone} />
-        ))}
-      </div>
+      {/* Show zones immediately when available */}
+      {filteredZones.length > 0 && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredZones.map((zone, index) => (
+            <div
+              key={zone.zoneId}
+              className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <ZoneCardNuclear zone={zone} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Show loading indicator if no zones yet but still loading */}
+      {filteredZones.length === 0 && isLoading && (
+        <div className="text-center py-12">
+          <div className="inline-flex items-center space-x-3 text-blue-500">
+            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+            <span className="text-xl font-medium">Loading your zones...</span>
+          </div>
+          <p className="mt-3 text-gray-500">
+            Please wait while we fetch your zone information
+          </p>
+        </div>
+      )}
+
+      {/* Show loading indicator for additional zones */}
+      {filteredZones.length > 0 && isLoading && (
+        <div className="mt-6 text-center">
+          <div className="inline-flex items-center space-x-2 text-sm text-gray-500">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            <span>Finalizing zone data...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

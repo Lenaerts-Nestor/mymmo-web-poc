@@ -1,8 +1,7 @@
-// src/app/components/layouts/DashboardLayout.tsx
+// src/app/components/layouts/DashboardLayout.tsx - REMOVED OLD PROVIDERS
 "use client";
 
 import React from "react";
-import { SocketZoneProvider } from "../../contexts/socket/SocketZoneProvider";
 
 export function DashboardLayout({
   children,
@@ -11,12 +10,6 @@ export function DashboardLayout({
   children: React.ReactNode;
   personId: string;
 }) {
-  return (
-    <SocketZoneProvider>
-      <div className="dashboard-layout">
-        {/* Your existing layout components */}
-        {children}
-      </div>
-    </SocketZoneProvider>
-  );
+  // Remove SocketZoneProvider - it's already in UnifiedAppContext
+  return <div className="dashboard-layout">{children}</div>;
 }

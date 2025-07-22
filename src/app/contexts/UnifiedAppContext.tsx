@@ -1,4 +1,4 @@
-// src/app/contexts/UnifiedAppContext.tsx - NUCLEAR CLEANUP
+// src/app/contexts/UnifiedAppContext.tsx - HYDRATION-SAFE VERSION
 "use client";
 
 import React, {
@@ -33,6 +33,9 @@ interface UnifiedAppState {
   globalUnreadCount: number;
   zoneUnreadCounts: Map<number, number>;
   lastCounterUpdate: Date;
+
+  // Hydration Safety
+  isHydrated: boolean;
 }
 
 interface UnifiedAppActions {
@@ -76,6 +79,10 @@ export function UnifiedAppProvider({
 }: UnifiedAppProviderProps) {
   const queryClient = useQueryClient();
 
+  // ===== HYDRATION SAFETY =====
+  const [isHydrated, setIsHydrated] = useState(false);
+  const isMounted = useRef(false);
+
   // ===== STATE =====
   const [user, setUser] = useState<SessionData | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
@@ -99,22 +106,43 @@ export function UnifiedAppProvider({
   );
   const reconnectAttempts = useRef(0);
 
+  // ===== HYDRATION SAFETY EFFECT =====
+  useEffect(() => {
+    isMounted.current = true;
+    setIsHydrated(true);
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   // ===== USER MANAGEMENT =====
   const fetchUser = useCallback(async () => {
+    // Prevent running on server or before hydration
+    if (!isMounted.current || !isHydrated) return;
+
     try {
       setIsUserLoading(true);
       setUserError(null);
 
       const sessionData = await SessionService.getSession();
-      setUser(sessionData);
+
+      // Only update if still mounted
+      if (isMounted.current) {
+        setUser(sessionData);
+      }
     } catch (err) {
-      setUserError("Failed to fetch user session");
-      console.error("User context error:", err);
-      setUser(null);
+      if (isMounted.current) {
+        setUserError("Failed to fetch user session");
+        console.error("User context error:", err);
+        setUser(null);
+      }
     } finally {
-      setIsUserLoading(false);
+      if (isMounted.current) {
+        setIsUserLoading(false);
+      }
     }
-  }, []);
+  }, [isHydrated]);
 
   const refreshUser = useCallback(async () => {
     await fetchUser();
@@ -130,9 +158,12 @@ export function UnifiedAppProvider({
       }
 
       await SessionService.logout();
-      setUser(null);
-      setGlobalUnreadCount(0);
-      setZoneUnreadCounts(new Map());
+
+      if (isMounted.current) {
+        setUser(null);
+        setGlobalUnreadCount(0);
+        setZoneUnreadCounts(new Map());
+      }
 
       // Clear all React Query caches
       queryClient.clear();
@@ -144,14 +175,23 @@ export function UnifiedAppProvider({
   // ===== SOCKET MANAGEMENT =====
   const initializeSocket = useCallback(
     (personId: number) => {
-      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
-      if (!socketUrl) {
-        console.error("Socket URL not configured");
-        setSocketError("Socket URL not configured");
+      // Prevent socket initialization on server
+      if (typeof window === "undefined" || !isMounted.current) {
         return;
       }
 
-      setSocketStatus("connecting");
+      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+      if (!socketUrl) {
+        console.error("Socket URL not configured");
+        if (isMounted.current) {
+          setSocketError("Socket URL not configured");
+        }
+        return;
+      }
+
+      if (isMounted.current) {
+        setSocketStatus("connecting");
+      }
 
       const newSocket = io(socketUrl, {
         transports: ["websocket", "polling"],
@@ -163,6 +203,8 @@ export function UnifiedAppProvider({
 
       // ===== CONNECTION EVENTS =====
       newSocket.on("connect", () => {
+        if (!isMounted.current) return;
+
         setSocketStatus("connected");
         setSocketError(null);
         reconnectAttempts.current = 0;
@@ -185,17 +227,23 @@ export function UnifiedAppProvider({
       });
 
       newSocket.on("disconnect", () => {
-        setSocketStatus("disconnected");
+        if (isMounted.current) {
+          setSocketStatus("disconnected");
+        }
       });
 
       newSocket.on("connect_error", (error: Error) => {
         console.error("Socket connection error:", error);
-        setSocketStatus("error");
-        setSocketError(error.message);
+        if (isMounted.current) {
+          setSocketStatus("error");
+          setSocketError(error.message);
+        }
       });
 
       // ===== MESSAGE EVENTS =====
       const handleRealtimeMessage = (data: any) => {
+        if (!isMounted.current) return;
+
         const message: RealtimeMessage = {
           _id: data._id || `temp-${Date.now()}`,
           text: data.text || "",
@@ -230,6 +278,8 @@ export function UnifiedAppProvider({
         zoneId: number;
         unreadCount: number;
       }) => {
+        if (!isMounted.current) return;
+
         setZoneUnreadCounts((prev) => {
           const newCounts = new Map(prev);
           const oldCount = newCounts.get(data.zoneId) || 0;
@@ -252,7 +302,9 @@ export function UnifiedAppProvider({
       newSocket.on("zone_unread_update", handleUnreadCountUpdate);
       newSocket.on("unread_count_update", handleUnreadCountUpdate);
 
-      setSocket(newSocket);
+      if (isMounted.current) {
+        setSocket(newSocket);
+      }
 
       return () => {
         newSocket.off("receive_thread_message", handleRealtimeMessage);
@@ -265,23 +317,26 @@ export function UnifiedAppProvider({
     [queryClient]
   );
 
-  // Initialize socket when user is available
+  // Initialize socket when user is available and hydrated
   useEffect(() => {
-    if (user && enableSocket && !socket) {
+    if (user && enableSocket && !socket && isHydrated) {
       const personId = parseInt(user.personId);
       return initializeSocket(personId);
     }
-  }, [user, enableSocket, socket, initializeSocket]);
+  }, [user, enableSocket, socket, initializeSocket, isHydrated]);
 
-  // Initialize user on mount
+  // Initialize user on hydration
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    if (isHydrated) {
+      fetchUser();
+    }
+  }, [fetchUser, isHydrated]);
 
   // ===== SOCKET ACTIONS =====
   const joinThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
-      if (!socket || socketStatus !== "connected" || !user) return;
+      if (!socket || socketStatus !== "connected" || !user || !isHydrated)
+        return;
 
       const personId = parseInt(user.personId);
 
@@ -294,12 +349,12 @@ export function UnifiedAppProvider({
         currentRooms.current.add(roomId);
       });
     },
-    [socket, socketStatus, user]
+    [socket, socketStatus, user, isHydrated]
   );
 
   const leaveThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
-      if (!socket || !user) return;
+      if (!socket || !user || !isHydrated) return;
 
       const personId = parseInt(user.personId);
 
@@ -311,7 +366,7 @@ export function UnifiedAppProvider({
         currentRooms.current.delete(roomId);
       });
     },
-    [socket, user]
+    [socket, user, isHydrated]
   );
 
   const sendMessage = useCallback(
@@ -320,7 +375,7 @@ export function UnifiedAppProvider({
       text: string,
       createdBy: number
     ): Promise<boolean> => {
-      if (!socket || socketStatus !== "connected") return false;
+      if (!socket || socketStatus !== "connected" || !isHydrated) return false;
 
       try {
         socket.emit("send_thread_message", {
@@ -338,11 +393,13 @@ export function UnifiedAppProvider({
         return false;
       }
     },
-    [socket, socketStatus]
+    [socket, socketStatus, isHydrated]
   );
 
   // ===== COUNTER ACTIONS =====
   const updateZoneUnreadCount = useCallback((zoneId: number, count: number) => {
+    if (!isMounted.current) return;
+
     setZoneUnreadCounts((prev) => {
       const newCounts = new Map(prev);
       const oldCount = newCounts.get(zoneId) || 0;
@@ -361,13 +418,17 @@ export function UnifiedAppProvider({
   }, []);
 
   const incrementGlobalCount = useCallback(() => {
-    setGlobalUnreadCount((prev) => prev + 1);
-    setLastCounterUpdate(new Date());
+    if (isMounted.current) {
+      setGlobalUnreadCount((prev) => prev + 1);
+      setLastCounterUpdate(new Date());
+    }
   }, []);
 
   const decrementGlobalCount = useCallback(() => {
-    setGlobalUnreadCount((prev) => Math.max(0, prev - 1));
-    setLastCounterUpdate(new Date());
+    if (isMounted.current) {
+      setGlobalUnreadCount((prev) => Math.max(0, prev - 1));
+      setLastCounterUpdate(new Date());
+    }
   }, []);
 
   const refreshAllCounters = useCallback(async () => {
@@ -412,6 +473,7 @@ export function UnifiedAppProvider({
       globalUnreadCount,
       zoneUnreadCounts,
       lastCounterUpdate,
+      isHydrated,
 
       // Actions
       refreshUser,
@@ -436,6 +498,7 @@ export function UnifiedAppProvider({
       globalUnreadCount,
       zoneUnreadCounts,
       lastCounterUpdate,
+      isHydrated,
       refreshUser,
       logout,
       joinThreadRoom,
@@ -449,6 +512,11 @@ export function UnifiedAppProvider({
       offMessageReceived,
     ]
   );
+
+  // Don't render until hydrated to prevent mismatch
+  if (!isHydrated) {
+    return null;
+  }
 
   return (
     <UnifiedAppContext.Provider value={contextValue}>

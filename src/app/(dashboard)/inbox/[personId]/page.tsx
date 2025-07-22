@@ -11,10 +11,28 @@ import { useInboxNuclear } from "@/app/hooks/useZonesNuclear";
 
 export default function InboxPageNuclear() {
   const { personId } = useParams();
-  const { user } = useUnifiedApp();
+  const { user, isUserLoading } = useUnifiedApp();
+
+  // Wait for user context to be ready
+  if (isUserLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading user session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If no user after loading, redirect to login
+  if (!user) {
+    window.location.href = "/login";
+    return null;
+  }
 
   const translationLang =
-    user?.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
+    user.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
   return (
     <InboxContentNuclear
@@ -50,7 +68,27 @@ const InboxContentNuclear = memo(function InboxContentNuclear({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading inbox...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center text-red-600">
+          <p className="text-xl font-semibold">Error loading inbox</p>
+          <p className="mt-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
