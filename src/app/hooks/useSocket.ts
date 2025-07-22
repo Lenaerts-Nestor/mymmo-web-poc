@@ -1,55 +1,42 @@
-// src/app/hooks/useSocket.ts
+// src/app/hooks/useSocket.ts - REFACTORED: Clean Socket Hook
+
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useSocketContext } from "../contexts/SocketContext";
 import { useQueryClient } from "@tanstack/react-query";
-
-interface UseSocketOptions {
-  threadId?: string;
-  personId?: number;
-  onMessage?: (data: any) => void;
-  onThreadUpdate?: (data: any) => void;
-  onError?: (error: string) => void;
-}
+import { UseSocketOptions } from "../types/socket";
+import { useSocketRooms } from "./useSocketRooms";
 
 export function useSocket(options: UseSocketOptions = {}) {
-  const { socket, status, isConnected, lastError, joinRoom, leaveRoom, emit } =
-    useSocketContext();
-  const queryClient = useQueryClient();
   const { threadId, personId, onMessage, onThreadUpdate, onError } = options;
+  const queryClient = useQueryClient();
 
-  // Keep track of joined rooms to avoid duplicate joins
-  const joinedRooms = useRef<Set<string>>(new Set());
+  // Get socket context
+  const {
+    socket,
+    status,
+    isConnected,
+    lastError,
+    sendMessage: socketSendMessage,
+    onMessageReceived,
+    offMessageReceived,
+    onThreadUpdate: socketOnThreadUpdate,
+    offThreadUpdate,
+  } = useSocketContext();
 
-  // Join thread room when threadId and personId are available
-  useEffect(() => {
-    if (
-      threadId &&
-      personId &&
-      isConnected &&
-      !joinedRooms.current.has(threadId)
-    ) {
-      console.log("🎯 Joining thread room:", threadId);
-      joinRoom(threadId, personId);
-      joinedRooms.current.add(threadId);
-    }
-
-    // Cleanup: leave room when component unmounts or threadId changes
-    return () => {
-      if (threadId && personId && joinedRooms.current.has(threadId)) {
-        console.log("🚪 Leaving thread room:", threadId);
-        leaveRoom(threadId, personId);
-        joinedRooms.current.delete(threadId);
-      }
-    };
-  }, [threadId, personId, isConnected, joinRoom, leaveRoom]);
+  // Room management (automatically handles join/leave)
+  const { joinedRooms, joinRoom, leaveRoom } = useSocketRooms({
+    threadId,
+    personId,
+    autoJoin: !!threadId && !!personId, // Auto-join if both provided
+  });
 
   // Socket event listeners
   useEffect(() => {
     if (!socket) return;
 
-    // Handle incoming messages (real-time message updates)
+    // Handle incoming messages
     const handleMessage = (data: any) => {
       console.log("💬 Received message:", data);
 
@@ -62,24 +49,21 @@ export function useSocket(options: UseSocketOptions = {}) {
       if (data.thread_id || data.threadId) {
         const messageThreadId = data.thread_id || data.threadId;
 
-        // Invalidate thread details cache to show new message
         queryClient.invalidateQueries({
           queryKey: ["threadDetails", messageThreadId],
         });
 
-        // Invalidate threads list cache to update unread counts
         queryClient.invalidateQueries({
           queryKey: ["threads"],
         });
 
-        // Invalidate zones cache to update global unread counter
         queryClient.invalidateQueries({
           queryKey: ["inbox"],
         });
       }
     };
 
-    // Handle thread updates (thread list changes, unread counts, etc.)
+    // Handle thread updates
     const handleThreadUpdate = (data: any) => {
       console.log("📋 Thread updated:", data);
 
@@ -94,36 +78,36 @@ export function useSocket(options: UseSocketOptions = {}) {
       });
     };
 
-    // Handle connection errors
-    const handleSocketError = (error: any) => {
-      console.error("🔴 Socket error:", error);
-
-      if (onError) {
-        onError(error.message || "Socket error occurred");
-      }
-    };
-
-    // Register event listeners
-    // Note: Based on the backend analysis, these are the key events we need to listen for
-    socket.on("message_received", handleMessage); // Real-time message updates
-    socket.on("thread_message_broadcasted", handleMessage); // Message broadcast from backend
-    socket.on("thread_updated", handleThreadUpdate); // Thread list updates
-    socket.on("thread_list_updated", handleThreadUpdate); // Thread list changes
-    socket.on("error", handleSocketError); // Socket errors
+    // Register event listeners using the context methods
+    onMessageReceived(handleMessage);
+    socketOnThreadUpdate(handleThreadUpdate);
 
     // Cleanup listeners
     return () => {
-      socket.off("message_received", handleMessage);
-      socket.off("thread_message_broadcasted", handleMessage);
-      socket.off("thread_updated", handleThreadUpdate);
-      socket.off("thread_list_updated", handleThreadUpdate);
-      socket.off("error", handleSocketError);
+      offMessageReceived(handleMessage);
+      offThreadUpdate(handleThreadUpdate);
     };
-  }, [socket, queryClient, onMessage, onThreadUpdate, onError]);
+  }, [
+    socket,
+    queryClient,
+    onMessage,
+    onThreadUpdate,
+    onMessageReceived,
+    offMessageReceived,
+    socketOnThreadUpdate,
+    offThreadUpdate,
+  ]);
 
-  // Send message function (uses existing HTTP API but enhanced with socket awareness)
+  // Handle connection errors
+  useEffect(() => {
+    if (lastError && onError) {
+      onError(lastError);
+    }
+  }, [lastError, onError]);
+
+  // Send message function
   const sendSocketMessage = useCallback(
-    (messageData: {
+    async (messageData: {
       threadId: string;
       text: string;
       createdBy: number;
@@ -136,32 +120,28 @@ export function useSocket(options: UseSocketOptions = {}) {
 
       console.log("📤 Sending message via socket:", messageData);
 
-      // Emit to backend (this will trigger the handleSendThreadMessage function)
-      emit("send_thread_message", {
-        threadId: messageData.threadId,
-        text: messageData.text,
-        createdBy: messageData.createdBy,
-        completed: messageData.completed || false,
-        attachments: [], // For now, no attachments in POC
-      });
-
-      return true;
+      // Use the context's sendMessage method
+      return await socketSendMessage(
+        messageData.threadId,
+        messageData.text,
+        messageData.createdBy
+      );
     },
-    [isConnected, emit]
+    [isConnected, socketSendMessage]
   );
 
-  // Fetch messages function (can be used to refresh message history)
+  // Fetch messages function
   const fetchMessages = useCallback(
     (threadId: string, personId: number) => {
-      if (!isConnected) return;
+      if (!isConnected || !socket) return;
 
       console.log("📥 Fetching messages for thread:", threadId);
-      emit("fetch_thread_messages", {
+      socket.emit("fetch_thread_messages", {
         threadId,
         personId,
       });
     },
-    [isConnected, emit]
+    [isConnected, socket]
   );
 
   return {
@@ -172,25 +152,32 @@ export function useSocket(options: UseSocketOptions = {}) {
     lastError,
 
     // Room management
-    joinRoom: useCallback(
-      (roomId: string) => {
-        if (personId) joinRoom(roomId, personId);
-      },
-      [joinRoom, personId]
-    ),
-
-    leaveRoom: useCallback(
-      (roomId: string) => {
-        if (personId) leaveRoom(roomId, personId);
-      },
-      [leaveRoom, personId]
-    ),
+    joinedRooms,
+    joinRoom: (roomId: string, zoneId?: string) => {
+      if (zoneId) {
+        return joinRoom(roomId, zoneId);
+      }
+      return false;
+    },
+    leaveRoom: (roomId: string, zoneId?: string) => {
+      if (zoneId) {
+        return leaveRoom(roomId, zoneId);
+      }
+      return false;
+    },
 
     // Messaging functions
     sendSocketMessage,
     fetchMessages,
 
     // Raw emit function for custom events
-    emit,
+    emit: useCallback(
+      (event: string, data: any) => {
+        if (socket) {
+          socket.emit(event, data);
+        }
+      },
+      [socket]
+    ),
   };
 }

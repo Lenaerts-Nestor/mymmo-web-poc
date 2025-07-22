@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
-import { useThreads } from "@/app/hooks/useThreads";
+import { useThreads } from "@/app/hooks/threads/useThreads";
 import { MessageBubble } from "./MessageBubble";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
 import { shouldShowTime } from "./chatUtils";
-import { useChatMessages } from "@/app/hooks/useChatMessages";
+import { useChatMessages } from "@/app/hooks/chat/useChatMessages";
 
 interface ChatContentProps {
   personId: string;
@@ -159,10 +159,10 @@ export function ChatContent({
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-600">Berichten laden...</p>
           {isConnected && (
-            <p className="mt-2 text-green-600 text-sm flex items-center justify-center">
+            <div className="mt-2 text-green-600 text-sm flex items-center justify-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
               Real-time verbinding actief
-            </p>
+            </div>
           )}
         </div>
       </div>

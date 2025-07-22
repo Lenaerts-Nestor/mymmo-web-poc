@@ -9,7 +9,7 @@ import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
-import { useThreads } from "@/app/hooks/useThreads";
+import { useThreads } from "@/app/hooks/threads/useThreads";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG } from "@/app/constants/app";
 

@@ -1,36 +1,20 @@
-// src/app/hooks/useChatMessages.ts - REAL-TIME CHAT STATE MANAGEMENT
+// src/app/hooks/chat/useChatMessages.ts - REFACTORED: Clean Chat Messages Hook
+
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useSocketContext, RealtimeMessage } from "../contexts/SocketContext";
-import MyMMOApiThreads, {
-  ThreadMessage,
-} from "../services/mymmo-thread-service/apiThreads";
-
-interface UseChatMessagesResult {
-  messages: ThreadMessage[];
-  readMessages: ThreadMessage[];
-  unreadMessages: ThreadMessage[];
-  isLoading: boolean;
-  error: string | null;
-
-  // Message actions
-  sendMessage: (text: string) => Promise<boolean>;
-  markAsRead: () => Promise<void>;
-  refreshMessages: () => Promise<void>;
-
-  // Real-time status
-  isConnected: boolean;
-  socketStatus: string;
-}
-
-interface UseChatMessagesOptions {
-  threadId: string;
-  personId: string;
-  zoneId: string;
-  transLangId: string;
-  autoMarkAsRead?: boolean;
-}
+import { useState, useEffect, useCallback } from "react";
+import {
+  useSocketContext,
+  RealtimeMessage,
+} from "../../contexts/SocketContext";
+import { useOptimisticMessages } from "./useOptimisticMessages";
+import {
+  UseChatMessagesResult,
+  UseChatMessagesOptions,
+} from "../../types/chat";
+import { ThreadMessage } from "../../services/mymmo-thread-service/apiThreads";
+import MyMMOApiThreads from "../../services/mymmo-thread-service/apiThreads";
+import { useSocketRooms } from "../useSocketRooms";
 
 export function useChatMessages({
   threadId,
@@ -39,18 +23,33 @@ export function useChatMessages({
   transLangId,
   autoMarkAsRead = true,
 }: UseChatMessagesOptions): UseChatMessagesResult {
+  const personIdNum = parseInt(personId);
+
   // Socket integration
   const {
     isConnected,
     status: socketStatus,
-    joinThreadRoom,
-    leaveThreadRoom,
     sendMessage: socketSendMessage,
     onMessageReceived,
     offMessageReceived,
   } = useSocketContext();
 
-  // Local state for messages (NO React Query for real-time data)
+  // Room management
+  const { joinedRooms } = useSocketRooms({
+    threadId,
+    zoneId,
+    personId: personIdNum,
+    autoJoin: true,
+  });
+
+  // Optimistic messages
+  const {
+    createOptimisticMessage,
+    updateOptimisticMessage,
+    cleanupOptimisticMessages,
+  } = useOptimisticMessages();
+
+  // Local state for messages
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [readMessages, setReadMessages] = useState<ThreadMessage[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<ThreadMessage[]>([]);
@@ -58,11 +57,7 @@ export function useChatMessages({
   const [error, setError] = useState<string | null>(null);
   const [lastAccessTime, setLastAccessTime] = useState<Date | null>(null);
 
-  // Track optimistic messages to avoid duplicates
-  const optimisticMessages = useRef<Set<string>>(new Set());
-  const personIdNum = parseInt(personId);
-
-  // 🚀 REAL-TIME MESSAGE HANDLER
+  // Real-time message handler
   const handleRealtimeMessage = useCallback(
     (realtimeMessage: RealtimeMessage) => {
       // Only handle messages for this thread
@@ -86,67 +81,24 @@ export function useChatMessages({
         __v: 0,
       };
 
-      // Remove from optimistic if it was an optimistic message
-      if (optimisticMessages.current.has(newMessage._id)) {
-        optimisticMessages.current.delete(newMessage._id);
-
-        // Update existing optimistic message
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg._id.startsWith("temp-") && msg.text === newMessage.text
-              ? newMessage
-              : msg
-          )
-        );
-      } else {
-        // Add new message
-        setMessages((prev) => {
-          // Avoid duplicates
-          if (prev.some((msg) => msg._id === newMessage._id)) {
-            return prev;
-          }
-
-          // Insert in chronological order
-          const newMessages = [...prev, newMessage];
-          return newMessages.sort(
-            (a, b) =>
-              new Date(a.created_on).getTime() -
-              new Date(b.created_on).getTime()
-          );
-        });
-      }
+      // Update messages with optimistic handling
+      setMessages((prev) => updateOptimisticMessage(prev, newMessage));
 
       // Auto-mark as read if enabled and message is from another user
       if (autoMarkAsRead && newMessage.created_by !== personIdNum) {
         setTimeout(() => markAsRead(), 1000);
       }
     },
-    [threadId, personIdNum, autoMarkAsRead]
+    [threadId, personIdNum, autoMarkAsRead, updateOptimisticMessage]
   );
 
-  // 🚀 JOIN/LEAVE THREAD ROOM
-  useEffect(() => {
-    if (isConnected && threadId && zoneId) {
-      console.log("🎯 Joining thread room for real-time chat");
-      joinThreadRoom(threadId, zoneId);
-
-      return () => {
-        console.log("🚪 Leaving thread room");
-        leaveThreadRoom(threadId, zoneId);
-      };
-    }
-  }, [isConnected, threadId, zoneId, joinThreadRoom, leaveThreadRoom]);
-
-  // 🚀 REGISTER REAL-TIME MESSAGE LISTENER
+  // Register real-time message listener
   useEffect(() => {
     onMessageReceived(handleRealtimeMessage);
-
-    return () => {
-      offMessageReceived(handleRealtimeMessage);
-    };
+    return () => offMessageReceived(handleRealtimeMessage);
   }, [handleRealtimeMessage, onMessageReceived, offMessageReceived]);
 
-  // 🚀 LOAD INITIAL MESSAGES (React Query for initial load only)
+  // Load initial messages
   const loadInitialMessages = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -192,30 +144,18 @@ export function useChatMessages({
     }
   }, [threadId, personId, loadInitialMessages]);
 
-  // 🚀 SEND MESSAGE WITH OPTIMISTIC UPDATES
+  // Send message with optimistic updates
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {
       if (!text.trim()) return false;
 
-      const optimisticId = `temp-${Date.now()}-${Math.random()}`;
-      const optimisticMessage: ThreadMessage = {
-        _id: optimisticId,
-        text: text.trim(),
-        created_on: new Date().toISOString(),
-        created_by: personIdNum,
-        thread_id: threadId,
-        attachments: [],
-        lang_id_detected: "",
-        metadata: { recipients: [] },
-        is_deleted: false,
-        updated_on: new Date().toISOString(),
-        updated_by: null,
-        __v: 0,
-      };
-
-      // Add optimistic message immediately
+      // Create optimistic message
+      const optimisticMessage = createOptimisticMessage(
+        text,
+        threadId,
+        personIdNum
+      );
       setMessages((prev) => [...prev, optimisticMessage]);
-      optimisticMessages.current.add(optimisticId);
 
       try {
         // Try socket first
@@ -242,11 +182,10 @@ export function useChatMessages({
           completed: false,
         });
 
-        // Remove optimistic message and let normal flow handle the real one
-        optimisticMessages.current.delete(optimisticId);
-        setMessages((prev) => prev.filter((msg) => msg._id !== optimisticId));
-
-        // Refresh to get the real message
+        // Remove optimistic message and refresh
+        setMessages((prev) =>
+          cleanupOptimisticMessages(prev, optimisticMessage._id)
+        );
         await refreshMessages();
 
         return true;
@@ -254,17 +193,24 @@ export function useChatMessages({
         console.error("❌ Failed to send message:", err);
 
         // Remove failed optimistic message
-        optimisticMessages.current.delete(optimisticId);
-        setMessages((prev) => prev.filter((msg) => msg._id !== optimisticId));
-
+        setMessages((prev) =>
+          cleanupOptimisticMessages(prev, optimisticMessage._id)
+        );
         setError(err.message || "Failed to send message");
         return false;
       }
     },
-    [threadId, personIdNum, isConnected, socketSendMessage]
+    [
+      threadId,
+      personIdNum,
+      isConnected,
+      socketSendMessage,
+      createOptimisticMessage,
+      cleanupOptimisticMessages,
+    ]
   );
 
-  // 🚀 MARK AS READ
+  // Mark as read
   const markAsRead = useCallback(async () => {
     try {
       await MyMMOApiThreads.updateThreadLastAccess({
@@ -275,8 +221,6 @@ export function useChatMessages({
       // Update local state immediately
       const now = new Date();
       setLastAccessTime(now);
-
-      // Move unread to read
       setReadMessages((prev) => [...prev, ...unreadMessages]);
       setUnreadMessages([]);
 
@@ -286,7 +230,7 @@ export function useChatMessages({
     }
   }, [threadId, personIdNum, unreadMessages]);
 
-  // 🚀 REFRESH MESSAGES (force reload from API)
+  // Refresh messages
   const refreshMessages = useCallback(async () => {
     await loadInitialMessages();
   }, [loadInitialMessages]);

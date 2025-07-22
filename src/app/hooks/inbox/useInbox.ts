@@ -1,43 +1,37 @@
-// src/app/hooks/useInbox.ts - PERFORMANCE OPTIMIZED
+// src/app/hooks/inbox/useInbox.ts - REFACTORED: Clean Inbox Hook
 
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { InboxData, UseInboxResult } from "../types/inbox";
-import MyMMOApiZone from "../services/mymmo-service/apiZones";
-import MyMMOApiThreads from "../services/mymmo-thread-service/apiThreads";
-import { POLLING_INTERVALS } from "../constants/pollings_interval";
+import { InboxData, UseInboxResult } from "../../types/inbox";
+import { useActivityTracking } from "../../utils/activityTracking";
+import { getPollingContext, createPollingConfig } from "../../utils/polling";
+import { POLLING_INTERVALS } from "../../constants/pollings_interval";
+import MyMMOApiZone from "../../services/mymmo-service/apiZones";
+import MyMMOApiThreads from "../../services/mymmo-thread-service/apiThreads";
 
 export function useInbox(
   personId: string,
   translationLang: string
 ): UseInboxResult {
-  const [isVisible, setIsVisible] = useState(true);
+  // Activity tracking for smart polling
+  const activityState = useActivityTracking(3 * 60 * 1000); // 3 minutes idle timeout
 
-  // 🎯 OPTIMIZED: Page visibility detection for smarter polling
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsVisible(!document.hidden);
+  // Get polling context (inbox is never "active-chat")
+  const pollingContext = getPollingContext({
+    ...activityState,
+    isActivePage: false, // Inbox is not an active chat page
+  });
 
-      // Debug logging voor performance monitoring
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "🔍 [INBOX] Page visibility changed:",
-          !document.hidden ? "VISIBLE" : "HIDDEN"
-        );
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
+  // Create polling configuration
+  const baseInterval =
+    pollingContext === "other" ? false : POLLING_INTERVALS.INBOX;
+  const pollingConfig = createPollingConfig(baseInterval, false, false);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["inbox", personId, translationLang],
     queryFn: async (): Promise<InboxData> => {
       const personIdNum = parseInt(personId);
 
-      // Debug logging voor API call monitoring
+      // Debug logging for API call monitoring
       if (process.env.NODE_ENV === "development") {
         console.log("🔍 [INBOX] API call triggered for person:", personIdNum);
       }
@@ -128,7 +122,7 @@ export function useInbox(
         0
       );
 
-      // Debug logging voor resultaat monitoring
+      // Debug logging for result monitoring
       if (process.env.NODE_ENV === "development") {
         console.log("🔍 [INBOX] Inbox data loaded:", {
           itemsCount: inboxItems.length,
@@ -143,19 +137,13 @@ export function useInbox(
       };
     },
 
-    // 🎯 OPTIMIZED POLLING CONFIGURATION
-    // ⚡ PERFORMANCE: Verhoogd van 30s naar 45s voor minder API load
-    staleTime: 0,
-    gcTime: 2 * 60 * 1000, // 2 minutes
-
-    // ⚡ PERFORMANCE: Gebruik optimized interval (45s instead of 30s)
-    refetchInterval: isVisible ? POLLING_INTERVALS.INBOX : false,
-
-    // 🎯 OPTIMIZED: Geen background polling voor betere performance
-    refetchIntervalInBackground: false,
-
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    // Use optimized polling configuration
+    staleTime: pollingConfig.staleTime,
+    gcTime: pollingConfig.gcTime,
+    refetchInterval: pollingConfig.interval,
+    refetchIntervalInBackground: pollingConfig.refetchIntervalInBackground,
+    refetchOnWindowFocus: pollingConfig.refetchOnWindowFocus,
+    refetchOnMount: pollingConfig.refetchOnMount,
 
     retry: 1,
     retryDelay: 1000,
@@ -173,16 +161,15 @@ export function useInbox(
     : null;
 
   // Performance logging in development
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("🔍 [INBOX] Polling status:", {
-        enabled: isVisible,
-        interval: isVisible ? POLLING_INTERVALS.INBOX : "DISABLED",
-        itemsCount: inboxData.items.length,
-        totalUnreadCount: inboxData.totalUnreadCount,
-      });
-    }
-  }, [isVisible, inboxData.items.length, inboxData.totalUnreadCount]);
+  if (process.env.NODE_ENV === "development") {
+    console.log("🔍 [INBOX] Polling status:", {
+      enabled: pollingConfig.interval !== false,
+      interval: pollingConfig.interval,
+      itemsCount: inboxData.items.length,
+      totalUnreadCount: inboxData.totalUnreadCount,
+      context: pollingContext,
+    });
+  }
 
   return {
     inboxData,
