@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useSocketZones } from "../contexts/socket/SocketZoneProvider";
-import { ZoneWithUnreadCount } from "./useZonesWithUnreadCounts";
 import { PersonEndpoint } from "../types/person";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
+import { ZoneWithUnreadCount } from "./useZonesNuclear";
 
 interface UseZonesWithUnreadOptimizedResult {
   zones: ZoneWithUnreadCount[];
