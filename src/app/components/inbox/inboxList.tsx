@@ -1,4 +1,4 @@
-// src/app/components/inbox/InboxList.tsx - Improved Design
+// src/app/components/inbox/InboxList.tsx - Enhanced Brand Styling
 
 import { InboxData } from "@/app/types/inbox";
 import { InboxCard } from "./inboxCard";
@@ -11,44 +11,44 @@ interface InboxListProps {
 
 function InboxListSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 animate-pulse"
+          className="bg-white rounded-[20px] shadow-sm border-2 border-[#CFC4C7] p-8 animate-pulse"
         >
           {/* Zone Header skeleton */}
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start mb-6">
             <div className="flex-1">
-              <div className="h-6 bg-gray-300 rounded w-48 mb-2"></div>
-              <div className="h-4 bg-gray-300 rounded w-64"></div>
+              <div className="h-6 bg-[#F5F2DE] rounded-[10px] w-48 mb-3"></div>
+              <div className="h-4 bg-[#CFC4C7] rounded-[8px] w-64"></div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="h-6 bg-gray-300 rounded-full w-12"></div>
-              <div className="h-4 bg-gray-300 rounded w-16"></div>
+            <div className="flex items-center space-x-3">
+              <div className="h-6 bg-[#FACF59] rounded-full w-12"></div>
+              <div className="h-4 bg-[#CFC4C7] rounded-[8px] w-16"></div>
             </div>
           </div>
 
           {/* Message Content skeleton */}
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"></div>
+          <div className="flex items-start space-x-4 mb-6">
+            <div className="w-12 h-12 bg-[#B0C2FC] rounded-full flex-shrink-0 border-2 border-[#FACF59]"></div>
             <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <div className="h-4 bg-gray-300 rounded w-32"></div>
-                <div className="h-4 bg-gray-300 rounded w-16"></div>
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="h-4 bg-[#CFC4C7] rounded-[8px] w-32"></div>
+                <div className="h-4 bg-[#A69298] rounded-[8px] w-16"></div>
               </div>
-              <div className="h-4 bg-gray-300 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+              <div className="h-4 bg-[#F5F2DE] rounded-[8px] w-full mb-2"></div>
+              <div className="h-4 bg-[#F5F2DE] rounded-[8px] w-3/4"></div>
             </div>
           </div>
 
           {/* Footer skeleton */}
-          <div className="flex justify-between items-center mt-4 pt-2 border-t border-gray-100">
+          <div className="flex justify-between items-center pt-4 border-t border-[#CFC4C7]">
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-              <div className="h-3 bg-gray-300 rounded w-24"></div>
+              <div className="w-3 h-3 bg-[#ACED94] rounded-full"></div>
+              <div className="h-3 bg-[#A69298] rounded-[6px] w-24"></div>
             </div>
-            <div className="h-3 bg-gray-300 rounded w-32"></div>
+            <div className="h-3 bg-[#A69298] rounded-[6px] w-32"></div>
           </div>
         </div>
       ))}
@@ -58,18 +58,22 @@ function InboxListSkeleton() {
 
 function EmptyInboxState() {
   return (
-    <div className="text-center py-16">
-      <div className="text-8xl mb-6">📬</div>
-      <h2 className="text-3xl font-bold mb-4 text-gray-700">Inbox is leeg</h2>
-      <p className="text-lg text-gray-500 mb-2">
+    <div className="text-center py-20 bg-white rounded-[20px] border-2 border-[#CFC4C7] shadow-sm">
+      <div className="text-8xl mb-8">📬</div>
+      <h2 className="text-3xl font-bold mb-4 text-[#552E38]">Inbox is leeg</h2>
+      <p className="text-lg text-[#A69298] mb-3 font-medium">
         Geen ongelezen berichten gevonden.
       </p>
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-[#765860]">
         Nieuwe berichten verschijnen hier automatisch.
       </p>
-      <div className="inline-flex items-center space-x-2 text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-full mt-6">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <span>Automatisch bijgewerkt</span>
+
+      {/* Optional: Add a subtle action suggestion */}
+      <div className="mt-8 inline-flex items-center space-x-2 bg-[#F5F2DE] px-4 py-2 rounded-[15px]">
+        <div className="w-2 h-2 bg-[#ACED94] rounded-full animate-pulse"></div>
+        <span className="text-sm text-[#552E38] font-medium">
+          Wachten op nieuwe berichten...
+        </span>
       </div>
     </div>
   );
@@ -81,50 +85,34 @@ export function InboxList({
   onItemClick,
 }: InboxListProps) {
   if (isLoading) {
-    return (
-      <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
-        <InboxListSkeleton />
-      </div>
-    );
+    return <InboxListSkeleton />;
   }
 
-  if (inboxData.items.length === 0) {
-    return (
-      <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
-        <EmptyInboxState />
-      </div>
-    );
+  if (!inboxData.items || inboxData.items.length === 0) {
+    return <EmptyInboxState />;
   }
 
   return (
-    <div className="bg-white/70 rounded-2xl shadow-lg p-6 backdrop-blur-sm">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Ongelezen berichten ({inboxData.items.length})
-          </h2>
-          <p className="text-gray-600 text-sm">
-            Berichten uit alle zones, gesorteerd op nieuwste eerst
-          </p>
-        </div>
+    <div className="space-y-6">
+      {inboxData.items.map((item) => (
+        <InboxCard
+          key={`${item.zoneId}-${item.thread._id}`}
+          item={item}
+          onClick={onItemClick}
+        />
+      ))}
 
-        {/* Live indicator */}
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-gray-500">Live updates</span>
+      {/* Summary footer */}
+      <div className="bg-[#F5F2DE] rounded-[15px] p-4 mt-8">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-[#552E38] font-medium">
+            {inboxData.items.length} conversatie
+            {inboxData.items.length !== 1 ? "s" : ""}
+          </span>
+          <span className="text-[#765860]">
+            Totaal {inboxData.totalUnreadCount} ongelezen
+          </span>
         </div>
-      </div>
-
-      {/* Messages list */}
-      <div className="space-y-4">
-        {inboxData.items.map((item) => (
-          <InboxCard
-            key={`${item.zoneId}-${item.thread._id}`}
-            item={item}
-            onClick={onItemClick}
-          />
-        ))}
       </div>
     </div>
   );
