@@ -1,4 +1,4 @@
-// src/app/components/chat/ChatContent.tsx - REAL-TIME CHAT COMPONENT
+// src/app/components/chat/ChatContent.tsx - CLEANED & SPLIT
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -10,6 +10,9 @@ import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
 import { shouldShowTime } from "./chatUtils";
 import { useChatMessages } from "@/app/hooks/chat/useChatMessages";
+import { ConnectionStatus } from "./ConnectionStatus";
+import { EmptyMessagesState } from "./EmptyMessagesState";
+import { OfflineWarning } from "./OfflineWarning";
 
 interface ChatContentProps {
   personId: string;
@@ -30,7 +33,6 @@ export function ChatContent({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // 🚀 REAL-TIME CHAT MESSAGES (Local state + Socket)
   const {
     messages,
     unreadMessages,
@@ -49,7 +51,7 @@ export function ChatContent({
     autoMarkAsRead: true,
   });
 
-  // 🔄 THREAD METADATA (Still use React Query for non-real-time data)
+  // Get thread data for follower info
   const { threads: threadsData } = useThreads(
     personId,
     zoneId,
@@ -57,10 +59,10 @@ export function ChatContent({
     false // Not active chat page for this call
   );
 
-  // 🎯 GET CURRENT THREAD for follower info
+  // Get current thread for follower info
   const currentThread = threadsData.find((t) => t._id === threadId);
 
-  // 🎯 USER INFO LOOKUP
+  // User info lookup function
   const getUserInfo = (createdBy: number) => {
     if (!currentThread?.followers) {
       return {
@@ -88,7 +90,7 @@ export function ChatContent({
     };
   };
 
-  // 🎯 AUTO-SCROLL to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -98,42 +100,38 @@ export function ChatContent({
 
   useEffect(() => {
     if (messages.length > 0) {
-      // Small delay to ensure DOM is updated
       setTimeout(scrollToBottom, 100);
     }
   }, [messages.length]);
 
-  // 🎯 AUTO-FOCUS input for better UX
+  // Auto-focus input for better UX
   useEffect(() => {
     if (!messagesLoading && messageInputRef.current) {
       messageInputRef.current.focus();
     }
   }, [messagesLoading]);
 
-  // 🚀 SEND MESSAGE with real-time updates
+  // Send message with real-time updates
   const handleSendMessage = async () => {
     if (!messageInput.trim() || isSending) return;
 
     const messageText = messageInput.trim();
-    setMessageInput(""); // Clear input immediately for better UX
+    setMessageInput("");
     setIsSending(true);
 
     try {
       const success = await sendMessage(messageText);
-
       if (!success) {
-        // Restore message if failed
         setMessageInput(messageText);
       }
     } catch (error) {
-      console.error("❌ Send message error:", error);
-      setMessageInput(messageText); // Restore on error
+      console.error("Send message error:", error);
+      setMessageInput(messageText);
     } finally {
       setIsSending(false);
     }
   };
 
-  // Handle Enter key in textarea
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -141,17 +139,14 @@ export function ChatContent({
     }
   };
 
-  // 🎯 HANDLE BACK NAVIGATION
   const handleBack = () => {
     router.push(`/conversations/${personId}/${zoneId}`);
   };
 
-  // 🎯 MARK AS READ manually
   const handleMarkAsRead = async () => {
     await markAsRead();
   };
 
-  // 🚀 LOADING STATE
   if (messagesLoading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
@@ -169,7 +164,6 @@ export function ChatContent({
     );
   }
 
-  // 🚀 ERROR STATE
   if (messagesError) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
@@ -180,7 +174,6 @@ export function ChatContent({
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* 🚀 ENHANCED HEADER with real-time status */}
       <ChatHeader
         personId={personId}
         zoneId={zoneId}
@@ -191,83 +184,21 @@ export function ChatContent({
         onMarkAsRead={handleMarkAsRead}
       />
 
-      {/* 🚀 CONNECTION STATUS INDICATOR */}
-      <div className="px-4 py-2 bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-600">
-              {currentThread?.followers?.length || 0} deelnemers
-            </span>
+      <ConnectionStatus
+        isConnected={isConnected}
+        socketStatus={socketStatus}
+        participantCount={currentThread?.followers?.length || 0}
+        messagesCount={messages.length}
+      />
 
-            {/* Real-time status */}
-            <div className="flex items-center space-x-2">
-              {isConnected ? (
-                <>
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-600 font-medium">Live chat</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-red-600">Offline mode</span>
-                </>
-              )}
-            </div>
-          </div>
+      <MessagesArea
+        messages={messages}
+        personId={personId}
+        isConnected={isConnected}
+        messagesEndRef={messagesEndRef}
+        getUserInfo={getUserInfo}
+      />
 
-          {/* Debug info in development */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="text-xs text-gray-400">
-              Socket: {socketStatus} | Messages: {messages.length}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 🚀 MESSAGES AREA with real-time updates */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <div className="text-center">
-              <div className="text-6xl mb-4">💬</div>
-              <p className="text-xl font-medium mb-2">Geen berichten</p>
-              <p className="text-sm">
-                Start een gesprek door een bericht te typen
-              </p>
-              {isConnected && (
-                <p className="text-xs text-green-600 mt-2">
-                  ✨ Real-time chat is actief
-                </p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <>
-            {messages.map((message, index) => {
-              const userInfo = getUserInfo(message.created_by);
-              const previousMessage = index > 0 ? messages[index - 1] : null;
-              const showTime = shouldShowTime(message, previousMessage);
-              const isCurrentUser = message.created_by === parseInt(personId);
-
-              // Check if message is optimistic (being sent)
-              const isOptimistic = message._id.startsWith("temp-");
-
-              return (
-                <MessageBubble
-                  key={message._id}
-                  message={message}
-                  currentPersonId={parseInt(personId)}
-                  showTime={showTime}
-                  senderInfo={userInfo}
-                />
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </>
-        )}
-      </div>
-
-      {/* 🚀 ENHANCED INPUT with real-time status */}
       <ChatInput
         value={messageInput}
         onChange={setMessageInput}
@@ -278,18 +209,57 @@ export function ChatContent({
         inputRef={messageInputRef}
       />
 
-      {/* 🚀 OFFLINE WARNING */}
-      {!isConnected && (
-        <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-2">
-          <div className="flex items-center text-yellow-800 text-sm">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-            <span>
-              Real-time verbinding niet beschikbaar. Berichten worden via
-              standaard API verzonden.
-            </span>
-          </div>
-        </div>
-      )}
+      <OfflineWarning isConnected={isConnected} />
+    </div>
+  );
+}
+
+// Messages Area Component
+interface MessagesAreaProps {
+  messages: any[];
+  personId: string;
+  isConnected: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  getUserInfo: (createdBy: number) => {
+    firstName?: string;
+    lastName?: string;
+    profilePic?: string | null;
+  };
+}
+
+function MessagesArea({
+  messages,
+  personId,
+  isConnected,
+  messagesEndRef,
+  getUserInfo,
+}: MessagesAreaProps) {
+  if (messages.length === 0) {
+    return (
+      <div className="flex-1 overflow-y-auto p-4">
+        <EmptyMessagesState isConnected={isConnected} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      {messages.map((message, index) => {
+        const previousMessage = index > 0 ? messages[index - 1] : null;
+        const showTime = shouldShowTime(message, previousMessage);
+        const userInfo = getUserInfo(message.created_by);
+
+        return (
+          <MessageBubble
+            key={message._id}
+            message={message}
+            currentPersonId={parseInt(personId)}
+            showTime={showTime}
+            senderInfo={userInfo}
+          />
+        );
+      })}
+      <div ref={messagesEndRef} />
     </div>
   );
 }

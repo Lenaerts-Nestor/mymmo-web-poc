@@ -1,4 +1,4 @@
-// src/app/components/chat/ChatHeader.tsx - Clean & Minimalist Mymmo Design
+// src/app/components/chat/ChatHeader.tsx - CLEANED
 
 import { ArrowLeft } from "lucide-react";
 
@@ -33,14 +33,13 @@ export function ChatHeader({
           </button>
 
           <div className="flex items-center gap-3">
-            {/* Chat icon */}
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center shadow-md text-white font-semibold text-sm"
               style={{
-                background: "linear-gradient(135deg, #e4dece 0%, #d4c4a8 100%)",
+                backgroundColor: "var(--primary-cream)",
               }}
             >
-              <span style={{ color: "#6b4e3d" }}>💬</span>
+              <span style={{ color: "var(--text-medium-brown)" }}>💬</span>
             </div>
 
             <div>
@@ -57,7 +56,6 @@ export function ChatHeader({
                   </span>
                 )}
 
-                {/* Live indicator */}
                 <div className="flex items-center gap-1.5 bg-green-100 px-2 py-1 rounded-full">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-sm"></div>
                   <span className="text-xs font-medium text-green-700">
@@ -74,7 +72,7 @@ export function ChatHeader({
             onClick={onMarkAsRead}
             className="px-4 py-2.5 text-white rounded-xl transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
             style={{
-              background: "linear-gradient(135deg, #b8b3e6 0%, #a8a0d9 100%)",
+              backgroundColor: "var(--secondary-lavender)",
             }}
           >
             Markeer als gelezen

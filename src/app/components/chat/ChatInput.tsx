@@ -1,4 +1,4 @@
-// src/app/components/chat/ChatInput.tsx - Clean & Minimalist Design
+// src/app/components/chat/ChatInput.tsx - CLEANED
 
 import { Send } from "lucide-react";
 
@@ -52,11 +52,9 @@ export function ChatInput({
             disabled={!value.trim() || isSending}
             className="p-3.5 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
             style={{
-              background:
-                !value.trim() || isSending
-                  ? "#d1d5db"
-                  : "linear-gradient(135deg, #e4dece 0%, #d4c4a8 100%)",
-              color: "#6b4e3d",
+              backgroundColor:
+                !value.trim() || isSending ? "#d1d5db" : "var(--primary-cream)",
+              color: "var(--text-medium-brown)",
             }}
           >
             <Send className="w-5 h-5" />

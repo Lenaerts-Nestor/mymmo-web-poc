@@ -1,11 +1,8 @@
-// src/app/contexts/socket/socketEventHandlers.ts - Socket Event Handlers
+// src/app/contexts/socket/socketEventHandlers.ts - CLEANED
 
 import { RealtimeMessage, SocketStatus } from "../../types/socket";
 import { joinSocketRoom } from "./socketUtils";
 
-/**
- * Handle socket connection events
- */
 export function setupConnectionHandlers(
   socket: ReturnType<typeof import("socket.io-client").io>,
   personId: number,
@@ -15,26 +12,19 @@ export function setupConnectionHandlers(
   reconnectAttempts: React.MutableRefObject<number>,
   maxReconnectAttempts: number = 5
 ) {
-  // Connection success
   socket.on("connect", () => {
-    console.log("✅ Socket connected:", socket.id);
     setStatus("connected");
     setLastError(null);
     reconnectAttempts.current = 0;
 
-    // Join as mobile-v2 to trigger room-based backend
     joinSocketRoom(socket, personId.toString(), personId);
 
-    // Rejoin any rooms we were in before disconnect
     currentRooms.current.forEach((roomId) => {
       joinSocketRoom(socket, roomId, personId);
-      console.log(`🔄 Rejoined room: ${roomId}`);
     });
   });
 
-  // Disconnection
   socket.on("disconnect", (reason: string) => {
-    console.log("❌ Socket disconnected:", reason);
     setStatus("disconnected");
 
     if (reason === "io server disconnect") {
@@ -44,31 +34,25 @@ export function setupConnectionHandlers(
     }
   });
 
-  // Connection errors
   socket.on("connect_error", (error: Error) => {
-    console.error("🔴 Socket connection error:", error);
+    console.error("Socket connection error:", error);
     setStatus("error");
     setLastError(error.message);
     reconnectAttempts.current++;
 
     if (reconnectAttempts.current >= maxReconnectAttempts) {
-      console.error("❌ Max reconnection attempts reached");
+      console.error("Max reconnection attempts reached");
       setLastError("Unable to connect after multiple attempts");
     }
   });
 
-  // Reconnection success
   socket.on("reconnect", (attemptNumber: number) => {
-    console.log("🔄 Socket reconnected after", attemptNumber, "attempts");
     setStatus("connected");
     setLastError(null);
     reconnectAttempts.current = 0;
   });
 }
 
-/**
- * Handle real-time message events
- */
 export function setupMessageHandlers(
   socket: ReturnType<typeof import("socket.io-client").io>,
   messageCallbacks: React.MutableRefObject<
@@ -76,8 +60,6 @@ export function setupMessageHandlers(
   >
 ) {
   const handleRealtimeMessage = (data: any) => {
-    console.log("💬 Real-time message received:", data);
-
     const message: RealtimeMessage = {
       _id: data._id || `temp-${Date.now()}`,
       text: data.text || "",
@@ -88,7 +70,6 @@ export function setupMessageHandlers(
       isOptimistic: false,
     };
 
-    // Notify all message callbacks
     messageCallbacks.current.forEach((callback) => {
       try {
         callback(message);
@@ -98,7 +79,6 @@ export function setupMessageHandlers(
     });
   };
 
-  // Register message event listeners
   socket.on("receive_thread_message", handleRealtimeMessage);
   socket.on("thread_message_broadcasted", handleRealtimeMessage);
 
@@ -108,17 +88,11 @@ export function setupMessageHandlers(
   };
 }
 
-/**
- * Handle thread update events
- */
 export function setupThreadUpdateHandlers(
   socket: ReturnType<typeof import("socket.io-client").io>,
   threadUpdateCallbacks: React.MutableRefObject<Set<(data: any) => void>>
 ) {
   const handleThreadUpdate = (data: any) => {
-    console.log("📋 Thread update received:", data);
-
-    // Notify all thread update callbacks
     threadUpdateCallbacks.current.forEach((callback) => {
       try {
         callback(data);
@@ -128,7 +102,6 @@ export function setupThreadUpdateHandlers(
     });
   };
 
-  // Register thread update event listeners
   socket.on("update_thread_screen", handleThreadUpdate);
   socket.on("thread_list_updated", handleThreadUpdate);
 
@@ -138,9 +111,6 @@ export function setupThreadUpdateHandlers(
   };
 }
 
-/**
- * Setup all socket event handlers
- */
 export function setupAllSocketHandlers(
   socket: ReturnType<typeof import("socket.io-client").io>,
   personId: number,
@@ -153,7 +123,6 @@ export function setupAllSocketHandlers(
   >,
   threadUpdateCallbacks: React.MutableRefObject<Set<(data: any) => void>>
 ) {
-  // Setup connection handlers
   setupConnectionHandlers(
     socket,
     personId,
@@ -163,25 +132,14 @@ export function setupAllSocketHandlers(
     reconnectAttempts
   );
 
-  // Setup message handlers
   const cleanupMessages = setupMessageHandlers(socket, messageCallbacks);
-
-  // Setup thread update handlers
   const cleanupThreads = setupThreadUpdateHandlers(
     socket,
     threadUpdateCallbacks
   );
 
-  // Debug logging in development
-  if (process.env.NODE_ENV === "development") {
-    socket.onAny((eventName, ...args) => {
-      console.log(`📡 Socket event: ${eventName}`, args);
-    });
-  }
-
-  // Handle connection errors
   socket.on("error", (error: any) => {
-    console.error("🔴 Socket error:", error);
+    console.error("Socket error:", error);
     setLastError(error.message || "Socket error occurred");
   });
 
@@ -189,8 +147,5 @@ export function setupAllSocketHandlers(
     cleanupMessages();
     cleanupThreads();
     socket.off("error");
-    if (process.env.NODE_ENV === "development") {
-      socket.offAny();
-    }
   };
 }

@@ -1,4 +1,4 @@
-// src/app/hooks/chat/useChatMessages.ts - REFACTORED: Clean Chat Messages Hook
+// src/app/hooks/chat/useChatMessages.ts - CLEANED
 
 "use client";
 
@@ -25,7 +25,6 @@ export function useChatMessages({
 }: UseChatMessagesOptions): UseChatMessagesResult {
   const personIdNum = parseInt(personId);
 
-  // Socket integration
   const {
     isConnected,
     status: socketStatus,
@@ -34,7 +33,6 @@ export function useChatMessages({
     offMessageReceived,
   } = useSocketContext();
 
-  // Room management
   const { joinedRooms } = useSocketRooms({
     threadId,
     zoneId,
@@ -42,14 +40,12 @@ export function useChatMessages({
     autoJoin: true,
   });
 
-  // Optimistic messages
   const {
     createOptimisticMessage,
     updateOptimisticMessage,
     cleanupOptimisticMessages,
   } = useOptimisticMessages();
 
-  // Local state for messages
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [readMessages, setReadMessages] = useState<ThreadMessage[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<ThreadMessage[]>([]);
@@ -57,15 +53,10 @@ export function useChatMessages({
   const [error, setError] = useState<string | null>(null);
   const [lastAccessTime, setLastAccessTime] = useState<Date | null>(null);
 
-  // Real-time message handler
   const handleRealtimeMessage = useCallback(
     (realtimeMessage: RealtimeMessage) => {
-      // Only handle messages for this thread
       if (realtimeMessage.thread_id !== threadId) return;
 
-      console.log("💬 Processing real-time message for thread:", threadId);
-
-      // Convert to ThreadMessage format
       const newMessage: ThreadMessage = {
         _id: realtimeMessage._id,
         text: realtimeMessage.text,
@@ -81,10 +72,8 @@ export function useChatMessages({
         __v: 0,
       };
 
-      // Update messages with optimistic handling
       setMessages((prev) => updateOptimisticMessage(prev, newMessage));
 
-      // Auto-mark as read if enabled and message is from another user
       if (autoMarkAsRead && newMessage.created_by !== personIdNum) {
         setTimeout(() => markAsRead(), 1000);
       }
@@ -92,20 +81,16 @@ export function useChatMessages({
     [threadId, personIdNum, autoMarkAsRead, updateOptimisticMessage]
   );
 
-  // Register real-time message listener
   useEffect(() => {
     onMessageReceived(handleRealtimeMessage);
     return () => offMessageReceived(handleRealtimeMessage);
   }, [handleRealtimeMessage, onMessageReceived, offMessageReceived]);
 
-  // Load initial messages
   const loadInitialMessages = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log("📥 Loading initial messages for thread:", threadId);
-
       const response = await MyMMOApiThreads.getThreadDetails({
         threadId,
         transLangId,
@@ -122,34 +107,28 @@ export function useChatMessages({
       setReadMessages(read);
       setUnreadMessages(unread);
 
-      // Set last access time for read/unread distinction
       if (read.length > 0) {
         const lastReadMessage = read[read.length - 1];
         setLastAccessTime(new Date(lastReadMessage.created_on));
       }
-
-      console.log("✅ Initial messages loaded:", allMessages.length);
     } catch (err: any) {
-      console.error("❌ Failed to load initial messages:", err);
+      console.error("Failed to load initial messages:", err);
       setError(err.message || "Failed to load messages");
     } finally {
       setIsLoading(false);
     }
   }, [threadId, transLangId, personIdNum]);
 
-  // Load initial messages on mount
   useEffect(() => {
     if (threadId && personId) {
       loadInitialMessages();
     }
   }, [threadId, personId, loadInitialMessages]);
 
-  // Send message with optimistic updates
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {
       if (!text.trim()) return false;
 
-      // Create optimistic message
       const optimisticMessage = createOptimisticMessage(
         text,
         threadId,
@@ -158,9 +137,7 @@ export function useChatMessages({
       setMessages((prev) => [...prev, optimisticMessage]);
 
       try {
-        // Try socket first
         if (isConnected) {
-          console.log("🚀 Sending via socket...");
           const socketSuccess = await socketSendMessage(
             threadId,
             text.trim(),
@@ -168,13 +145,10 @@ export function useChatMessages({
           );
 
           if (socketSuccess) {
-            // Socket will handle the real message via real-time events
             return true;
           }
         }
 
-        // Fallback to HTTP API
-        console.log("📡 Fallback to HTTP API...");
         await MyMMOApiThreads.saveMessage({
           threadId,
           text: text.trim(),
@@ -182,7 +156,6 @@ export function useChatMessages({
           completed: false,
         });
 
-        // Remove optimistic message and refresh
         setMessages((prev) =>
           cleanupOptimisticMessages(prev, optimisticMessage._id)
         );
@@ -190,9 +163,8 @@ export function useChatMessages({
 
         return true;
       } catch (err: any) {
-        console.error("❌ Failed to send message:", err);
+        console.error("Failed to send message:", err);
 
-        // Remove failed optimistic message
         setMessages((prev) =>
           cleanupOptimisticMessages(prev, optimisticMessage._id)
         );
@@ -210,7 +182,6 @@ export function useChatMessages({
     ]
   );
 
-  // Mark as read
   const markAsRead = useCallback(async () => {
     try {
       await MyMMOApiThreads.updateThreadLastAccess({
@@ -218,24 +189,19 @@ export function useChatMessages({
         personId: personIdNum,
       });
 
-      // Update local state immediately
       const now = new Date();
       setLastAccessTime(now);
       setReadMessages((prev) => [...prev, ...unreadMessages]);
       setUnreadMessages([]);
-
-      console.log("✅ Marked as read:", threadId);
     } catch (err: any) {
-      console.error("❌ Failed to mark as read:", err);
+      console.error("Failed to mark as read:", err);
     }
   }, [threadId, personIdNum, unreadMessages]);
 
-  // Refresh messages
   const refreshMessages = useCallback(async () => {
     await loadInitialMessages();
   }, [loadInitialMessages]);
 
-  // Update read/unread status when messages change
   useEffect(() => {
     if (!lastAccessTime) return;
 

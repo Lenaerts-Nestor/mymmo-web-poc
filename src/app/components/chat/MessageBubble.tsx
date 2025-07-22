@@ -1,4 +1,4 @@
-// src/app/components/chat/MessageBubble.tsx - Real user data & Mymmo colors
+// src/app/components/chat/MessageBubble.tsx - CLEANED
 
 import { ThreadMessage } from "@/app/services/mymmo-thread-service/apiThreads";
 import { formatMessageTime } from "./chatUtils";
@@ -14,7 +14,6 @@ interface MessageBubbleProps {
   };
 }
 
-// Helper function to get user initials
 const getUserInitials = (firstName?: string, lastName?: string): string => {
   if (!firstName && !lastName) return "?";
   const first = firstName?.charAt(0)?.toUpperCase() || "";
@@ -40,13 +39,12 @@ export function MessageBubble({
           isOwnMessage ? "order-2" : "order-1"
         }`}
       >
-        {/* Add user info for received messages */}
         {!isOwnMessage && senderInfo && (
           <div className="flex items-center gap-2 mb-1 ml-1">
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm overflow-hidden"
               style={{
-                background: "linear-gradient(135deg, #e4dece 0%, #d4c4a8 100%)",
+                backgroundColor: "var(--primary-cream)",
               }}
             >
               {senderInfo.profilePic ? (
@@ -56,7 +54,7 @@ export function MessageBubble({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span style={{ color: "#6b4e3d" }}>
+                <span style={{ color: "var(--text-medium-brown)" }}>
                   {getUserInitials(senderInfo.firstName, senderInfo.lastName)}
                 </span>
               )}
@@ -70,14 +68,13 @@ export function MessageBubble({
         <div
           className={`rounded-2xl px-4 py-3 shadow-sm ${
             isOwnMessage
-              ? "text-white shadow-lg" // Lavender gradient for own messages
-              : "bg-white text-gray-900 border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200" // Clean white for received
+              ? "text-white shadow-lg"
+              : "bg-white text-gray-900 border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
           } ${isOptimistic ? "opacity-70" : ""}`}
           style={
             isOwnMessage
               ? {
-                  background:
-                    "linear-gradient(135deg, #b8b3e6 0%, #a8a0d9 100%)",
+                  backgroundColor: "var(--secondary-lavender)",
                 }
               : {}
           }

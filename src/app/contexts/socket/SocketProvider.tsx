@@ -1,4 +1,4 @@
-// src/app/contexts/socket/SocketProvider.tsx - Clean Socket Provider
+// src/app/contexts/socket/SocketProvider.tsx - CLEANED
 
 "use client";
 
@@ -23,7 +23,6 @@ import {
 } from "./socketUtils";
 import { setupAllSocketHandlers } from "./socketEventHandlers";
 
-// Create context
 const SocketContext = createContext<SocketContextType | null>(null);
 
 export function SocketProvider({
@@ -37,17 +36,14 @@ export function SocketProvider({
   const [status, setStatus] = useState<SocketStatus>("disconnected");
   const [lastError, setLastError] = useState<string | null>(null);
 
-  // Track current rooms
   const currentRooms = useRef<Set<string>>(new Set());
   const reconnectAttempts = useRef(0);
 
-  // Callback refs for real-time events
   const messageCallbacks = useRef<Set<(message: RealtimeMessage) => void>>(
     new Set()
   );
   const threadUpdateCallbacks = useRef<Set<(data: any) => void>>(new Set());
 
-  // Create socket connection
   useEffect(() => {
     if (!enabled || !personId) {
       if (socket) {
@@ -60,19 +56,16 @@ export function SocketProvider({
 
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
     if (!socketUrl) {
-      console.error("❌ NEXT_PUBLIC_SOCKET_URL not configured");
+      console.error("NEXT_PUBLIC_SOCKET_URL not configured");
       setStatus("error");
       setLastError("Socket URL not configured");
       return;
     }
 
-    console.log("🔌 Creating socket connection to:", socketUrl);
     setStatus("connecting");
 
-    // Create socket instance
     const newSocket = createSocketConnection(socketUrl, personId);
 
-    // Setup all event handlers
     const cleanup = setupAllSocketHandlers(
       newSocket,
       personId,
@@ -86,9 +79,7 @@ export function SocketProvider({
 
     setSocket(newSocket);
 
-    // Cleanup on unmount
     return () => {
-      console.log("🧹 Cleaning up socket connection");
       cleanup();
       currentRooms.current.clear();
       newSocket.disconnect();
@@ -97,14 +88,10 @@ export function SocketProvider({
     };
   }, [enabled, personId]);
 
-  // Join thread room (for real-time chat)
   const joinThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
       if (!socket || !personId || status !== "connected") return;
 
-      console.log("🎯 Joining thread room:", threadId, "zone:", zoneId);
-
-      // Join both thread and zone rooms
       joinSocketRoom(socket, threadId, personId);
       joinSocketRoom(socket, zoneId, personId);
 
@@ -114,12 +101,9 @@ export function SocketProvider({
     [socket, personId, status]
   );
 
-  // Leave thread room
   const leaveThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
       if (!socket || !personId) return;
-
-      console.log("🚪 Leaving thread room:", threadId, "zone:", zoneId);
 
       leaveSocketRoom(socket, threadId, personId);
       leaveSocketRoom(socket, zoneId, personId);
@@ -130,7 +114,6 @@ export function SocketProvider({
     [socket, personId]
   );
 
-  // Send message via socket
   const sendMessage = useCallback(
     async (
       threadId: string,
@@ -138,15 +121,8 @@ export function SocketProvider({
       createdBy: number
     ): Promise<boolean> => {
       if (!socket || status !== "connected") {
-        console.warn("⚠️ Cannot send message - socket not connected");
         return false;
       }
-
-      console.log("📤 Sending message via socket:", {
-        threadId,
-        text,
-        createdBy,
-      });
 
       try {
         socket.emit("send_thread_message", {
@@ -155,19 +131,18 @@ export function SocketProvider({
           createdBy,
           completed: false,
           attachments: [],
-          appName: "Mymmo-mobile-app-v2", // Critical for backend routing
+          appName: "Mymmo-mobile-app-v2",
         });
 
         return true;
       } catch (error) {
-        console.error("❌ Socket send error:", error);
+        console.error("Socket send error:", error);
         return false;
       }
     },
     [socket, status]
   );
 
-  // Message callback management
   const onMessageReceived = useCallback(
     (callback: (message: RealtimeMessage) => void) => {
       messageCallbacks.current.add(callback);
@@ -182,7 +157,6 @@ export function SocketProvider({
     []
   );
 
-  // Thread update callback management
   const onThreadUpdate = useCallback((callback: (data: any) => void) => {
     threadUpdateCallbacks.current.add(callback);
   }, []);
@@ -212,7 +186,6 @@ export function SocketProvider({
   );
 }
 
-// Hook to use socket context
 export function useSocketContext() {
   const context = useContext(SocketContext);
   if (!context) {
