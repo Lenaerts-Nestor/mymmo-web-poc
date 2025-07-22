@@ -2,7 +2,7 @@
 
 "use client";
 import React, { createContext, useContext } from "react";
-import { useGlobalUnreadCounter } from "../hooks/useGlobalUnreadCounter";
+import { useGlobalUnreadCounterOptimized } from "@/app/hooks/useGlobalUnreadCounterOptimized";
 import { useUser } from "./UserContext";
 import { APP_CONFIG } from "../constants/app";
 
@@ -28,11 +28,7 @@ export function UnreadCounterProvider({
     user?.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
   const { totalUnreadCount, isLoading, error, refetch } =
-    useGlobalUnreadCounter(
-      user?.personId || "",
-      translationLang,
-      !!user && !userLoading // Only enable polling if user exists and is not loading
-    );
+    useGlobalUnreadCounterOptimized(user?.personId || "", translationLang);
 
   return (
     <UnreadCounterContext.Provider

@@ -10,7 +10,7 @@ import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 
-import { useInbox } from "@/app/hooks/inbox/useInbox";
+import { useInboxOptimized } from "@/app/hooks/inbox/useInboxOptimized";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG } from "@/app/constants/app";
 import { InboxList } from "@/app/components/inbox/inboxList";
@@ -44,7 +44,7 @@ function InboxContent({
 }) {
   const router = useRouter();
 
-  const { inboxData, isLoading, error, refetch } = useInbox(
+  const { inboxData, isLoading, error, refetch } = useInboxOptimized(
     personId,
     translationLang
   );

@@ -13,7 +13,7 @@ import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
 import { ZoneFilter } from "@/app/components/zones/zoneFilter";
-import { useZonesWithUnreadCounts } from "@/app/hooks/useZonesWithUnreadCounts";
+import { useZonesWithUnreadCountsOptimized } from "@/app/hooks/useZonesWithUnreadCountsOptimized";
 import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
 
 export default function ZonesPage() {
@@ -50,10 +50,8 @@ function ZonesContent({
   appLang: string;
   translationLang: string;
 }) {
-  const { zones, person, isLoading, error, refetch } = useZonesWithUnreadCounts(
-    personId,
-    translationLang
-  );
+  const { zones, person, isLoading, error, refetch } =
+    useZonesWithUnreadCountsOptimized(personId, translationLang);
 
   // Client-side search and filter state
   const [searchQuery, setSearchQuery] = useState("");

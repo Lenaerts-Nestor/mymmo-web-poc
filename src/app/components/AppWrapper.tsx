@@ -9,6 +9,7 @@ import { QueryProvider } from "../providers/QueryProvider";
 import { SocketProvider } from "../contexts/SocketContext"; // 🆕 NEW: Socket provider
 import Sidebar from "./Sidebar";
 import { isDashboardRoute } from "../utils/route";
+import { SocketZoneProvider } from "../contexts/socket/SocketZoneProvider";
 
 interface AppWrapperProps {
   children: React.ReactNode;
@@ -48,9 +49,11 @@ export function AppWrapper({ children }: AppWrapperProps) {
       <UserProvider>
         <SocketIntegration>
           <SidebarProvider>
-            <ConditionalUnreadCounterProvider>
-              <AppContent>{children}</AppContent>
-            </ConditionalUnreadCounterProvider>
+            <SocketZoneProvider>
+              <ConditionalUnreadCounterProvider>
+                <AppContent>{children}</AppContent>
+              </ConditionalUnreadCounterProvider>
+            </SocketZoneProvider>
           </SidebarProvider>
         </SocketIntegration>
       </UserProvider>
