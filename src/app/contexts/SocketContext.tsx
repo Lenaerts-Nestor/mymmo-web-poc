@@ -1,6 +1,9 @@
 "use client";
 
-export { SocketProvider, useSocketContext } from "./socket/SocketProvider";
+export {
+  SocketProvider,
+  useSocketContext,
+} from "./socket/SocketProviderContext";
 export type {
   SocketStatus,
   RealtimeMessage,

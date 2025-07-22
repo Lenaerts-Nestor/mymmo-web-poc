@@ -1,15 +1,13 @@
-// src/app/hooks/chat/useChatMessages.ts - FIXED SOCKET CONTEXT
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useUnifiedApp } from "../../contexts/UnifiedAppContext"; // FIXED: Use unified context
+import { useUnifiedApp } from "../../contexts/UnifiedAppContext";
 import {
   UseChatMessagesResult,
   UseChatMessagesOptions,
 } from "../../types/chat";
 import { ThreadMessage } from "../../services/mymmo-thread-service/apiThreads";
 import MyMMOApiThreads from "../../services/mymmo-thread-service/apiThreads";
-import { useSocketRooms } from "../useSocketRooms";
 import { usePendingMessages } from "./usePendingMessages";
 
 export function useChatMessages({
@@ -22,19 +20,12 @@ export function useChatMessages({
   const personIdNum = parseInt(personId);
 
   const {
-    isSocketConnected, // FIXED: Use unified context properties
+    isSocketConnected,
     socketStatus,
     sendMessage: socketSendMessage,
     onMessageReceived,
     offMessageReceived,
-  } = useUnifiedApp(); // FIXED: Use unified context
-
-  const { joinedRooms } = useSocketRooms({
-    threadId,
-    zoneId,
-    personId: personIdNum,
-    autoJoin: true,
-  });
+  } = useUnifiedApp();
 
   const {
     createOptimisticMessage,
@@ -51,7 +42,6 @@ export function useChatMessages({
 
   const handleRealtimeMessage = useCallback(
     (realtimeMessage: any) => {
-      // FIXED: Use any type for compatibility
       if (realtimeMessage.thread_id !== threadId) return;
 
       const newMessage: ThreadMessage = {
@@ -226,7 +216,7 @@ export function useChatMessages({
     sendMessage,
     markAsRead,
     refreshMessages,
-    isConnected: isSocketConnected, // FIXED: Use unified context property
+    isConnected: isSocketConnected,
     socketStatus,
   };
 }

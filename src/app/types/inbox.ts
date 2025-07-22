@@ -1,6 +1,3 @@
-// src/app/types/inbox.ts
-
-import { Zone } from "./zones";
 import { Thread } from "./threads";
 
 export interface InboxItem {

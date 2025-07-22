@@ -28,10 +28,10 @@ export function getPollingContext(
 ): PollingContext {
   const { isVisible, isUserActive, isActivePage } = activityState;
 
-  if (!isVisible) return "other"; // Tab hidden = no polling
-  if (!isUserActive) return "background-chat"; // User idle = slow polling
-  if (isActivePage) return "active-chat"; // Active chat = fast polling
-  return "background-chat"; // Default = slow polling
+  if (!isVisible) return "other";
+  if (!isUserActive) return "background-chat";
+  if (isActivePage) return "active-chat";
+  return "background-chat";
 }
 
 /**
@@ -68,7 +68,7 @@ export function createPollingConfig(
   return {
     interval,
     staleTime,
-    gcTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchIntervalInBackground: false,

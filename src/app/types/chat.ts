@@ -2,7 +2,6 @@
 
 import { ThreadMessage } from "../services/mymmo-thread-service/apiThreads";
 
-// Chat messages hook result
 export interface UseChatMessagesResult {
   messages: ThreadMessage[];
   readMessages: ThreadMessage[];
@@ -36,14 +35,4 @@ export interface ChatState {
   unreadMessages: ThreadMessage[];
   lastAccessTime: Date | null;
   optimisticMessages: Set<string>;
-}
-
-// Chat actions
-export interface ChatActions {
-  setMessages: React.Dispatch<React.SetStateAction<ThreadMessage[]>>;
-  setReadMessages: React.Dispatch<React.SetStateAction<ThreadMessage[]>>;
-  setUnreadMessages: React.Dispatch<React.SetStateAction<ThreadMessage[]>>;
-  setLastAccessTime: React.Dispatch<React.SetStateAction<Date | null>>;
-  addOptimisticMessage: (id: string) => void;
-  removeOptimisticMessage: (id: string) => void;
 }

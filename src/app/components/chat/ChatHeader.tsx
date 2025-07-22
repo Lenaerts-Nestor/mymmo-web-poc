@@ -1,5 +1,3 @@
-// src/app/components/chat/ChatHeader.tsx - CLEANED
-
 import { ArrowLeft } from "lucide-react";
 
 interface ChatHeaderProps {

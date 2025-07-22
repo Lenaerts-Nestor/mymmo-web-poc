@@ -1,10 +1,8 @@
-// src/app/components/auth/ProtectedRoute.tsx - FIXED CONTEXT
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
-import { UI_MESSAGES } from "../../constants/app";
-import { useUnifiedApp } from "../../contexts/UnifiedAppContext"; // FIXED: Use unified context
+import { useUnifiedApp } from "../../contexts/UnifiedAppContext";
 import SessionService from "../../services/sessionService";
 
 interface ProtectedRouteProps {
@@ -19,7 +17,7 @@ export function ProtectedRoute({
   fallbackUrl = "/login",
 }: ProtectedRouteProps) {
   const router = useRouter();
-  const { user, isUserLoading } = useUnifiedApp(); // FIXED: Use unified context
+  const { user, isUserLoading } = useUnifiedApp();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
 
@@ -28,21 +26,17 @@ export function ProtectedRoute({
       try {
         setIsValidating(true);
 
-        // Wait for user context to load
         if (isUserLoading) {
           return;
         }
 
-        // No user session - redirect to login
         if (!user) {
           console.warn("No user session found");
           router.push(fallbackUrl);
           return;
         }
 
-        // If a specific person ID is required, validate access to that person
         if (requiredPersonId) {
-          // Check if user's personId matches the required personId
           if (user.personId !== requiredPersonId) {
             console.warn(
               `User ${user.personId} attempted to access person ${requiredPersonId} data`
@@ -51,7 +45,6 @@ export function ProtectedRoute({
             return;
           }
 
-          // Double-check with session service for security
           const hasAccess = await SessionService.validatePersonAccess(
             requiredPersonId
           );
@@ -77,7 +70,6 @@ export function ProtectedRoute({
     validateAccess();
   }, [requiredPersonId, router, fallbackUrl, user, isUserLoading]);
 
-  // Show minimal loading for fast validation
   if (isUserLoading || isValidating) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -87,7 +79,7 @@ export function ProtectedRoute({
   }
 
   if (!isAuthorized) {
-    return null; // Will be redirecting
+    return null;
   }
 
   return <>{children}</>;

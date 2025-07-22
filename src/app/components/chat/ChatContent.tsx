@@ -51,18 +51,15 @@ export function ChatContent({
     autoMarkAsRead: true,
   });
 
-  // Get thread data for follower info
   const { threads: threadsData } = useThreads(
     personId,
     zoneId,
     translationLang,
-    false // Not active chat page for this call
+    false
   );
 
-  // Get current thread for follower info
   const currentThread = threadsData.find((t) => t._id === threadId);
 
-  // User info lookup function
   const getUserInfo = (createdBy: number) => {
     if (!currentThread?.followers) {
       return {
@@ -90,7 +87,6 @@ export function ChatContent({
     };
   };
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -104,14 +100,12 @@ export function ChatContent({
     }
   }, [messages.length]);
 
-  // Auto-focus input for better UX
   useEffect(() => {
     if (!messagesLoading && messageInputRef.current) {
       messageInputRef.current.focus();
     }
   }, [messagesLoading]);
 
-  // Send message with real-time updates
   const handleSendMessage = async () => {
     if (!messageInput.trim() || isSending) return;
 
@@ -209,7 +203,6 @@ export function ChatContent({
   );
 }
 
-// Messages Area Component
 interface MessagesAreaProps {
   messages: any[];
   personId: string;

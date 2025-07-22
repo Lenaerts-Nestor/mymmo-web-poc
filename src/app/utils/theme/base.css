@@ -1,4 +1,3 @@
-/* base.css */
 @import "tailwindcss";
 @import "./variables.css";
 
@@ -10,7 +9,6 @@ body {
   line-height: 1.6;
 }
 
-/* Dashboard layout */
 .dashboard-main {
   margin-left: var(--sidebar-width);
   padding: 2.5rem;
