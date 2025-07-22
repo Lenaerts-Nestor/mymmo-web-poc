@@ -1,69 +1,48 @@
-// src/app/(dashboard)/zones/[personId]/page.tsx - Responsive Design
-
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { ZonesList } from "@/app/components/zones/ZonesList";
+import { useParams } from "next/navigation";
+import { useState, memo } from "react";
+import { useUnifiedApp } from "@/app/contexts/UnifiedAppContext";
+import {
+  SidebarNuclear,
+  ZonesListNuclear,
+} from "@/app/components/nuclear/ComponentsNuclear";
+import { ZoneFilter } from "@/app/components/zones/zoneFilter";
+import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
 import { ZoneIntroCard } from "@/app/components/zones/ZoneIntroCard";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
-import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
-import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
-import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
-import { useUser } from "@/app/contexts/UserContext";
-import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
-import { ZoneFilter } from "@/app/components/zones/zoneFilter";
-import { useZonesWithUnreadCountsOptimized } from "@/app/hooks/useZonesWithUnreadCountsOptimized";
-import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
+import { APP_CONFIG } from "@/app/constants/app";
+import { useZonesNuclear } from "@/app/hooks/useZonesNuclear";
 
-export default function ZonesPage() {
+export default function ZonesPageNuclear() {
   const { personId } = useParams();
-  const searchParams = useSearchParams();
-  const { user } = useUser();
+  const { user } = useUnifiedApp();
 
-  const appLang =
-    searchParams.get("appLang") || user?.appLang || APP_CONFIG.DEFAULT_LANGUAGE;
   const translationLang =
-    searchParams.get("translationLang") ||
-    user?.translationLang ||
-    APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
+    user?.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
   return (
-    <ProtectedRoute requiredPersonId={personId as string}>
-      <DashboardLayout personId={personId as string}>
-        <ZonesContent
-          personId={personId as string}
-          appLang={appLang}
-          translationLang={translationLang}
-        />
-      </DashboardLayout>
-    </ProtectedRoute>
+    <ZonesContentNuclear
+      personId={personId as string}
+      translationLang={translationLang}
+    />
   );
 }
 
-function ZonesContent({
+// ===== MEMOIZED ZONES CONTENT =====
+const ZonesContentNuclear = memo(function ZonesContentNuclear({
   personId,
-  appLang,
   translationLang,
 }: {
   personId: string;
-  appLang: string;
   translationLang: string;
 }) {
-  const { zones, person, isLoading, error, refetch } =
-    useZonesWithUnreadCountsOptimized(personId, translationLang);
-
-  // Client-side search and filter state
+  const { zones, person, isLoading, error } = useZonesNuclear(
+    personId,
+    translationLang
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllZones, setShowAllZones] = useState(false);
-
-  const handleSearchChange = (search: string) => {
-    setSearchQuery(search);
-  };
-
-  const handleToggleChange = (showAll: boolean) => {
-    setShowAllZones(showAll);
-  };
 
   if (isLoading) {
     return (
@@ -73,56 +52,73 @@ function ZonesContent({
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <ErrorDisplay error={error} onRetry={refetch} />
-      </div>
-    );
-  }
-
   return (
     <div className="w-full min-h-screen">
-      {/* Container with better width usage */}
       <div className="w-full px-6 py-6">
-        {/* Header Section */}
-        <div className="mb-6">
-          <ZoneIntroCard
-            person={person}
-            personId={personId}
-            appLang={appLang}
-            translationLang={translationLang}
-          />
-        </div>
+        {/* Header */}
+        <HeaderSectionNuclear person={person} personId={personId} />
 
-        {/* Controls Section */}
-        <div className="mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            {/* Toggle Section */}
-            <div className="flex-1">
-              <ZonesToggle
-                showAllZones={showAllZones}
-                onToggleChange={handleToggleChange}
-              />
-            </div>
+        {/* Controls */}
+        <ControlsSectionNuclear
+          showAllZones={showAllZones}
+          onToggleChange={setShowAllZones}
+          onSearchChange={setSearchQuery}
+        />
 
-            {/* Search Section */}
-            <div className="lg:w-80">
-              <ZoneFilter onSearchChange={handleSearchChange} />
-            </div>
-          </div>
-        </div>
-
-        {/* Zones List Section */}
-        <ZonesList
+        {/* Zones List */}
+        <ZonesListNuclear
           zones={zones}
           isLoading={isLoading}
           search={searchQuery}
           showAllZones={showAllZones}
-          personId={personId}
-          translationLang={translationLang}
         />
       </div>
     </div>
   );
-}
+});
+
+// ===== MEMOIZED SUB-COMPONENTS =====
+const HeaderSectionNuclear = memo(function HeaderSectionNuclear({
+  person,
+  personId,
+}: {
+  person: any;
+  personId: string;
+}) {
+  return (
+    <div className="mb-6">
+      <ZoneIntroCard
+        person={person}
+        personId={personId}
+        appLang="nl"
+        translationLang="nl"
+      />
+    </div>
+  );
+});
+
+const ControlsSectionNuclear = memo(function ControlsSectionNuclear({
+  showAllZones,
+  onToggleChange,
+  onSearchChange,
+}: {
+  showAllZones: boolean;
+  onToggleChange: (show: boolean) => void;
+  onSearchChange: (search: string) => void;
+}) {
+  return (
+    <div className="mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="flex-1">
+          <ZonesToggle
+            showAllZones={showAllZones}
+            onToggleChange={onToggleChange}
+          />
+        </div>
+        <div className="lg:w-80">
+          <ZoneFilter onSearchChange={onSearchChange} />
+        </div>
+      </div>
+    </div>
+  );
+});

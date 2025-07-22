@@ -34,6 +34,7 @@ export function useGlobalUnreadCounterOptimized(
 
     const initializeZones = async () => {
       if (isInitialized || hasLoadedOnce) return; // ← CHANGE THIS
+
       try {
         // Get zone metadata
         const response = await MyMMOApiZone.getZonesByPerson(

@@ -1,41 +1,31 @@
-// src/app/(dashboard)/inbox/[personId]/page.tsx - Responsive Design
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
-import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
-import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
-import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
-
-import { useInboxOptimized } from "@/app/hooks/inbox/useInboxOptimized";
-import { useUser } from "@/app/contexts/UserContext";
-import { APP_CONFIG } from "@/app/constants/app";
+import { memo, useCallback } from "react";
+import { useUnifiedApp } from "@/app/contexts/UnifiedAppContext";
 import { InboxList } from "@/app/components/inbox/inboxList";
 import { InboxHeader } from "@/app/components/inbox/inboxHeader";
+import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { APP_CONFIG } from "@/app/constants/app";
+import { useInboxNuclear } from "@/app/hooks/useZonesNuclear";
 
-export default function InboxPage() {
+export default function InboxPageNuclear() {
   const { personId } = useParams();
-  const { user } = useUser();
+  const { user } = useUnifiedApp();
 
   const translationLang =
     user?.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
   return (
-    <ProtectedRoute requiredPersonId={personId as string}>
-      <DashboardLayout personId={personId as string}>
-        <InboxContent
-          personId={personId as string}
-          translationLang={translationLang}
-        />
-      </DashboardLayout>
-    </ProtectedRoute>
+    <InboxContentNuclear
+      personId={personId as string}
+      translationLang={translationLang}
+    />
   );
 }
 
-function InboxContent({
+// ===== MEMOIZED INBOX CONTENT =====
+const InboxContentNuclear = memo(function InboxContentNuclear({
   personId,
   translationLang,
 }: {
@@ -43,19 +33,19 @@ function InboxContent({
   translationLang: string;
 }) {
   const router = useRouter();
-
-  const { inboxData, isLoading, error, refetch } = useInboxOptimized(
+  const { inboxData, isLoading, error } = useInboxNuclear(
     personId,
     translationLang
   );
 
-  // Handle item click - navigate to conversations page for that zone
-  const handleItemClick = (zoneId: number, threadId: string) => {
-    localStorage.setItem("selectedZoneId", zoneId.toString());
-    localStorage.setItem("highlightThreadId", threadId);
-
-    router.push(`/conversations/${personId}/${zoneId}?highlight=${threadId}`);
-  };
+  const handleItemClick = useCallback(
+    (zoneId: number, threadId: string) => {
+      localStorage.setItem("selectedZoneId", zoneId.toString());
+      localStorage.setItem("highlightThreadId", threadId);
+      router.push(`/conversations/${personId}/${zoneId}?highlight=${threadId}`);
+    },
+    [router, personId]
+  );
 
   if (isLoading) {
     return (
@@ -65,19 +55,9 @@ function InboxContent({
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <ErrorDisplay error={error} onRetry={refetch} />
-      </div>
-    );
-  }
-
   return (
     <div className="w-full min-h-screen">
-      {/* Container with better width usage */}
       <div className="w-full px-6 py-6">
-        {/* Header Section */}
         <div className="mb-6">
           <InboxHeader
             totalUnreadCount={inboxData.totalUnreadCount}
@@ -85,7 +65,6 @@ function InboxContent({
           />
         </div>
 
-        {/* Inbox List Section */}
         <InboxList
           inboxData={inboxData}
           isLoading={isLoading}
@@ -94,4 +73,4 @@ function InboxContent({
       </div>
     </div>
   );
-}
+});

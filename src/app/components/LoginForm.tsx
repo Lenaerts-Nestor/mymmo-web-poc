@@ -1,4 +1,4 @@
-// src/app/components/LoginForm.tsx
+// src/app/components/LoginFormNuclear.tsx - NUCLEAR SAFE VERSION
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -7,24 +7,22 @@ import LanguageSelector from "./ui/LanguageSelector";
 import PersonSelector from "./ui/PersonSelector";
 import { appLanguages, deepLLanguages } from "../constants/languages";
 import SessionService from "../services/sessionService";
-import { useUser } from "../contexts/UserContext";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
 
-//tijdelijk hier , //! verwijderen dit later
+// Mock persons (temporary)
 const mockPersons = [
-  { id: "925", name: "Persoon 925" }, //random dirk rv ofzo. /random persoon
-  { id: "778", name: "Persoon 778" }, //mymmo-service support
-  { id: "1375", name: "Persoon 1375" }, //ik nestor / mijn persoon
-  { id: "1010", name: "Persoon 1010" }, //echte van  mymmo. dit is een echte persoon
+  { id: "925", name: "Persoon 925" },
+  { id: "778", name: "Persoon 778" },
+  { id: "1375", name: "Persoon 1375" },
+  { id: "1010", name: "Persoon 1010" },
 ];
 
-export default function LoginForm() {
+export default function LoginFormNuclear() {
   const [selectedPerson, setSelectedPerson] = useState("");
   const [appLanguage, setAppLanguage] = useState("nl");
   const [translationLanguage, setTranslationLanguage] = useState("nl");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { refreshUser } = useUser();
   const queryClient = useQueryClient();
 
   const handlePersonLogin = async (e: React.FormEvent) => {
@@ -37,7 +35,7 @@ export default function LoginForm() {
 
     setIsLoading(true);
     console.log(
-      "LoginForm: Starting login process for person:",
+      "Nuclear LoginForm: Starting login for person:",
       selectedPerson
     );
 
@@ -45,31 +43,28 @@ export default function LoginForm() {
       // Clear any existing session
       await SessionService.clearSession();
 
-      // Create session immediately - no API calls needed
+      // Create session immediately
       const sessionData = await SessionService.createSession(
         selectedPerson,
         appLanguage,
         translationLanguage
       );
 
-      // Update user context
-      await refreshUser();
-
-      // Prefetch zones data while user is "logging in"
-      console.log("LoginForm: Prefetching zones data...");
+      // Prefetch zones data for faster initial load
+      console.log("Nuclear LoginForm: Prefetching zones data...");
       const personIdNum = parseInt(selectedPerson);
 
-      // Prefetch zones data and store in React Query cache
+      // Prefetch and cache zones
       queryClient.prefetchQuery({
-        queryKey: ["zones", selectedPerson, translationLanguage],
+        queryKey: ["zones_permanent", selectedPerson, translationLanguage],
         queryFn: () =>
           MyMMOApiZone.getZonesByPerson(
             personIdNum,
             personIdNum,
             translationLanguage
           ),
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        staleTime: Infinity, // Permanent cache
+        gcTime: Infinity,
       });
 
       // Navigate to zones page
@@ -80,15 +75,17 @@ export default function LoginForm() {
       });
 
       const fullUrl = `${targetUrl}?${params.toString()}`;
+      console.log("Nuclear LoginForm: Navigating to:", fullUrl);
 
-      console.log("LoginForm: Navigating to:", fullUrl);
-      router.push(fullUrl);
+      // Add slight delay to ensure prefetching starts
+      setTimeout(() => {
+        router.push(fullUrl);
+      }, 100);
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Nuclear login failed:", error);
       alert("Inloggen mislukt. Probeer het opnieuw.");
       setIsLoading(false);
     }
-    // Note: Don't set isLoading to false on success - we're navigating away
   };
 
   return (

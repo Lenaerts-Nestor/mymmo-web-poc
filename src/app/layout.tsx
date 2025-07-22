@@ -1,9 +1,7 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppWrapper } from "./components/AppWrapper";
-import { SocketZoneProvider } from "./contexts/socket/SocketZoneProvider";
+import { AppWrapper } from "./components/AppWrapperNuclear"; // ← CHANGED
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
