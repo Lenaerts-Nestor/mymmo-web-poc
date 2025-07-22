@@ -1,6 +1,5 @@
 // src/app/components/inbox/inboxHeader.tsx - Improved Design
 
-import { RefreshCw } from "lucide-react";
 import { InboxHeaderProps } from "@/app/types/inbox";
 
 // Helper function to format last updated time
@@ -26,8 +25,6 @@ const formatLastUpdated = (dateString: string): string => {
 export function InboxHeader({
   totalUnreadCount,
   lastUpdated,
-  onManualRefresh,
-  isRefreshing,
 }: InboxHeaderProps) {
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-6">
@@ -63,23 +60,6 @@ export function InboxHeader({
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-sm text-gray-500">Live updates</span>
           </div>
-
-          {/* Manual refresh button */}
-          <button
-            onClick={onManualRefresh}
-            disabled={isRefreshing}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-              isRefreshing
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
-          >
-            <RefreshCw
-              size={16}
-              className={isRefreshing ? "animate-spin" : ""}
-            />
-            <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
-          </button>
         </div>
       </div>
     </div>

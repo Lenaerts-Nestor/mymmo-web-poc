@@ -1,0 +1,59 @@
+/* variables.css */
+@import "tailwindcss";
+
+:root {
+  /* MYMMO BRAND COLORS */
+  --primary-offwhite: #f5f2de;
+  --primary-wine: #552e38;
+  --primary-sunglow: #facf59;
+  --secondary-lightblue: #b0c2fc;
+  --secondary-tea: #aced94;
+  --secondary-melon: #ffb5b5;
+  --pure-white: #ffffff;
+  --gravel-500: #765860;
+  --gravel-300: #a69298;
+  --gravel-100: #cfc4c7;
+  --error: #b00205;
+
+  /* LEGACY COMPATIBILITY */
+  --primary-golden: #f9ce59;
+  --primary-cream: #f5f2de;
+  --secondary-lavender: #b8b3e6;
+  --secondary-mint: #a8e6a3;
+  --secondary-coral: #ffb3ba;
+  --text-dark-brown: #542e39;
+  --text-medium-brown: #6b4e3d;
+  --text-muted-gray: #8a8a8a;
+
+  /* APP-SPECIFIC */
+  --background: var(--primary-offwhite);
+  --foreground: var(--primary-wine);
+
+  /* SIDEBAR */
+  --sidebar-width: 288px;
+  --sidebar-bg: var(--pure-white);
+  --sidebar-border: rgba(207, 196, 199, 0.5);
+  --sidebar-shadow: 0 20px 25px -5px rgba(84, 46, 56, 0.1),
+    0 10px 10px -5px rgba(84, 46, 56, 0.04);
+
+  /* NAVIGATION */
+  --nav-bg-default: transparent;
+  --nav-bg-active: #e4dece;
+  --nav-bg-hover: var(--primary-wine);
+  --nav-text-default: var(--primary-wine);
+  --nav-text-active: var(--primary-wine);
+  --nav-text-hover: var(--primary-offwhite);
+  --nav-text-disabled: var(--gravel-300);
+
+  /* INBOX */
+  --inbox-card-bg: var(--pure-white);
+  --inbox-card-border: var(--gravel-100);
+  --inbox-card-border-hover: var(--secondary-lightblue);
+  --inbox-card-border-unread: var(--secondary-lightblue);
+  --inbox-unread-badge: var(--secondary-lightblue);
+  --inbox-read-indicator: var(--secondary-tea);
+  --inbox-button-primary: var(--primary-sunglow);
+  --inbox-text-primary: var(--primary-wine);
+  --inbox-text-secondary: var(--gravel-500);
+  --inbox-text-muted: var(--gravel-300);
+}

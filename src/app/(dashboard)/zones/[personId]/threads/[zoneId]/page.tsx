@@ -17,7 +17,7 @@ export default function ThreadsRedirectPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <LoadingSpinner message="Omleiding naar conversaties..." />
+      <LoadingSpinner />
     </div>
   );
 }

@@ -43,29 +43,11 @@ function InboxContent({
   translationLang: string;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   const { inboxData, isLoading, error, refetch } = useInbox(
     personId,
     translationLang
   );
-
-  // Handle manual refresh
-  const handleManualRefresh = async () => {
-    setIsManualRefreshing(true);
-    try {
-      // Clear cache and refetch
-      await queryClient.invalidateQueries({
-        queryKey: ["inbox", personId, translationLang],
-      });
-      await refetch();
-    } catch (error) {
-      console.error("Manual refresh failed:", error);
-    } finally {
-      setIsManualRefreshing(false);
-    }
-  };
 
   // Handle item click - navigate to conversations page for that zone
   const handleItemClick = (zoneId: number, threadId: string) => {
@@ -78,7 +60,7 @@ function InboxContent({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner message="Inbox laden..." />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -100,8 +82,6 @@ function InboxContent({
           <InboxHeader
             totalUnreadCount={inboxData.totalUnreadCount}
             lastUpdated={inboxData.lastUpdated}
-            onManualRefresh={handleManualRefresh}
-            isRefreshing={isManualRefreshing}
           />
         </div>
 

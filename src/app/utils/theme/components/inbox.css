@@ -1,0 +1,72 @@
+@import "../variables.css";
+
+/* Inbox cards & buttons */
+.inbox-card {
+  background-color: var(--inbox-card-bg);
+  border: 2px solid var(--inbox-card-border);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.inbox-card:hover {
+  border-color: var(--inbox-card-border-hover);
+  box-shadow: 0 4px 6px -1px rgba(84, 46, 56, 0.1);
+  transform: scale(1.01);
+}
+
+.inbox-card--unread {
+  border-color: var(--inbox-card-border-unread);
+}
+
+.inbox-card--unread:hover {
+  border-color: var(--primary-wine);
+  box-shadow: 0 4px 6px -1px rgba(255, 181, 181, 0.2);
+}
+
+.inbox-button-primary {
+  background-color: var(--inbox-button-primary);
+  color: var(--inbox-text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.inbox-button-primary:hover {
+  background-color: #f9ce59;
+  transform: scale(1.05);
+}
+
+.inbox-button-primary:disabled {
+  background-color: var(--gravel-100);
+  color: var(--gravel-300);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.inbox-unread-badge {
+  background-color: var(--inbox-unread-badge);
+  color: var(--inbox-text-primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.inbox-status-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+}
+
+.inbox-status-indicator--unread {
+  background-color: var(--inbox-unread-badge);
+}
+
+.inbox-status-indicator--read {
+  background-color: var(--inbox-read-indicator);
+}

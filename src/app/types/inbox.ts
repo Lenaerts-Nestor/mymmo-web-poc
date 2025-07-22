@@ -25,8 +25,6 @@ export interface InboxCardProps {
 export interface InboxHeaderProps {
   totalUnreadCount: number;
   lastUpdated: string;
-  onManualRefresh: () => void;
-  isRefreshing: boolean;
 }
 
 export interface UseInboxResult {

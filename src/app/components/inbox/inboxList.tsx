@@ -93,7 +93,7 @@ export function InboxList({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {inboxData.items.map((item) => (
         <InboxCard
           key={`${item.zoneId}-${item.thread._id}`}
@@ -101,19 +101,6 @@ export function InboxList({
           onClick={onItemClick}
         />
       ))}
-
-      {/* Summary footer */}
-      <div className="bg-[#F5F2DE] rounded-[15px] p-4 mt-8">
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-[#552E38] font-medium">
-            {inboxData.items.length} conversatie
-            {inboxData.items.length !== 1 ? "s" : ""}
-          </span>
-          <span className="text-[#765860]">
-            Totaal {inboxData.totalUnreadCount} ongelezen
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

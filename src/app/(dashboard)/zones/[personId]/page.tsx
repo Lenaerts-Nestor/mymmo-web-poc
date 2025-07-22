@@ -70,7 +70,7 @@ function ZonesContent({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner message={UI_MESSAGES.LOADING.ZONES} />
+        <LoadingSpinner />
       </div>
     );
   }

@@ -9,7 +9,6 @@ interface ChatHeaderProps {
   messagesCount: number;
   unreadCount: number;
   onBack: () => void;
-  onMarkAsRead: () => void;
 }
 
 export function ChatHeader({
@@ -19,10 +18,9 @@ export function ChatHeader({
   messagesCount,
   unreadCount,
   onBack,
-  onMarkAsRead,
 }: ChatHeaderProps) {
   return (
-    <div className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-4 py-4 shadow-sm">
+    <div className="bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 px-4 py-4 shadow-sm rounded-t-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -66,18 +64,6 @@ export function ChatHeader({
             </div>
           </div>
         </div>
-
-        {unreadCount > 0 && (
-          <button
-            onClick={onMarkAsRead}
-            className="px-4 py-2.5 text-white rounded-xl transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
-            style={{
-              backgroundColor: "var(--secondary-lavender)",
-            }}
-          >
-            Markeer als gelezen
-          </button>
-        )}
       </div>
     </div>
   );

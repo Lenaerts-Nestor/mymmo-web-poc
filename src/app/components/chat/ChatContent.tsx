@@ -143,10 +143,6 @@ export function ChatContent({
     router.push(`/conversations/${personId}/${zoneId}`);
   };
 
-  const handleMarkAsRead = async () => {
-    await markAsRead();
-  };
-
   if (messagesLoading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
@@ -173,7 +169,7 @@ export function ChatContent({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-[90vh] bg-gray-50 rounded-t-lg">
       <ChatHeader
         personId={personId}
         zoneId={zoneId}
@@ -181,7 +177,6 @@ export function ChatContent({
         messagesCount={messages.length}
         unreadCount={unreadMessages.length}
         onBack={handleBack}
-        onMarkAsRead={handleMarkAsRead}
       />
 
       <ConnectionStatus
