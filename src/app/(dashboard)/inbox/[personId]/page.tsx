@@ -7,7 +7,7 @@ import { InboxList } from "@/app/components/inbox/inboxList";
 import { InboxHeader } from "@/app/components/inbox/inboxHeader";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { APP_CONFIG } from "@/app/constants/app";
-import { useInboxNuclear } from "@/app/hooks/useZonesNuclear";
+import { useInboxNuclear } from "@/app/hooks/useZones";
 
 export default function InboxPageNuclear() {
   const { personId } = useParams();

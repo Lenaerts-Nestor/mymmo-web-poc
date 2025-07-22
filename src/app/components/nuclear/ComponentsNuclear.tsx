@@ -5,7 +5,7 @@ import React, { memo, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { MapPin, Inbox, MessageCircle, LogOut } from "lucide-react";
 import { useUnifiedApp } from "../../contexts/UnifiedAppContext";
-import { ZoneWithUnreadCount } from "@/app/hooks/useZonesNuclear";
+import { ZoneWithUnreadCount } from "@/app/hooks/useZones";
 
 // ===== NUCLEAR SIDEBAR =====
 export const SidebarNuclear = memo(function SidebarNuclear() {
@@ -317,6 +317,8 @@ interface ZonesListNuclearProps {
   showAllZones: boolean;
 }
 
+// In your ComponentsNuclear.tsx - Replace ZonesListNuclear with this:
+
 export const ZonesListNuclear = memo(function ZonesListNuclear({
   zones,
   isLoading,
@@ -339,116 +341,80 @@ export const ZonesListNuclear = memo(function ZonesListNuclear({
     return filtered;
   }, [zones, search, showAllZones]);
 
-  const stats = useMemo(
-    () => ({
-      totalUnreadCount: filteredZones.reduce(
-        (sum, zone) => sum + zone.unreadCount,
-        0
-      ),
-      zonesWithUnreadCount: filteredZones.filter(
-        (zone) => zone.hasUnreadMessages
-      ).length,
-    }),
-    [filteredZones]
-  );
-
-  // Show skeleton only if completely loading (no zones available yet)
-  if (isLoading && zones.length === 0) {
-    return <ZonesListSkeletonNuclear />;
+  // Simple loading - just show spinner
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading zones...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (filteredZones.length === 0 && !isLoading) {
-    return <EmptyZonesStateNuclear showAllZones={showAllZones} />;
+  // No zones at all
+  if (zones.length === 0) {
+    return (
+      <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-6">🏗️</div>
+          <p className="text-2xl font-bold mb-3 text-stone-700">
+            Geen zones gevonden
+          </p>
+          <p className="text-lg text-stone-500">
+            Er zijn geen zones gevonden voor deze persoon.
+          </p>
+        </div>
+      </div>
+    );
   }
 
+  // No zones match filter
+  if (filteredZones.length === 0) {
+    return (
+      <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-6">📬</div>
+          <p className="text-2xl font-bold mb-3 text-stone-700">
+            {showAllZones
+              ? "Geen zones gevonden"
+              : "Geen zones met ongelezen berichten"}
+          </p>
+          <p className="text-lg text-stone-500">
+            {showAllZones
+              ? search
+                ? `Geen zones gevonden voor "${search}"`
+                : "Geen zones beschikbaar"
+              : "Alle berichten zijn gelezen."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show zones
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-3xl font-bold text-stone-800 mb-2">
-            {showAllZones ? "Alle Zones" : "Zones met Ongelezen Berichten"} (
-            {filteredZones.length}
-            {isLoading && (
-              <span className="animate-pulse ml-1 text-blue-500">...</span>
-            )}
-            )
-          </h2>
-
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <span>
-              🔔 {stats.totalUnreadCount} ongelezen{" "}
-              {stats.totalUnreadCount === 1 ? "bericht" : "berichten"}
-              {isLoading && <span className="animate-pulse ml-1">⟳</span>}
-            </span>
-            <span>•</span>
-            <span>
-              📍 {stats.zonesWithUnreadCount} van {zones.length} zones heeft
-              ongelezen berichten
-            </span>
-            {search && (
-              <>
-                <span>•</span>
-                <span>🔍 Gefilterd op: "{search}"</span>
-              </>
-            )}
-          </div>
-        </div>
-
+        <h2 className="text-3xl font-bold text-stone-800">
+          {showAllZones ? "Alle Zones" : "Zones met Ongelezen Berichten"} (
+          {filteredZones.length})
+        </h2>
         <div className="flex items-center space-x-2">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              isLoading
-                ? "bg-blue-500 animate-pulse"
-                : "bg-green-500 animate-pulse"
-            }`}
-          ></div>
-          <span className="text-sm text-gray-500">
-            {isLoading ? "Loading zones..." : "Live updates"}
-          </span>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-sm text-gray-500">Live updates</span>
         </div>
       </div>
 
-      {/* Show zones immediately when available */}
-      {filteredZones.length > 0 && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredZones.map((zone, index) => (
-            <div
-              key={zone.zoneId}
-              className="animate-in fade-in slide-in-from-bottom-2 duration-300"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <ZoneCardNuclear zone={zone} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Show loading indicator if no zones yet but still loading */}
-      {filteredZones.length === 0 && isLoading && (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center space-x-3 text-blue-500">
-            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-            <span className="text-xl font-medium">Loading your zones...</span>
-          </div>
-          <p className="mt-3 text-gray-500">
-            Please wait while we fetch your zone information
-          </p>
-        </div>
-      )}
-
-      {/* Show loading indicator for additional zones */}
-      {filteredZones.length > 0 && isLoading && (
-        <div className="mt-6 text-center">
-          <div className="inline-flex items-center space-x-2 text-sm text-gray-500">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-            <span>Finalizing zone data...</span>
-          </div>
-        </div>
-      )}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {filteredZones.map((zone) => (
+          <ZoneCardNuclear key={zone.zoneId} zone={zone} />
+        ))}
+      </div>
     </div>
   );
 });
-
 // ===== HELPER COMPONENTS =====
 const ZonesListSkeletonNuclear = memo(function ZonesListSkeletonNuclear() {
   return (

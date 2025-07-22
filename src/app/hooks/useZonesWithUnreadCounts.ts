@@ -5,9 +5,9 @@ import { useEffect } from "react";
 import { useSocketZones } from "../contexts/socket/SocketZoneProvider";
 import { PersonEndpoint } from "../types/person";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
-import { ZoneWithUnreadCount } from "./useZonesNuclear";
+import { ZoneWithUnreadCount } from "./useZones";
 
-interface UseZonesWithUnreadOptimizedResult {
+interface UseZonesWithUnreadResult {
   zones: ZoneWithUnreadCount[];
   person: PersonEndpoint;
   isLoading: boolean;
@@ -15,10 +15,10 @@ interface UseZonesWithUnreadOptimizedResult {
   refetch: () => void;
 }
 
-export function useZonesWithUnreadCountsOptimized(
+export function useZonesWithUnreadCounts(
   personId: string,
   translationLang: string
-): UseZonesWithUnreadOptimizedResult {
+): UseZonesWithUnreadResult {
   const personIdNum = parseInt(personId);
 
   const {
@@ -28,7 +28,6 @@ export function useZonesWithUnreadCountsOptimized(
     isLoadingZones,
   } = useSocketZones();
 
-  // Load zone metadata
   const {
     data,
     isLoading: isLoadingZoneMeta,
@@ -48,7 +47,6 @@ export function useZonesWithUnreadCountsOptimized(
     enabled: !!personId,
   });
 
-  // Initialize progressive loading
   useEffect(() => {
     if (!data?.zones || data.zones.length === 0) return;
 
@@ -64,7 +62,6 @@ export function useZonesWithUnreadCountsOptimized(
     loadZonesProgressively,
   ]);
 
-  // Build zones with unread counts from real-time data
   const zones: ZoneWithUnreadCount[] = (data?.zones || []).map((zone: any) => ({
     ...zone,
     unreadCount: zoneUnreadCounts.get(zone.zoneId) || 0,

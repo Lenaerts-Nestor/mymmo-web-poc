@@ -3,12 +3,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useSocketContext } from "../../contexts/SocketContext";
-import { useSocketRooms } from "../socket/useSocketRooms";
 import { useThreadPolling } from "./useThreadPolling";
 import MyMMOApiThreads, {
   GetThreadDetailsResponse,
   ThreadMessage,
 } from "../../services/mymmo-thread-service/apiThreads";
+import { useSocketRooms } from "../useSocketRooms";
 
 interface UseThreadDetailsResult {
   messages: ThreadMessage[];

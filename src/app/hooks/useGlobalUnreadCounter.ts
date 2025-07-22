@@ -12,7 +12,7 @@ interface GlobalUnreadCounterResult {
   progress?: { loaded: number; total: number };
 }
 
-export function useGlobalUnreadCounterOptimized(
+export function useGlobalUnreadCounter(
   personId: string,
   translationLang: string
 ): GlobalUnreadCounterResult {
@@ -28,15 +28,13 @@ export function useGlobalUnreadCounterOptimized(
     hasLoadedOnce,
   } = useSocketZones();
 
-  // Initialize zone loading
   useEffect(() => {
     let mounted = true;
 
     const initializeZones = async () => {
-      if (isInitialized || hasLoadedOnce) return; // ← CHANGE THIS
+      if (isInitialized || hasLoadedOnce) return;
 
       try {
-        // Get zone metadata
         const response = await MyMMOApiZone.getZonesByPerson(
           personIdNum,
           personIdNum,
@@ -51,10 +49,8 @@ export function useGlobalUnreadCounterOptimized(
           return;
         }
 
-        // Subscribe to updates
         subscribeToZoneUpdates(personIdNum, translationLang);
 
-        // Load zones progressively
         const zoneIds = zones.map((zone: any) => zone.zoneId);
         await loadZonesProgressively(zoneIds, personIdNum, translationLang);
 
@@ -62,10 +58,7 @@ export function useGlobalUnreadCounterOptimized(
           setIsInitialized(true);
         }
       } catch (error) {
-        console.error(
-          "🚨 [GLOBAL_COUNTER_OPTIMIZED] Initialization failed:",
-          error
-        );
+        console.error(" Initialization failed:", error);
         if (mounted) {
           setIsInitialized(true);
         }
@@ -85,14 +78,13 @@ export function useGlobalUnreadCounterOptimized(
     isInitialized,
   ]);
 
-  // Calculate total from real-time data
   const totalUnreadCount = Array.from(zoneUnreadCounts.values()).reduce(
     (sum, count) => sum + count,
     0
   );
 
   const refetch = () => {
-    setIsInitialized(false); // Trigger re-initialization
+    setIsInitialized(false);
   };
 
   return {

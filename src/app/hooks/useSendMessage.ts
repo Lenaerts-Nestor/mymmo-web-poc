@@ -35,7 +35,6 @@ export function useSendMessage(
         completed: false,
       });
 
-      // Invalidate relevant caches for UI update
       queryClient.invalidateQueries({
         queryKey: ["threadDetails", threadId],
       });
@@ -44,15 +43,12 @@ export function useSendMessage(
         queryKey: ["threads"],
       });
 
-      // Also invalidate inbox for unread counts
       queryClient.invalidateQueries({
         queryKey: ["inbox"],
       });
 
-      console.log("✅ Message sent via HTTP API");
       return true;
     } catch (err: any) {
-      console.error("❌ HTTP message send failed:", err);
       setError(err.message || "Failed to send message");
       return false;
     } finally {

@@ -1,4 +1,4 @@
-// src/app/contexts/UnifiedAppContext.tsx - HYDRATION-SAFE VERSION
+// src/app/contexts/UnifiedAppContext.tsx - FIXED HYDRATION BLOCKING
 "use client";
 
 import React, {
@@ -118,8 +118,8 @@ export function UnifiedAppProvider({
 
   // ===== USER MANAGEMENT =====
   const fetchUser = useCallback(async () => {
-    // Prevent running on server or before hydration
-    if (!isMounted.current || !isHydrated) return;
+    // Don't fetch on server, but allow fetching before hydration is complete
+    if (typeof window === "undefined") return;
 
     try {
       setIsUserLoading(true);
@@ -142,7 +142,7 @@ export function UnifiedAppProvider({
         setIsUserLoading(false);
       }
     }
-  }, [isHydrated]);
+  }, []);
 
   const refreshUser = useCallback(async () => {
     await fetchUser();
@@ -194,7 +194,7 @@ export function UnifiedAppProvider({
       }
 
       const newSocket = io(socketUrl, {
-        transports: ["websocket", "polling"],
+        transports: ["polling"], // Only use HTTP polling, not websockets
         timeout: 20000,
         reconnection: true,
         reconnectionAttempts: 5,
@@ -317,26 +317,35 @@ export function UnifiedAppProvider({
     [queryClient]
   );
 
-  // Initialize socket when user is available and hydrated
+  // Initialize socket when user is available (don't wait for hydration)
   useEffect(() => {
-    if (user && enableSocket && !socket && isHydrated) {
-      const personId = parseInt(user.personId);
-      return initializeSocket(personId);
-    }
-  }, [user, enableSocket, socket, initializeSocket, isHydrated]);
+    console.log("🔌 [SOCKET_INIT] Checking initialization:", {
+      user: !!user,
+      enableSocket,
+      socket: !!socket,
+      socketUrl: process.env.NEXT_PUBLIC_SOCKET_URL,
+    });
 
-  // Initialize user on hydration
-  useEffect(() => {
-    if (isHydrated) {
-      fetchUser();
+    if (user && enableSocket && !socket) {
+      console.log(
+        "🔌 [SOCKET_INIT] Starting socket initialization for person:",
+        user.personId
+      );
+      const personId = parseInt(user.personId);
+      const cleanup = initializeSocket(personId);
+      return cleanup;
     }
-  }, [fetchUser, isHydrated]);
+  }, [user?.personId, enableSocket]); // Simplified dependency array
+
+  // Initialize user immediately when component mounts (don't wait for hydration)
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   // ===== SOCKET ACTIONS =====
   const joinThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
-      if (!socket || socketStatus !== "connected" || !user || !isHydrated)
-        return;
+      if (!socket || socketStatus !== "connected" || !user) return;
 
       const personId = parseInt(user.personId);
 
@@ -349,12 +358,12 @@ export function UnifiedAppProvider({
         currentRooms.current.add(roomId);
       });
     },
-    [socket, socketStatus, user, isHydrated]
+    [socket, socketStatus, user]
   );
 
   const leaveThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
-      if (!socket || !user || !isHydrated) return;
+      if (!socket || !user) return;
 
       const personId = parseInt(user.personId);
 
@@ -366,7 +375,7 @@ export function UnifiedAppProvider({
         currentRooms.current.delete(roomId);
       });
     },
-    [socket, user, isHydrated]
+    [socket, user]
   );
 
   const sendMessage = useCallback(
@@ -375,7 +384,7 @@ export function UnifiedAppProvider({
       text: string,
       createdBy: number
     ): Promise<boolean> => {
-      if (!socket || socketStatus !== "connected" || !isHydrated) return false;
+      if (!socket || socketStatus !== "connected") return false;
 
       try {
         socket.emit("send_thread_message", {
@@ -393,7 +402,7 @@ export function UnifiedAppProvider({
         return false;
       }
     },
-    [socket, socketStatus, isHydrated]
+    [socket, socketStatus]
   );
 
   // ===== COUNTER ACTIONS =====
@@ -513,11 +522,8 @@ export function UnifiedAppProvider({
     ]
   );
 
-  // Don't render until hydrated to prevent mismatch
-  if (!isHydrated) {
-    return null;
-  }
-
+  // ===== FIXED: DON'T BLOCK RENDERING =====
+  // Always render the context - hydration state is just a flag
   return (
     <UnifiedAppContext.Provider value={contextValue}>
       {children}

@@ -1,9 +1,8 @@
-// src/app/hooks/useSocketRooms.ts - CLEANED
-
+// src/app/hooks/useSocketRooms.ts - FIXED SOCKET CONTEXT
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useSocketContext } from "../contexts/SocketContext";
+import { useUnifiedApp } from "../contexts/UnifiedAppContext"; // FIXED: Use unified context
 
 interface UseSocketRoomsOptions {
   threadId?: string;
@@ -18,12 +17,13 @@ export function useSocketRooms({
   personId,
   autoJoin = true,
 }: UseSocketRoomsOptions) {
-  const { isConnected, joinThreadRoom, leaveThreadRoom } = useSocketContext();
+  const { isSocketConnected, joinThreadRoom, leaveThreadRoom } =
+    useUnifiedApp(); // FIXED: Use unified context
 
   const joinedRooms = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!autoJoin || !isConnected || !threadId || !zoneId || !personId) {
+    if (!autoJoin || !isSocketConnected || !threadId || !zoneId || !personId) {
       return;
     }
 
@@ -45,14 +45,14 @@ export function useSocketRooms({
     threadId,
     zoneId,
     personId,
-    isConnected,
+    isSocketConnected,
     autoJoin,
     joinThreadRoom,
     leaveThreadRoom,
   ]);
 
   const joinRoom = (roomThreadId: string, roomZoneId: string) => {
-    if (!isConnected) return false;
+    if (!isSocketConnected) return false;
 
     const roomKey = `${roomThreadId}-${roomZoneId}`;
     if (joinedRooms.current.has(roomKey)) return true;
@@ -72,7 +72,7 @@ export function useSocketRooms({
   };
 
   return {
-    isConnected,
+    isConnected: isSocketConnected, // FIXED: Use unified context property
     joinedRooms: Array.from(joinedRooms.current),
     joinRoom,
     leaveRoom,

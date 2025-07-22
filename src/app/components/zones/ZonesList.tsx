@@ -1,6 +1,6 @@
 // src/app/components/zones/ZonesList.tsx - Responsive Grid
 
-import { ZoneWithUnreadCount } from "@/app/hooks/useZonesNuclear";
+import { ZoneWithUnreadCount } from "@/app/hooks/useZones";
 import { ZoneCard } from "./ZoneCard";
 
 interface UpdatedZonesListProps {

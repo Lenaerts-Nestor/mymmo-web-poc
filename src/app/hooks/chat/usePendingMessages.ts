@@ -1,15 +1,12 @@
-// src/app/hooks/chat/useOptimisticMessages.ts - Optimistic Message Management
-
 "use client";
 
 import { useRef, useCallback } from "react";
 import { ThreadMessage } from "../../services/mymmo-thread-service/apiThreads";
 
-export function useOptimisticMessages() {
-  const optimisticMessages = useRef<Set<string>>(new Set());
+export function usePendingMessages() {
+  const pendingMessageSet = useRef<Set<string>>(new Set());
 
-  // Create optimistic message
-  const createOptimisticMessage = useCallback(
+  const createTemporaryMessage = useCallback(
     (text: string, threadId: string, createdBy: number): ThreadMessage => {
       const optimisticId = `temp-${Date.now()}-${Math.random()}`;
 
@@ -28,32 +25,27 @@ export function useOptimisticMessages() {
         __v: 0,
       };
 
-      optimisticMessages.current.add(optimisticId);
+      pendingMessageSet.current.add(optimisticId);
       return optimisticMessage;
     },
     []
   );
 
-  // Check if message is optimistic
-  const isOptimisticMessage = useCallback((messageId: string): boolean => {
+  const isPendingMessage = useCallback((messageId: string): boolean => {
     return (
-      optimisticMessages.current.has(messageId) || messageId.startsWith("temp-")
+      pendingMessageSet.current.has(messageId) || messageId.startsWith("temp-")
     );
   }, []);
 
-  // Remove optimistic message
   const removeOptimisticMessage = useCallback((messageId: string) => {
-    optimisticMessages.current.delete(messageId);
+    pendingMessageSet.current.delete(messageId);
   }, []);
 
-  // Update optimistic message with real message
-  const updateOptimisticMessage = useCallback(
+  const handleMessageUpdate = useCallback(
     (messages: ThreadMessage[], newMessage: ThreadMessage): ThreadMessage[] => {
-      // Check if this is an update to an optimistic message
-      if (optimisticMessages.current.has(newMessage._id)) {
-        optimisticMessages.current.delete(newMessage._id);
+      if (pendingMessageSet.current.has(newMessage._id)) {
+        pendingMessageSet.current.delete(newMessage._id);
 
-        // Replace optimistic message with real one
         return messages.map((msg) =>
           msg._id.startsWith("temp-") && msg.text === newMessage.text
             ? newMessage
@@ -61,12 +53,10 @@ export function useOptimisticMessages() {
         );
       }
 
-      // Add new message if not already present
       if (messages.some((msg) => msg._id === newMessage._id)) {
-        return messages; // Avoid duplicates
+        return messages;
       }
 
-      // Insert in chronological order
       const newMessages = [...messages, newMessage];
       return newMessages.sort(
         (a, b) =>
@@ -76,27 +66,25 @@ export function useOptimisticMessages() {
     []
   );
 
-  // Clean up failed optimistic messages
   const cleanupOptimisticMessages = useCallback(
     (messages: ThreadMessage[], failedMessageId: string): ThreadMessage[] => {
-      optimisticMessages.current.delete(failedMessageId);
+      pendingMessageSet.current.delete(failedMessageId);
       return messages.filter((msg) => msg._id !== failedMessageId);
     },
     []
   );
 
-  // Clear all optimistic messages
-  const clearOptimisticMessages = useCallback(() => {
-    optimisticMessages.current.clear();
+  const resetPendingMessages = useCallback(() => {
+    pendingMessageSet.current.clear();
   }, []);
 
   return {
-    createOptimisticMessage,
-    isOptimisticMessage,
+    createOptimisticMessage: createTemporaryMessage,
+    isOptimisticMessage: isPendingMessage,
     removeOptimisticMessage,
-    updateOptimisticMessage,
+    updateOptimisticMessage: handleMessageUpdate,
     cleanupOptimisticMessages,
-    clearOptimisticMessages,
-    optimisticMessageIds: Array.from(optimisticMessages.current),
+    clearOptimisticMessages: resetPendingMessages,
+    optimisticMessageIds: Array.from(pendingMessageSet.current),
   };
 }

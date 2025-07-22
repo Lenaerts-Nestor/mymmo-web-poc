@@ -1,5 +1,3 @@
-// src/app/hooks/useSocket.ts - CLEANED
-
 "use client";
 
 import { useEffect, useCallback } from "react";

@@ -1,4 +1,3 @@
-// src/app/components/LoginFormNuclear.tsx - NUCLEAR SAFE VERSION
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +8,7 @@ import { appLanguages, deepLLanguages } from "../constants/languages";
 import SessionService from "../services/sessionService";
 import MyMMOApiZone from "../services/mymmo-service/apiZones";
 
-// Mock persons (temporary)
+// Mock persons (temporary) , gewoon om snel inloggen en testen mogelijk te maken
 const mockPersons = [
   { id: "925", name: "Persoon 925" },
   { id: "778", name: "Persoon 778" },

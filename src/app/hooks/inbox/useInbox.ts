@@ -6,7 +6,7 @@ import { useSocketZones } from "../../contexts/socket/SocketZoneProvider";
 import { InboxData, UseInboxResult } from "../../types/inbox";
 import MyMMOApiZone from "../../services/mymmo-service/apiZones";
 
-export function useInboxOptimized(
+export function useInbox(
   personId: string,
   translationLang: string
 ): UseInboxResult {
@@ -21,11 +21,10 @@ export function useInboxOptimized(
     loadingProgress,
   } = useSocketZones();
 
-  // 🚀 STEP 1: Load zone metadata (FAST - no thread data)
   const { data: zonesData, isLoading: isLoadingZoneMeta } = useQuery({
     queryKey: ["zones_meta", personId, translationLang],
     queryFn: async () => {
-      console.log("🏃‍♂️ [INBOX_OPTIMIZED] Loading zone metadata only");
+      console.log(" Loading zone metadata only");
 
       const response = await MyMMOApiZone.getZonesByPerson(
         personIdNum,
@@ -35,20 +34,18 @@ export function useInboxOptimized(
 
       return response.data;
     },
+    //! dit veranderen met constant. voor het moment gaan we het hier zo laten
     staleTime: 5 * 60 * 1000, // 5 minutes (zones don't change often)
     gcTime: 15 * 60 * 1000, // 15 minutes
     refetchInterval: false, // No polling needed
     enabled: !!personId,
   });
 
-  // 🚀 STEP 2: Progressive loading via Socket.IO
   useEffect(() => {
     if (!zonesData?.zones || zonesData.zones.length === 0) return;
 
-    // Subscribe to real-time updates
     subscribeToZoneUpdates(personIdNum, translationLang);
 
-    // Start progressive loading
     const zoneIds = zonesData.zones.map((zone: any) => zone.zoneId);
     loadZonesProgressively(zoneIds, personIdNum, translationLang);
 
@@ -65,7 +62,6 @@ export function useInboxOptimized(
     loadZonesProgressively,
   ]);
 
-  // 🎯 STEP 3: Build inbox from real-time data
   useEffect(() => {
     if (!zonesData?.zones) return;
 
@@ -73,14 +69,13 @@ export function useInboxOptimized(
       .map((zone: any) => {
         const unreadCount = zoneUnreadCounts.get(zone.zoneId) || 0;
 
-        if (unreadCount === 0) return null; // Skip zones without unread messages
+        if (unreadCount === 0) return null;
 
         return {
           zoneId: zone.zoneId,
           zoneName: zone.name,
           zoneDescription: zone.formattedAddress,
           unreadCount,
-          // We'll add thread data as it loads progressively
           thread: {
             id: `zone-${zone.zoneId}`,
             latest_message: {
@@ -95,7 +90,6 @@ export function useInboxOptimized(
     setInboxItems(items);
   }, [zonesData, zoneUnreadCounts]);
 
-  // Calculate totals
   const totalUnreadCount = Array.from(zoneUnreadCounts.values()).reduce(
     (sum, count) => sum + count,
     0
@@ -107,14 +101,12 @@ export function useInboxOptimized(
     lastUpdated: new Date().toISOString(),
   };
 
-  // Loading states
   const isLoading =
     isLoadingZoneMeta || (isLoadingZones && zoneUnreadCounts.size === 0);
 
-  // Show progress in development
   if (process.env.NODE_ENV === "development" && isLoadingZones) {
     console.log(
-      `📊 [INBOX_OPTIMIZED] Progress: ${loadingProgress.loaded}/${loadingProgress.total}`
+      ` Progress: ${loadingProgress.loaded}/${loadingProgress.total}`
     );
   }
 
@@ -123,7 +115,6 @@ export function useInboxOptimized(
     isLoading,
     error: null,
     refetch: () => {
-      // Trigger fresh zone loading
       if (zonesData?.zones) {
         const zoneIds = zonesData.zones.map((zone: any) => zone.zoneId);
         loadZonesProgressively(zoneIds, personIdNum, translationLang);

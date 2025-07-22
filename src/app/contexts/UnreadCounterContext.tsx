@@ -2,7 +2,7 @@
 
 "use client";
 import React, { createContext, useContext } from "react";
-import { useGlobalUnreadCounterOptimized } from "@/app/hooks/useGlobalUnreadCounterOptimized";
+import { useGlobalUnreadCounter } from "@/app/hooks/useGlobalUnreadCounter";
 import { useUser } from "./UserContext";
 import { APP_CONFIG } from "../constants/app";
 
@@ -28,7 +28,7 @@ export function UnreadCounterProvider({
     user?.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
 
   const { totalUnreadCount, isLoading, error, refetch } =
-    useGlobalUnreadCounterOptimized(user?.personId || "", translationLang);
+    useGlobalUnreadCounter(user?.personId || "", translationLang);
 
   return (
     <UnreadCounterContext.Provider

@@ -19,10 +19,11 @@ export function usePersonInfo(personId: string, translationLang: string) {
 
       return response.data.person[0];
     },
-    staleTime: 15 * 60 * 1000, // 15 minutes (person data is more static)
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    //! todo change this to a constant
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!personId,
-    select: (data) => data, // Direct return of person data
+    select: (data) => data,
   });
 }
