@@ -49,10 +49,10 @@ export function ThreadCard({
   onClick,
   isHighlighted = false,
 }: ExtendedThreadCardProps) {
-  const latestMessage = thread.latest_message;
-  const lastSender = thread.followers.find(
+  const latestMessage = thread.latest_message || thread.latestMessage || thread.unread_message;
+  const lastSender = latestMessage ? thread.followers?.find(
     (follower) => follower.person_id === latestMessage.created_by
-  );
+  ) : null;
 
   const handleClick = () => {
     if (onClick) {
@@ -110,7 +110,7 @@ export function ThreadCard({
                 : "Onbekend"}
             </p>
             <p className="text-xs text-gray-500">
-              {formatDate(latestMessage.created_on)}
+              {latestMessage?.created_on ? formatDate(latestMessage.created_on) : 'Onbekend'}
             </p>
           </div>
         </div>
@@ -126,12 +126,12 @@ export function ThreadCard({
       {/* Message content */}
       <div className="mb-4">
         <p className="text-gray-700 text-sm leading-relaxed">
-          {truncateText(latestMessage.text, 120)}
+          {latestMessage?.text ? truncateText(latestMessage.text, 120) : 'Geen bericht beschikbaar'}
         </p>
       </div>
 
       {/* Communication group info (if available) */}
-      {thread.communication_group.group_name && (
+      {thread.communication_group?.group_name && (
         <div className="mb-4 p-2 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500">
             Groep:{" "}
@@ -152,8 +152,8 @@ export function ThreadCard({
 
           {/* Followers count */}
           <p className="text-xs text-gray-400">
-            {thread.followers.length} deelnemer
-            {thread.followers.length !== 1 ? "s" : ""}
+            {thread.followers?.length || 0} deelnemer
+            {(thread.followers?.length || 0) !== 1 ? "s" : ""}
           </p>
         </div>
 

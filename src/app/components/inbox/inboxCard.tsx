@@ -1,5 +1,8 @@
 // src/app/components/inbox/InboxCard.tsx - Enhanced Brand Styling
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { InboxItem } from "@/app/types/inbox";
 
 interface InboxCardProps {
@@ -7,10 +10,10 @@ interface InboxCardProps {
   onClick: (zoneId: number, threadId: string) => void;
 }
 
-// Helper function to format time ago
-const formatTimeAgo = (dateString: string): string => {
+// Helper function to format time ago (with hydration-safe date handling)
+const formatTimeAgo = (dateString: string, currentTime?: Date): string => {
   const date = new Date(dateString);
-  const now = new Date();
+  const now = currentTime || new Date();
   const diffInMinutes = Math.floor(
     (now.getTime() - date.getTime()) / (1000 * 60)
   );
@@ -28,11 +31,27 @@ const formatTimeAgo = (dateString: string): string => {
 };
 
 export function InboxCard({ item, onClick }: InboxCardProps) {
+  const [timeFormatted, setTimeFormatted] = useState<string>("");
+  const [dateFormatted, setDateFormatted] = useState<string>("");
+  const [isClient, setIsClient] = useState(false);
+
   const hasUnread = item.unreadCount > 0;
 
   // Get thread and latest message info
   const thread = item.thread;
   const latestMessage = thread.latest_message;
+
+  // Handle client-side time formatting to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+    const now = new Date();
+    setTimeFormatted(formatTimeAgo(latestMessage.created_on, now));
+    setDateFormatted(new Date(latestMessage.created_on).toLocaleDateString("nl-NL", {
+      day: "2-digit",
+      month: "short",
+      year: "2-digit",
+    }));
+  }, [latestMessage.created_on]);
 
   // Find sender info from followers based on who created the latest message
   const sender = thread.followers.find(
@@ -149,7 +168,7 @@ export function InboxCard({ item, onClick }: InboxCardProps) {
                 color: "var(--gravel-300)",
               }}
             >
-              {formatTimeAgo(latestMessage.created_on)}
+              {isClient ? timeFormatted : "..."}
             </span>
           </div>
 
@@ -209,11 +228,7 @@ export function InboxCard({ item, onClick }: InboxCardProps) {
 
         <div className="flex items-center space-x-3">
           <span className="text-xs" style={{ color: "var(--gravel-500)" }}>
-            {new Date(latestMessage.created_on).toLocaleDateString("nl-NL", {
-              day: "2-digit",
-              month: "short",
-              year: "2-digit",
-            })}
+            {isClient ? dateFormatted : "..."}
           </span>
 
           {/* Arrow indicator */}

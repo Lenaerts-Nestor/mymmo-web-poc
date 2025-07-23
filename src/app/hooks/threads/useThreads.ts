@@ -78,15 +78,19 @@ export function useThreads(
       console.log("📋 [THREADS] Processing thread update:", data);
 
       // Handle update_groups response (threads for this specific zone)
-      if (data.threadsData || data.threads) {
-        const receivedThreads = data.threadsData || data.threads;
-        const dataZoneId = data.zoneId || receivedThreads[0]?.zone_id;
+      if (data.threadsData) {
+        const receivedThreads = data.threadsData;
+        const dataZoneId = receivedThreads[0]?.zone_id;
 
-        // Only process if it's for our zone
-        if (dataZoneId && dataZoneId.toString() === zoneId) {
+        // Handle both zone-based threads and direct message threads
+        const isDirectMessage = !dataZoneId; // Direct messages don't have zone_id
+        const isForCurrentZone = dataZoneId && dataZoneId.toString() === zoneId;
+        
+        if (isForCurrentZone || isDirectMessage) {
+          console.log(`🔧 FIXED - Processing threads: ${receivedThreads.length} for zone: ${dataZoneId || 'direct-messages'}`);
           console.log(
-            "📋 [THREADS] Updating threads for our zone:",
-            zoneId,
+            "📋 [THREADS] Updating threads for",
+            isDirectMessage ? "direct messages" : `zone: ${zoneId}`,
             "count:",
             receivedThreads.length
           );

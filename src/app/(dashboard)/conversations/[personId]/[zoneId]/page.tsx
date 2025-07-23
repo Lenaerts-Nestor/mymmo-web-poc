@@ -72,8 +72,10 @@ function ConversationsContent({
       setHighlightThreadId(highlight);
 
       // Clear highlight from localStorage if it exists
-      const storedHighlight = localStorage.getItem("highlightThreadId");
-      if (storedHighlight) {
+      const storedHighlight = typeof window !== 'undefined' 
+        ? localStorage.getItem("highlightThreadId")
+        : null;
+      if (storedHighlight && typeof window !== 'undefined') {
         localStorage.removeItem("highlightThreadId");
       }
 
@@ -86,8 +88,10 @@ function ConversationsContent({
     }
 
     // Check for highlight in localStorage (from inbox)
-    const storedHighlight = localStorage.getItem("highlightThreadId");
-    if (storedHighlight) {
+    const storedHighlight = typeof window !== 'undefined'
+      ? localStorage.getItem("highlightThreadId")
+      : null;
+    if (storedHighlight && typeof window !== 'undefined') {
       setHighlightThreadId(storedHighlight);
       localStorage.removeItem("highlightThreadId");
 
@@ -121,7 +125,7 @@ function ConversationsContent({
 
   // 🎯 FIX: Update localStorage with current zoneId when page loads
   useEffect(() => {
-    if (zoneId) {
+    if (zoneId && typeof window !== 'undefined') {
       console.log(
         "🔍 [CONVERSATIONS] Updating localStorage with current zoneId:",
         zoneId

@@ -34,7 +34,9 @@ export function ZoneCard({
 
   const handleZoneClick = () => {
     // Get personId from current URL or context
-    const pathSegments = window.location.pathname.split("/");
+    const pathSegments = typeof window !== 'undefined' 
+      ? window.location.pathname.split("/")
+      : [];
     const personIdIndex =
       pathSegments.findIndex((segment) => segment === "zones") + 1;
     const personId = pathSegments[personIdIndex];

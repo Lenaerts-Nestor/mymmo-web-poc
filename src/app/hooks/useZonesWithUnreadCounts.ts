@@ -1,4 +1,4 @@
-// src/app/hooks/useZonesWithUnreadCounts.ts - SOCKET ONLY VERSION
+// src/app/hooks/useZonesWithUnreadCounts.ts - SIMPLIFIED VERSION
 
 import { useState, useEffect, useCallback } from "react";
 import { PersonEndpoint } from "@/app/types/person";
@@ -27,137 +27,95 @@ export function useZonesWithUnreadCounts(
   const [person, setPerson] = useState<PersonEndpoint | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastFallbackRefresh, setLastFallbackRefresh] = useState<number>(0);
 
-  const {
-    socket,
-    isConnected,
-    status,
-    initializeZones,
-    onInboxUpdate,
-    offInboxUpdate,
-    userZones,
-  } = useSocketContext();
+  const { socket, isConnected, initializeZones, onInboxUpdate, offInboxUpdate } = useSocketContext();
 
-  // Store for threads by zone (in-memory for unread count calculation)
-  const [threadsByZone, setThreadsByZone] = useState<Record<string, any[]>>({});
+  // Simple unread counts storage
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
-  // Initial zones fetch (single HTTP call as per requirements)
-  const fetchInitialZones = useCallback(async () => {
+  // Fetch zones and display immediately
+  const fetchZones = useCallback(async () => {
     try {
+      console.log("🏠 [ZONES] Fetching zones for person:", personId);
       setIsLoading(true);
-      console.log(
-        "🏠 [ZONES_UNREAD] Fetching initial zones for person:",
-        personId
-      );
 
       const personIdNum = parseInt(personId);
-      const zonesResponse = await MyMMOApiZone.getZonesByPerson(
+      const response = await MyMMOApiZone.getZonesByPerson(
         personIdNum,
         personIdNum,
         translationLang
       );
 
-      const zonesData = zonesResponse.data.zones;
-      const personData = zonesResponse.data.person[0];
+      const zonesData = response.data.zones;
+      const personData = response.data.person[0];
 
-      console.log("🏠 [ZONES_UNREAD] Loaded", zonesData.length, "zones");
+      console.log("🏠 [ZONES] Loaded", zonesData.length, "zones");
 
+      // Show zones immediately with zero unread counts
+      const zonesWithUnread: ZoneWithUnreadCount[] = zonesData.map((zone) => ({
+        ...zone,
+        unreadCount: 0,
+        hasUnreadMessages: false,
+      }));
+
+      setZones(zonesWithUnread);
       setPerson(personData);
-
-      // Initialize zones in socket context (joins rooms + fetches threads)
-      initializeZones(zonesData);
-
       setError(null);
+      setIsLoading(false); // Show zones immediately
+
+      // Initialize socket connection for real-time updates
+      if (isConnected) {
+        initializeZones(zonesData, translationLang);
+      }
+
     } catch (err: any) {
-      console.error("❌ [ZONES_UNREAD] Failed to load initial zones:", err);
-      setError(err.message || "Failed to load initial data");
+      console.error("❌ [ZONES] Failed to load zones:", err);
+      setError(err.message || "Failed to load zones");
       setIsLoading(false);
     }
-  }, [personId, translationLang, initializeZones]);
+  }, [personId, translationLang, isConnected, initializeZones]);
 
-  // Handle socket inbox updates for unread count calculation
+  // Handle socket updates for unread counts
   useEffect(() => {
     const handleInboxUpdate = (data: any) => {
-      console.log("🏠 [ZONES_UNREAD] Processing update:", data);
+      console.log("🏠 [ZONES] Socket update:", data);
 
-      // Handle update_groups response (threads for a specific zone)
-      if (data.threadsData || data.threads) {
-        const threads = data.threadsData || data.threads;
-        const zoneId = data.zoneId || threads[0]?.zone_id;
+      // Handle threads data from socket
+      if (data.threadsData) {
+        const threads = data.threadsData;
+        const zoneId = threads[0]?.zone_id;
 
         if (zoneId && Array.isArray(threads)) {
-          console.log(
-            "🏠 [ZONES_UNREAD] Updating threads for zone:",
-            zoneId,
-            "count:",
-            threads.length
+          // Calculate unread count for this zone
+          const unreadCount = threads.reduce(
+            (sum, thread) => sum + (thread.unread_count || 0),
+            0
           );
 
-          setThreadsByZone((prev) => ({
+          console.log(`🔧 FIXED - Processing threads: ${threads.length} for zone: ${zoneId}`);
+          console.log(`🏠 [ZONES] Zone ${zoneId} unread count: ${unreadCount}`);
+
+          // Update unread counts
+          setUnreadCounts(prev => ({
             ...prev,
-            [zoneId]: threads,
+            [zoneId]: unreadCount
           }));
 
-          // Set loading to false after first zone response
           setIsLoading(false);
         }
       }
 
-      // Handle single thread updates
-      if (data.thread_id || data._id) {
-        const threadId = data.thread_id || data._id;
-        console.log("🏠 [ZONES_UNREAD] Updating single thread:", threadId);
-
-        setThreadsByZone((prev) => {
-          const newState = { ...prev };
-          // Find and update the thread in the appropriate zone
-          Object.keys(newState).forEach((zoneId) => {
-            const zoneThreads = newState[zoneId];
-            const threadIndex = zoneThreads.findIndex(
-              (t) => t._id === threadId
-            );
-            if (threadIndex !== -1) {
-              newState[zoneId] = [...zoneThreads];
-              newState[zoneId][threadIndex] = {
-                ...newState[zoneId][threadIndex],
-                ...data,
-              };
-            }
-          });
-          return newState;
-        });
-      }
-
-      // Handle new message updates (increment unread count)
-      if (data.type === "new_message" && data.thread_id) {
-        const threadId = data.thread_id;
+      // Handle new message updates
+      if (data.type === "new_message" && data.thread_id && data.zone_id) {
         const isOwnMessage = data.message?.created_by === parseInt(personId);
-
+        
         if (!isOwnMessage) {
-          console.log(
-            "🏠 [ZONES_UNREAD] New message received, incrementing unread for thread:",
-            threadId
-          );
-
-          setThreadsByZone((prev) => {
-            const newState = { ...prev };
-            Object.keys(newState).forEach((zoneId) => {
-              const zoneThreads = newState[zoneId];
-              const threadIndex = zoneThreads.findIndex(
-                (t) => t._id === threadId
-              );
-              if (threadIndex !== -1) {
-                newState[zoneId] = [...zoneThreads];
-                newState[zoneId][threadIndex] = {
-                  ...newState[zoneId][threadIndex],
-                  unread_count:
-                    (newState[zoneId][threadIndex].unread_count || 0) + 1,
-                };
-              }
-            });
-            return newState;
-          });
+          console.log("🏠 [ZONES] New message in zone:", data.zone_id);
+          
+          setUnreadCounts(prev => ({
+            ...prev,
+            [data.zone_id]: (prev[data.zone_id] || 0) + 1
+          }));
         }
       }
     };
@@ -166,119 +124,35 @@ export function useZonesWithUnreadCounts(
     return () => offInboxUpdate(handleInboxUpdate);
   }, [onInboxUpdate, offInboxUpdate, personId]);
 
-  // Calculate zones with unread counts from threadsByZone and userZones
+  // Update zones with unread counts when counts change
   useEffect(() => {
-    const zonesData = userZones;
-    if (zonesData.length === 0 || Object.keys(threadsByZone).length === 0) {
-      return;
-    }
+    if (zones.length === 0) return;
 
-    console.log("🏠 [ZONES_UNREAD] Calculating zones with unread counts");
-
-    const zonesWithUnread: ZoneWithUnreadCount[] = zonesData.map((zone) => {
-      const zoneThreads = threadsByZone[zone.zoneId] || [];
-      const unreadCount = zoneThreads.reduce(
-        (sum, thread) => sum + (thread.unread_count || 0),
-        0
-      );
-
-      return {
+    setZones(prevZones => 
+      prevZones.map(zone => ({
         ...zone,
-        unreadCount,
-        hasUnreadMessages: unreadCount > 0,
-      };
-    });
-
-    console.log(
-      "🏠 [ZONES_UNREAD] Calculated",
-      zonesWithUnread.length,
-      "zones with unread counts"
+        unreadCount: unreadCounts[zone.zoneId] || 0,
+        hasUnreadMessages: (unreadCounts[zone.zoneId] || 0) > 0,
+      }))
     );
+  }, [unreadCounts]);
 
-    setZones(zonesWithUnread);
-  }, [threadsByZone, userZones]);
-
-  // Fallback refresh after 30s disconnect (as per requirements)
+  // Load zones when connected
   useEffect(() => {
-    if (!isConnected && status === "disconnected") {
-      const timer = setTimeout(() => {
-        if (!isConnected && Date.now() - lastFallbackRefresh > 30000) {
-          console.log(
-            "🔄 [ZONES_UNREAD] Socket disconnected >30s, triggering fallback refresh"
-          );
-          fetchInitialZones();
-          setLastFallbackRefresh(Date.now());
-        }
-      }, 30000);
-
-      return () => clearTimeout(timer);
+    if (isConnected || !socket) {
+      fetchZones();
     }
-  }, [isConnected, status, fetchInitialZones, lastFallbackRefresh]);
-
-  // Initialize when socket connects
-  useEffect(() => {
-    if (isConnected && userZones.length === 0) {
-      fetchInitialZones();
-    }
-  }, [isConnected, fetchInitialZones, userZones.length]);
+  }, [fetchZones, isConnected, socket]);
 
   const refetch = useCallback(() => {
-    // Trigger socket refresh instead of HTTP polling
-    if (socket && isConnected && userZones.length > 0) {
-      console.log("🏠 [ZONES_UNREAD] Manual refetch via socket");
-      userZones.forEach((zone) => {
-        socket.emit("fetch_threads", {
-          zoneId: zone.zoneId,
-          personId: parseInt(personId),
-          type: "active",
-          transLangId: translationLang,
-        });
-      });
-    } else {
-      // Fallback to full refresh if socket not available
-      fetchInitialZones();
-    }
-  }, [
-    socket,
-    isConnected,
-    userZones,
-    personId,
-    translationLang,
-    fetchInitialZones,
-  ]);
-
-  // Performance logging in development
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("🏠 [ZONES_UNREAD] Status:", {
-        socketConnected: isConnected,
-        zonesCount: userZones.length,
-        threadsLoaded: Object.keys(threadsByZone).length,
-        zonesWithUnreadCount: zones.length,
-        isLoading,
-      });
-    }
-  }, [isConnected, userZones.length, threadsByZone, zones.length, isLoading]);
-
-  const errorMessage = error
-    ? "Fout bij het laden van zones. Probeer het opnieuw."
-    : null;
-
-  if (!person && !isLoading && !error) {
-    return {
-      zones: [],
-      person: {} as PersonEndpoint,
-      isLoading: false,
-      error: "Persoon niet gevonden",
-      refetch,
-    };
-  }
+    fetchZones();
+  }, [fetchZones]);
 
   return {
     zones,
-    person: person!,
+    person: person || ({} as PersonEndpoint),
     isLoading,
-    error: errorMessage,
+    error,
     refetch,
   };
 }

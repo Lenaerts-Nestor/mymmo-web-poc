@@ -51,7 +51,9 @@ export function SidebarNavigation({
       }
 
       // 2. Second priority: Use localStorage if available
-      const selectedZoneId = localStorage.getItem("selectedZoneId");
+      const selectedZoneId = typeof window !== 'undefined' 
+        ? localStorage.getItem("selectedZoneId")
+        : null;
       if (selectedZoneId) {
         console.log("🔍 [SIDEBAR] Using localStorage zoneId:", selectedZoneId);
         router.push(`/conversations/${personId}/${selectedZoneId}`);

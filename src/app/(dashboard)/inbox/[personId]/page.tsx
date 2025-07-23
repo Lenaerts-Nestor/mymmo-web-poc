@@ -50,8 +50,10 @@ function InboxContent({
 
   // Handle item click - navigate to conversations page for that zone
   const handleItemClick = (zoneId: number, threadId: string) => {
-    localStorage.setItem("selectedZoneId", zoneId.toString());
-    localStorage.setItem("highlightThreadId", threadId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("selectedZoneId", zoneId.toString());
+      localStorage.setItem("highlightThreadId", threadId);
+    }
 
     router.push(`/conversations/${personId}/${zoneId}?highlight=${threadId}`);
   };

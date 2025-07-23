@@ -1,11 +1,14 @@
 // src/app/components/inbox/inboxHeader.tsx - Improved Design
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { InboxHeaderProps } from "@/app/types/inbox";
 
-// Helper function to format last updated time
-const formatLastUpdated = (dateString: string): string => {
+// Helper function to format last updated time (with hydration-safe date handling)
+const formatLastUpdated = (dateString: string, currentTime?: Date): string => {
   const date = new Date(dateString);
-  const now = new Date();
+  const now = currentTime || new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffSeconds = Math.floor(diffMs / 1000);
   const diffMinutes = Math.floor(diffSeconds / 60);
@@ -26,6 +29,16 @@ export function InboxHeader({
   totalUnreadCount,
   lastUpdated,
 }: InboxHeaderProps) {
+  const [lastUpdatedFormatted, setLastUpdatedFormatted] = useState<string>("");
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle client-side time formatting to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+    const now = new Date();
+    setLastUpdatedFormatted(formatLastUpdated(lastUpdated, now));
+  }, [lastUpdated]);
+
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -49,7 +62,7 @@ export function InboxHeader({
           </p>
 
           <p className="text-sm text-gray-500">
-            Laatste update: {formatLastUpdated(lastUpdated)}
+            Laatste update: {isClient ? lastUpdatedFormatted : "..."}
           </p>
         </div>
 

@@ -11,19 +11,20 @@ export function useOptimisticMessages() {
   // Create optimistic message
   const createOptimisticMessage = useCallback(
     (text: string, threadId: string, createdBy: number): ThreadMessage => {
-      const optimisticId = `temp-${Date.now()}-${Math.random()}`;
+      const optimisticId = `temp-${crypto.randomUUID()}`;
+      const now = new Date().toISOString();
 
       const optimisticMessage: ThreadMessage = {
         _id: optimisticId,
         text: text.trim(),
-        created_on: new Date().toISOString(),
+        created_on: now,
         created_by: createdBy,
         thread_id: threadId,
         attachments: [],
         lang_id_detected: "",
         metadata: { recipients: [] },
         is_deleted: false,
-        updated_on: new Date().toISOString(),
+        updated_on: now,
         updated_by: null,
         __v: 0,
       };

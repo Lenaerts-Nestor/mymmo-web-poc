@@ -26,7 +26,7 @@ import { setupAllSocketHandlers } from "./socketEventHandlers";
 // 🆕 EXTENDED: SocketContextType with inbox functions
 interface ExtendedSocketContextType extends SocketContextType {
   // 🆕 NEW: Inbox functions that your hooks expect
-  initializeZones: (zones: any[]) => void;
+  initializeZones: (zones: any[], translationLang?: string) => void;
   onInboxUpdate: (callback: (data: any) => void) => void;
   offInboxUpdate: (callback: (data: any) => void) => void;
   userZones: any[];
@@ -50,6 +50,10 @@ export function SocketProvider({
 
   const currentRooms = useRef<Set<string>>(new Set());
   const reconnectAttempts = useRef(0);
+  
+  // 🆕 NEW: Track zone requests to map responses back to zones
+  const zoneRequestMap = useRef<Map<string, string>>(new Map());
+  const currentZoneContext = useRef<string | null>(null);
 
   const messageCallbacks = useRef<Set<(message: RealtimeMessage) => void>>(
     new Set()
@@ -92,7 +96,9 @@ export function SocketProvider({
       reconnectAttempts,
       messageCallbacks,
       threadUpdateCallbacks,
-      inboxUpdateCallbacks // 🆕 NEW: This was missing!
+      inboxUpdateCallbacks, // 🆕 NEW: This was missing!
+      zoneRequestMap, // 🆕 NEW: Pass zone request map
+      currentZoneContext // 🆕 NEW: Pass current zone context
     );
 
     setSocket(newSocket);
@@ -108,7 +114,7 @@ export function SocketProvider({
 
   // 🆕 NEW: Initialize zones function
   const initializeZones = useCallback(
-    (zones: any[]) => {
+    (zones: any[], translationLang: string = "nl") => {
       if (!socket || !personId || status !== "connected") {
         console.log("⚠️  Cannot initialize zones - socket not ready");
         return;
@@ -123,16 +129,29 @@ export function SocketProvider({
         currentRooms.current.add(zone.zoneId.toString());
       });
 
-      // Fetch initial threads for each zone
-      zones.forEach((zone) => {
-        console.log("📡 Fetching threads for zone:", zone.zoneId);
-        socket.emit("fetch_threads", {
-          zoneId: zone.zoneId,
-          personId: personId,
-          type: "active",
-          transLangId: "nl", // Default, should be passed as parameter
-        });
-      });
+      // Fetch initial threads for each zone sequentially to maintain context
+      const fetchZoneThreadsSequentially = async () => {
+        for (const zone of zones) {
+          console.log("📡 Fetching threads for zone:", zone.zoneId);
+          
+          // Set current zone context
+          currentZoneContext.current = zone.zoneId.toString();
+          zoneRequestMap.current.set("current", zone.zoneId.toString());
+          
+          // Emit request with zone context
+          socket.emit("fetch_threads", {
+            zoneId: zone.zoneId,
+            personId: personId,
+            type: "active",
+            transLangId: translationLang,
+          });
+          
+          // Wait a bit between requests to avoid overwhelming the server
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      };
+      
+      fetchZoneThreadsSequentially();
     },
     [socket, personId, status]
   );
