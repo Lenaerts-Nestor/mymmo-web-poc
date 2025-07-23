@@ -68,6 +68,7 @@ export function useChatMessages({
     [threadId, personIdNum, autoMarkAsRead, updateOptimisticMessage]
   );
 
+  //Test
   useEffect(() => {
     onMessageReceived(handleRealtimeMessage);
     return () => offMessageReceived(handleRealtimeMessage);
