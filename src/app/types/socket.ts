@@ -1,4 +1,4 @@
-// src/app/types/socket.ts - Socket Type Definitions
+// src/app/types/socket.ts - UPDATED WITH INBOX SUPPORT
 
 // Socket connection states
 export type SocketStatus =
@@ -19,7 +19,7 @@ export interface RealtimeMessage {
   isOptimistic?: boolean;
 }
 
-// Socket context interface
+// Socket context interface - 🆕 EXTENDED
 export interface SocketContextType {
   socket: ReturnType<typeof import("socket.io-client").io> | null;
   status: SocketStatus;
@@ -42,6 +42,14 @@ export interface SocketContextType {
   // Thread updates
   onThreadUpdate: (callback: (data: any) => void) => void;
   offThreadUpdate: (callback: (data: any) => void) => void;
+
+  // 🆕 NEW: Inbox updates
+  onInboxUpdate: (callback: (data: any) => void) => void;
+  offInboxUpdate: (callback: (data: any) => void) => void;
+
+  // 🆕 NEW: Zone management
+  initializeZones: (zones: any[]) => void;
+  userZones: any[];
 }
 
 // Socket provider props
@@ -57,5 +65,6 @@ export interface UseSocketOptions {
   personId?: number;
   onMessage?: (data: any) => void;
   onThreadUpdate?: (data: any) => void;
+  onInboxUpdate?: (data: any) => void; // 🆕 NEW
   onError?: (error: string) => void;
 }

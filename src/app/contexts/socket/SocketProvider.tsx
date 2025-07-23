@@ -1,4 +1,4 @@
-// src/app/contexts/socket/SocketProvider.tsx - CLEANED
+// src/app/contexts/socket/SocketProvider.tsx - FIXED WITH MISSING FUNCTIONS
 
 "use client";
 
@@ -23,7 +23,16 @@ import {
 } from "./socketUtils";
 import { setupAllSocketHandlers } from "./socketEventHandlers";
 
-const SocketContext = createContext<SocketContextType | null>(null);
+// 🆕 EXTENDED: SocketContextType with inbox functions
+interface ExtendedSocketContextType extends SocketContextType {
+  // 🆕 NEW: Inbox functions that your hooks expect
+  initializeZones: (zones: any[]) => void;
+  onInboxUpdate: (callback: (data: any) => void) => void;
+  offInboxUpdate: (callback: (data: any) => void) => void;
+  userZones: any[];
+}
+
+const SocketContext = createContext<ExtendedSocketContextType | null>(null);
 
 export function SocketProvider({
   children,
@@ -36,6 +45,9 @@ export function SocketProvider({
   const [status, setStatus] = useState<SocketStatus>("disconnected");
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // 🆕 NEW: User zones state
+  const [userZones, setUserZones] = useState<any[]>([]);
+
   const currentRooms = useRef<Set<string>>(new Set());
   const reconnectAttempts = useRef(0);
 
@@ -43,6 +55,9 @@ export function SocketProvider({
     new Set()
   );
   const threadUpdateCallbacks = useRef<Set<(data: any) => void>>(new Set());
+
+  // 🆕 NEW: Inbox update callbacks
+  const inboxUpdateCallbacks = useRef<Set<(data: any) => void>>(new Set());
 
   useEffect(() => {
     if (!enabled || !personId) {
@@ -62,10 +77,12 @@ export function SocketProvider({
       return;
     }
 
+    console.log("🚀 Creating socket connection for person:", personId);
     setStatus("connecting");
 
     const newSocket = createSocketConnection(socketUrl, personId);
 
+    // 🆕 FIXED: Include inbox callbacks parameter
     const cleanup = setupAllSocketHandlers(
       newSocket,
       personId,
@@ -74,7 +91,8 @@ export function SocketProvider({
       setLastError,
       reconnectAttempts,
       messageCallbacks,
-      threadUpdateCallbacks
+      threadUpdateCallbacks,
+      inboxUpdateCallbacks // 🆕 NEW: This was missing!
     );
 
     setSocket(newSocket);
@@ -87,6 +105,37 @@ export function SocketProvider({
       setStatus("disconnected");
     };
   }, [enabled, personId]);
+
+  // 🆕 NEW: Initialize zones function
+  const initializeZones = useCallback(
+    (zones: any[]) => {
+      if (!socket || !personId || status !== "connected") {
+        console.log("⚠️  Cannot initialize zones - socket not ready");
+        return;
+      }
+
+      console.log("🏠 Initializing zones:", zones.length);
+      setUserZones(zones);
+
+      // Join zone rooms
+      zones.forEach((zone) => {
+        joinSocketRoom(socket, zone.zoneId.toString(), personId);
+        currentRooms.current.add(zone.zoneId.toString());
+      });
+
+      // Fetch initial threads for each zone
+      zones.forEach((zone) => {
+        console.log("📡 Fetching threads for zone:", zone.zoneId);
+        socket.emit("fetch_threads", {
+          zoneId: zone.zoneId,
+          personId: personId,
+          type: "active",
+          transLangId: "nl", // Default, should be passed as parameter
+        });
+      });
+    },
+    [socket, personId, status]
+  );
 
   const joinThreadRoom = useCallback(
     (threadId: string, zoneId: string) => {
@@ -165,7 +214,16 @@ export function SocketProvider({
     threadUpdateCallbacks.current.delete(callback);
   }, []);
 
-  const contextValue: SocketContextType = {
+  // 🆕 NEW: Inbox update functions
+  const onInboxUpdate = useCallback((callback: (data: any) => void) => {
+    inboxUpdateCallbacks.current.add(callback);
+  }, []);
+
+  const offInboxUpdate = useCallback((callback: (data: any) => void) => {
+    inboxUpdateCallbacks.current.delete(callback);
+  }, []);
+
+  const contextValue: ExtendedSocketContextType = {
     socket,
     status,
     isConnected: status === "connected",
@@ -177,6 +235,11 @@ export function SocketProvider({
     offMessageReceived,
     onThreadUpdate,
     offThreadUpdate,
+    // 🆕 NEW: Inbox functions
+    initializeZones,
+    onInboxUpdate,
+    offInboxUpdate,
+    userZones,
   };
 
   return (

@@ -3,18 +3,17 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 
-import { useInbox } from "@/app/hooks/inbox/useInbox";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG } from "@/app/constants/app";
 import { InboxList } from "@/app/components/inbox/inboxList";
 import { InboxHeader } from "@/app/components/inbox/inboxHeader";
+import { useSocketInbox } from "@/app/hooks/inbox/useSocketInbox";
 
 export default function InboxPage() {
   const { personId } = useParams();
@@ -44,7 +43,7 @@ function InboxContent({
 }) {
   const router = useRouter();
 
-  const { inboxData, isLoading, error, refetch } = useInbox(
+  const { inboxData, isLoading, error, refetch } = useSocketInbox(
     personId,
     translationLang
   );
