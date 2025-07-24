@@ -53,7 +53,9 @@ export function ThreadCard({
   isHighlighted = false,
 }: ExtendedThreadCardProps) {
   const latestMessage =
-    thread.latest_message || thread.latestMessage || thread.unread_message;
+    thread.latest_message ||
+    (thread as any).latestMessage ||
+    thread.unread_message;
   const lastSender = latestMessage
     ? thread.followers?.find(
         (follower) => follower.person_id === latestMessage.created_by
@@ -72,7 +74,7 @@ export function ThreadCard({
     ${
       isHighlighted
         ? "border-[#b0c2fc] bg-[#b0c2fc]/20 shadow-lg ring-2 ring-[#b0c2fc]/50" // secondary-lightblue
-        : (thread.unread_count || thread.unreadCount || 0) > 0
+        : (thread.unread_count || (thread as any).unreadCount || 0) > 0
         ? "border-[#ffb5b5] hover:border-[#ffb5b5]/80 hover:shadow-md" // secondary-melon
         : "border-[#cfc4c7] hover:border-[#a69298] hover:shadow-md" // gravel-100, gravel-300
     }
@@ -127,11 +129,11 @@ export function ThreadCard({
           </div>
         </div>
         {/* Unread count badge */}
-        {(thread.unread_count || thread.unreadCount || 0) > 0 && (
+        {(thread.unread_count || (thread as any).unreadCount || 0) > 0 && (
           <Badge className="bg-[#b00205] text-[#ffffff] text-xs px-2 py-1 rounded-full font-bold flex-shrink-0">
             {" "}
             {/* error color */}
-            {thread.unread_count || thread.unreadCount || 0}
+            {thread.unread_count || (thread as any).unreadCount || 0}
           </Badge>
         )}
       </div>
@@ -193,25 +195,23 @@ export function ThreadCard({
             </div>
           )}
           {/* Unread indicator */}
-          {(thread.unread_count || thread.unreadCount || 0) > 0 &&
-            !isHighlighted && (
-              <div className="flex items-center gap-1 text-[#b00205]">
-                {" "}
-                {/* error color */}
-                <Bell className="w-3 h-3 animate-pulse" />
-                <span className="text-xs font-medium">Ongelezen</span>
-              </div>
-            )}
+          {(thread.unread_count || (thread as any).unreadCount || 0) > 0 && !isHighlighted && (
+            <div className="flex items-center gap-1 text-[#b00205]">
+              {" "}
+              {/* error color */}
+              <Bell className="w-3 h-3 animate-pulse" />
+              <span className="text-xs font-medium">Ongelezen</span>
+            </div>
+          )}
           {/* Read indicator */}
-          {(thread.unread_count || thread.unreadCount || 0) === 0 &&
-            !isHighlighted && (
-              <div className="flex items-center gap-1 text-[#aced94]">
-                {" "}
-                {/* secondary-tea */}
-                <Bell className="w-3 h-3" />
-                <span className="text-xs">Gelezen</span>
-              </div>
-            )}
+          {(thread.unread_count || (thread as any).unreadCount || 0) === 0 && !isHighlighted && (
+            <div className="flex items-center gap-1 text-[#aced94]">
+              {" "}
+              {/* secondary-tea */}
+              <Bell className="w-3 h-3" />
+              <span className="text-xs">Gelezen</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

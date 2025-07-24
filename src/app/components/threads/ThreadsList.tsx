@@ -157,7 +157,7 @@ export function ThreadsList({
   let filteredThreads = threads;
   if (!showAllThreads) {
     filteredThreads = threads.filter(
-      (thread) => (thread.unread_count || thread.unreadCount || 0) > 0
+      (thread) => (thread.unread_count || (thread as any).unreadCount || 0) > 0
     );
   }
 
@@ -173,12 +173,12 @@ export function ThreadsList({
 
   // Calculate total unread messages from filtered threads
   const totalUnreadCount = filteredThreads.reduce(
-    (sum, thread) => sum + (thread.unread_count || thread.unreadCount || 0),
+    (sum, thread) => sum + (thread.unread_count || (thread as any).unreadCount || 0),
     0
   );
   // Calculate statistics
   const threadsWithUnreadCount = filteredThreads.filter(
-    (thread) => (thread.unread_count || thread.unreadCount || 0) > 0
+    (thread) => (thread.unread_count || (thread as any).unreadCount || 0) > 0
   ).length;
 
   return (
