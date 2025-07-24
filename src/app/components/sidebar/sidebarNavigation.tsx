@@ -1,14 +1,14 @@
-// src/app/components/sidebar/sidebarNavigation.tsx - FIXED NAVIGATION BUG
+"use client";
 
-import { NavItem, SidebarNavigationProps } from "@/app/types/ui/Sidebar";
+import type { NavItem, SidebarNavigationProps } from "@/app/types/ui/Sidebar";
 import { MapPin, MessageCircle } from "lucide-react";
+import Link from "next/link"; // Use Link for navigation
 
 export function SidebarNavigation({
   personId,
   pathname,
   router,
 }: SidebarNavigationProps) {
-
   // 🆕 HELPER: Extract zoneId from current URL
   const getCurrentZoneId = (): string | null => {
     // Check if we're currently on a conversations page
@@ -37,9 +37,10 @@ export function SidebarNavigation({
       }
 
       // 2. Second priority: Use localStorage if available
-      const selectedZoneId = typeof window !== 'undefined' 
-        ? localStorage.getItem("selectedZoneId")
-        : null;
+      const selectedZoneId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("selectedZoneId")
+          : null;
       if (selectedZoneId) {
         console.log("🔍 [SIDEBAR] Using localStorage zoneId:", selectedZoneId);
         router.push(`/conversations/${personId}/${selectedZoneId}`);
@@ -78,23 +79,40 @@ export function SidebarNavigation({
       <ul className="space-y-2">
         {navItems.map((item) => (
           <li key={item.id}>
-            <button
-              onClick={() => handleNavigation(item)}
-              disabled={item.isDisabled}
-              className={`nav-item ${item.isActive ? "nav-item--active" : ""} ${
-                item.isDisabled ? "nav-item--disabled" : ""
-              }`}
+            <Link
+              href={item.href} // Use Link for proper navigation
+              onClick={(e) => {
+                e.preventDefault(); // Prevent default Link behavior to use custom handleNavigation
+                handleNavigation(item);
+              }}
+              className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium
+                ${
+                  item.isActive
+                    ? "bg-[#f5f2de] text-[#552e38] shadow-sm"
+                    : "text-[#765860] hover:bg-[#f5f2de]/50 hover:text-[#552e38]"
+                }
+                ${
+                  item.isDisabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:scale-[1.02]"
+                }
+                focus:outline-none focus:ring-2 focus:ring-[#facf59] focus:ring-offset-2
+              `}
+              aria-disabled={item.isDisabled}
             >
-              <div className="nav-item__content">
+              <div className="flex items-center gap-3">
                 <div className="nav-item__icon">{item.icon}</div>
                 <span className="nav-item__label">{item.label}</span>
               </div>
 
               {/* Unread count badge */}
               {item.unreadCount && item.unreadCount > 0 && (
-                <span className="nav-item__badge">{item.unreadCount}</span>
+                <span className="ml-auto bg-[#b00205] text-[#ffffff] text-xs px-2 py-1 rounded-full font-bold">
+                  {item.unreadCount}
+                </span>
               )}
-            </button>
+            </Link>
           </li>
         ))}
       </ul>

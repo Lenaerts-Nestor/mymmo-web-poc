@@ -15,6 +15,7 @@ import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
 import { ZoneFilter } from "@/app/components/zones/zoneFilter";
 import { useZonesContext } from "@/app/contexts/ZonesContext";
 import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
+import { ZoneControls } from "@/app/components/zones/zoneControls";
 
 export default function ZonesPage() {
   const { personId } = useParams();
@@ -50,17 +51,17 @@ function ZonesContent({
   appLang: string;
   translationLang: string;
 }) {
-  const { 
-    zones, 
-    person, 
-    isLoading, 
-    error, 
+  const {
+    zones,
+    person,
+    isLoading,
+    error,
     refetch,
     searchQuery,
     showAllZones,
     setSearchQuery,
     setShowAllZones,
-    initialize
+    initialize,
   } = useZonesContext();
 
   // Initialize zones data when component mounts
@@ -106,22 +107,13 @@ function ZonesContent({
           />
         </div>
 
-        {/* Controls Section */}
         <div className="mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            {/* Toggle Section */}
-            <div className="flex-1">
-              <ZonesToggle
-                showAllZones={showAllZones}
-                onToggleChange={handleToggleChange}
-              />
-            </div>
-
-            {/* Search Section */}
-            <div className="lg:w-80">
-              <ZoneFilter onSearchChange={handleSearchChange} />
-            </div>
-          </div>
+          <ZoneControls
+            onSearchChange={handleSearchChange}
+            showAllZones={showAllZones}
+            onToggleChange={handleToggleChange}
+            initialSearch={searchQuery}
+          />
         </div>
 
         {/* Zones List Section */}

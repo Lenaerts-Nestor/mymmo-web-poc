@@ -1,9 +1,22 @@
-// src/app/components/zones/ZoneCard.tsx - Updated with unread indicators
-
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Zone } from "@/app/types/zones";
+import { MessageCircle, Users, Bell } from "lucide-react"; // Added icons
+import type { Zone } from "@/app/types/zones";
+
+// Simple Badge component
+interface BadgeProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+function Badge({ children, className = "" }: BadgeProps) {
+  return (
+    <span className={`inline-flex items-center justify-center ${className}`}>
+      {children}
+    </span>
+  );
+}
 
 interface UpdatedZoneCardProps {
   zone: Zone;
@@ -11,15 +24,13 @@ interface UpdatedZoneCardProps {
   hasUnreadMessages?: boolean;
 }
 
-//dit is gewoon om leuke kleuren te hebben voor de zones
-// je kan dit aanpassen of uitbreiden met meer kleuren
+// Using the provided color palette for card backgrounds
 const zoneCardBackgrounds = [
-  "bg-purple-100",
-  "bg-green-100",
-  "bg-pink-100",
-  "bg-yellow-50",
-  "bg-blue-50",
-  "bg-orange-50",
+  "bg-[#b0c2fc]/20", // secondary-lightblue light
+  "bg-[#aced94]/20", // secondary-tea light
+  "bg-[#ffb5b5]/20", // secondary-melon light
+  "bg-[#facf59]/20", // primary-sunglow light
+  "bg-[#f5f2de]/20", // primary-offwhite light
 ];
 
 export function ZoneCard({
@@ -28,19 +39,16 @@ export function ZoneCard({
   hasUnreadMessages = false,
 }: UpdatedZoneCardProps) {
   const router = useRouter();
-
   const backgroundClass =
     zoneCardBackgrounds[zone.zoneId % zoneCardBackgrounds.length];
 
   const handleZoneClick = () => {
     // Get personId from current URL or context
-    const pathSegments = typeof window !== 'undefined' 
-      ? window.location.pathname.split("/")
-      : [];
+    const pathSegments =
+      typeof window !== "undefined" ? window.location.pathname.split("/") : [];
     const personIdIndex =
       pathSegments.findIndex((segment) => segment === "zones") + 1;
     const personId = pathSegments[personIdIndex];
-
     if (personId) {
       // Navigate to conversations page for this zone
       router.push(`/conversations/${personId}/${zone.zoneId}`);
@@ -51,92 +59,105 @@ export function ZoneCard({
 
   // Enhanced styling for zones with unread messages
   const cardClasses = `
-    ${backgroundClass} rounded-2xl p-6 shadow-md transition-all duration-200 border-0 cursor-pointer
+    ${backgroundClass} rounded-2xl p-6 shadow-md transition-all duration-200 border-2 cursor-pointer
     ${
       hasUnreadMessages
-        ? "hover:shadow-xl hover:scale-[1.03] ring-2 ring-blue-400 ring-opacity-50"
-        : "hover:shadow-lg hover:scale-[1.02]"
+        ? "border-[#b0c2fc] hover:shadow-xl hover:scale-[1.03] ring-2 ring-[#b0c2fc] ring-opacity-50" // secondary-lightblue for border/ring
+        : "border-[#cfc4c7] hover:shadow-lg hover:scale-[1.02] hover:border-[#a69298]" // gravel-100 for normal, gravel-300 for hover
     }
   `;
-
   return (
     <div onClick={handleZoneClick} className={`relative ${cardClasses}`}>
       {/* Unread indicator header */}
       {hasUnreadMessages && (
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-medium text-red-600">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-[#b00205] animate-pulse" />{" "}
+            {/* error color */}
+            <span className="text-xs font-medium text-[#b00205]">
               Nieuwe berichten
-            </span>
+            </span>{" "}
+            {/* error color */}
           </div>
-          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+          <Badge className="bg-[#b00205] text-[#ffffff] text-xs px-2 py-1 rounded-full font-bold">
+            {" "}
+            {/* error color */}
             {unreadCount}
-          </span>
+          </Badge>
         </div>
       )}
-
-      <h3 className="font-bold text-xl text-stone-800 mb-3 leading-tight">
+      <h3 className="font-bold text-xl text-[#552e38] mb-3 leading-tight">
         {zone.name}
-      </h3>
-
-      <p className="text-base text-stone-600 mb-4 font-medium">
+      </h3>{" "}
+      {/* primary-wine */}
+      <p className="text-base text-[#765860] mb-4 font-medium">
         {zone.formattedAddress}
-      </p>
-
-      <div className="bg-white/60 rounded-xl p-3 mb-4 text-sm text-stone-500">
+      </p>{" "}
+      {/* gravel-500 */}
+      <div className="bg-[#ffffff]/60 rounded-xl p-3 mb-4 text-sm text-[#765860]">
+        {" "}
+        {/* pure-white/60, gravel-500 */}
         <p className="font-medium">
-          Zone ID: <span className="text-amber-600">{zone.zoneId}</span> | Plot
-          ID: <span className="text-amber-600">{zone.plotId}</span>
+          Zone ID: <span className="text-[#facf59]">{zone.zoneId}</span> | Plot
+          ID: <span className="text-[#facf59]">{zone.plotId}</span>{" "}
+          {/* primary-sunglow */}
         </p>
         <p className="mt-1">
           {zone.street}, {zone.postalCode} {zone.city}
         </p>
       </div>
-
       <div className="flex justify-between items-center mb-4">
-        <span className="text-amber-600 font-bold text-sm bg-amber-50 px-3 py-1 rounded-full">
+        <Badge className="bg-[#facf59]/20 text-[#552e38] font-bold text-sm px-3 py-1 rounded-full">
+          {" "}
+          {/* primary-sunglow/20, primary-wine */}
           {zone.entityCount} entities
-        </span>
-        <span
+        </Badge>
+        <Badge
           className={`px-3 py-1 rounded-full font-bold text-sm ${
             zone.isPublic
-              ? "bg-emerald-500 text-white"
-              : "bg-orange-400 text-white"
+              ? "bg-[#aced94] text-[#552e38]" // secondary-tea, primary-wine
+              : "bg-[#ffb5b5] text-[#552e38]" // secondary-melon, primary-wine
           }`}
         >
           {zone.isPublic ? "Public" : "Private"}
-        </span>
+        </Badge>
       </div>
-
       {/* Enhanced footer with conversation info */}
-      <div className="flex justify-between items-center text-sm">
-        <div className="text-stone-400 font-medium">
-          {zone.personIds.length} person(s) linked
+      <div className="flex justify-between items-center text-sm pt-2 border-t border-[#cfc4c7]">
+        {" "}
+        {/* gravel-100 */}
+        <div className="flex items-center gap-1 text-[#a69298] font-medium">
+          {" "}
+          {/* gravel-300 */}
+          <Users className="w-3 h-3" />
+          <span>{zone.personIds.length} person(s) linked</span>
         </div>
-
         {/* Conversation status */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-1">
           {hasUnreadMessages ? (
-            <div className="flex items-center space-x-1 text-red-600">
-              <span className="text-xs">💬</span>
+            <div className="flex items-center gap-1 text-[#b00205]">
+              {" "}
+              {/* error color */}
+              <MessageCircle className="w-3 h-3" />
               <span className="text-xs font-medium">
                 {unreadCount} ongelezen
               </span>
             </div>
           ) : (
-            <div className="flex items-center space-x-1 text-gray-500">
-              <span className="text-xs">💬</span>
+            <div className="flex items-center gap-1 text-[#765860]">
+              {" "}
+              {/* gravel-500 */}
+              <MessageCircle className="w-3 h-3" />
               <span className="text-xs">Alle berichten gelezen</span>
             </div>
           )}
         </div>
       </div>
-
       {/* Animated border for high priority zones */}
       {hasUnreadMessages && unreadCount > 5 && (
-        <div className="absolute inset-0 rounded-2xl border-2 border-red-400 animate-pulse pointer-events-none"></div>
-      )}
+        <div className="absolute inset-0 rounded-2xl border-2 border-[#b00205] animate-pulse pointer-events-none"></div>
+      )}{" "}
+      {/* error color */}
     </div>
   );
 }

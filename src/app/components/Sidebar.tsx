@@ -29,16 +29,14 @@ export default function Sidebar() {
     }
   };
 
-  // Don't render sidebar if no user session
   if (!user) {
     return null;
   }
 
   return (
     <>
-      {/* Sidebar */}
       <div
-        className={`h-screen fixed left-0 top-0 flex flex-col border-r-2 backdrop-blur-sm transition-transform duration-300 ease-in-out z-40 sidebar-scroll `}
+        className={`h-screen fixed left-0 top-0 flex flex-col border-r-2 backdrop-blur-sm transition-transform duration-300 ease-in-out z-40  w-60 `}
         style={{
           width: "var(--sidebar-width)",
           backgroundColor: "var(--sidebar-bg)",

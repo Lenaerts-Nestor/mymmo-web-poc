@@ -1,5 +1,3 @@
-// src/app/components/zones/zoneFilter.tsx - Improved Design
-
 "use client";
 
 import { Search, X } from "lucide-react";
@@ -35,7 +33,7 @@ export function ZoneFilter({
   const handleBlur = () => setIsFocused(false);
 
   return (
-    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-4">
+    <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-3 w-80">
       <div className="relative">
         <div
           className={`relative flex items-center bg-white rounded-xl border-2 transition-all duration-200 ${
@@ -56,7 +54,7 @@ export function ZoneFilter({
           <input
             type="text"
             placeholder="Search zones..."
-            className="w-full pl-10 pr-10 py-3 bg-transparent border-none rounded-xl focus:outline-none text-gray-700 placeholder-gray-400"
+            className="w-full pl-10 pr-10 py-2 bg-transparent border-none rounded-xl focus:outline-none text-gray-700 placeholder-gray-400"
             value={searchItem}
             onChange={(e) => setSearchItem(e.target.value)}
             onFocus={handleFocus}

@@ -42,24 +42,19 @@ export default function LoginForm() {
     );
 
     try {
-      // Clear any existing session
       await SessionService.clearSession();
 
-      // Create session immediately - no API calls needed
       const sessionData = await SessionService.createSession(
         selectedPerson,
         appLanguage,
         translationLanguage
       );
 
-      // Update user context
       await refreshUser();
 
-      // Prefetch zones data while user is "logging in"
       console.log("LoginForm: Prefetching zones data...");
       const personIdNum = parseInt(selectedPerson);
 
-      // Prefetch zones data and store in React Query cache
       queryClient.prefetchQuery({
         queryKey: ["zones", selectedPerson, translationLanguage],
         queryFn: () =>
@@ -72,7 +67,6 @@ export default function LoginForm() {
         gcTime: 10 * 60 * 1000, // 10 minutes
       });
 
-      // Navigate to zones page
       const targetUrl = `/zones/${selectedPerson}`;
       const params = new URLSearchParams({
         appLang: sessionData.appLang,
@@ -88,7 +82,6 @@ export default function LoginForm() {
       alert("Inloggen mislukt. Probeer het opnieuw.");
       setIsLoading(false);
     }
-    // Note: Don't set isLoading to false on success - we're navigating away
   };
 
   return (

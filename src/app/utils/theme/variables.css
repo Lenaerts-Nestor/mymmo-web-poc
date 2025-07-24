@@ -15,16 +15,6 @@
   --gravel-100: #cfc4c7;
   --error: #b00205;
 
-  /* LEGACY COMPATIBILITY */
-  --primary-golden: #f9ce59;
-  --primary-cream: #f5f2de;
-  --secondary-lavender: #b8b3e6;
-  --secondary-mint: #a8e6a3;
-  --secondary-coral: #ffb3ba;
-  --text-dark-brown: #542e39;
-  --text-medium-brown: #6b4e3d;
-  --text-muted-gray: #8a8a8a;
-
   /* APP-SPECIFIC */
   --background: var(--primary-offwhite);
   --foreground: var(--primary-wine);
@@ -44,16 +34,4 @@
   --nav-text-active: var(--primary-wine);
   --nav-text-hover: var(--primary-offwhite);
   --nav-text-disabled: var(--gravel-300);
-
-  /* INBOX */
-  --inbox-card-bg: var(--pure-white);
-  --inbox-card-border: var(--gravel-100);
-  --inbox-card-border-hover: var(--secondary-lightblue);
-  --inbox-card-border-unread: var(--secondary-lightblue);
-  --inbox-unread-badge: var(--secondary-lightblue);
-  --inbox-read-indicator: var(--secondary-tea);
-  --inbox-button-primary: var(--primary-sunglow);
-  --inbox-text-primary: var(--primary-wine);
-  --inbox-text-secondary: var(--gravel-500);
-  --inbox-text-muted: var(--gravel-300);
 }
