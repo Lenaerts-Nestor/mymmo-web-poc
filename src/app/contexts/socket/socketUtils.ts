@@ -8,9 +8,26 @@ export function createSocketConnection(socketUrl: string, personId: number) {
     transports: ["websocket", "polling"],
     timeout: 20000,
     reconnection: true,
-    reconnectionAttempts: 5,
+    reconnectionAttempts: 10, // Increased for better reliability
     reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
+    reconnectionDelayMax: 10000, // Increased max delay
+    forceNew: true, // Force new connection for better reliability
+  });
+
+  // Add heartbeat to keep connection alive
+  socket.on("connect", () => {
+    console.log("🔌 Socket connected, starting heartbeat");
+    const heartbeat = setInterval(() => {
+      if (socket.connected) {
+        socket.emit("ping");
+      } else {
+        clearInterval(heartbeat);
+      }
+    }, 30000); // Ping every 30 seconds
+
+    socket.on("disconnect", () => {
+      clearInterval(heartbeat);
+    });
   });
 
   return socket;

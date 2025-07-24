@@ -128,12 +128,18 @@ export function useThreads(
       // Handle new message updates (affects unread counts)
       if (data.type === "new_message" && data.thread_id) {
         const threadId = data.thread_id;
+        const messageZoneId = data.zone_id;
         const isOwnMessage = data.message?.created_by === personIdNum;
 
-        if (!isOwnMessage) {
+        // Only update if message is for current zone or check threads dynamically
+        const shouldUpdate = messageZoneId?.toString() === zoneId;
+
+        if (!isOwnMessage && shouldUpdate) {
           console.log(
             "📋 [THREADS] New message received, updating thread:",
-            threadId
+            threadId,
+            "for zone:",
+            messageZoneId || "unknown"
           );
 
           setThreads((prev) => {
@@ -144,7 +150,12 @@ export function useThreads(
                 ...newThreads[threadIndex],
                 unread_count: (newThreads[threadIndex].unread_count || 0) + 1,
                 latest_message: data.message,
+                dot: true, // Add visual indicator
               };
+              console.log(
+                "📋 [THREADS] Updated thread unread count to:",
+                newThreads[threadIndex].unread_count
+              );
               return newThreads;
             }
             return prev;
@@ -153,9 +164,52 @@ export function useThreads(
       }
     };
 
+    // Listen for socket inbox updates
     onInboxUpdate(handleThreadUpdate);
+
+    // Also listen directly to socket for immediate message updates
+    if (socket && isConnected) {
+      const handleDirectMessage = (data: any) => {
+        console.log("📋 [THREADS] Direct socket message:", data);
+        
+        // Check if message is for current zone
+        if (data.thread_id && (data.zone_id?.toString() === zoneId || !data.zone_id)) {
+          const isOwnMessage = data.created_by === personIdNum;
+          
+          if (!isOwnMessage) {
+            console.log("📋 [THREADS] Processing direct message for thread:", data.thread_id);
+            
+            setThreads((prev) => {
+              const threadIndex = prev.findIndex((t) => t._id === data.thread_id);
+              if (threadIndex !== -1) {
+                const newThreads = [...prev];
+                newThreads[threadIndex] = {
+                  ...newThreads[threadIndex],
+                  unread_count: (newThreads[threadIndex].unread_count || 0) + 1,
+                  latest_message: data,
+                  dot: true,
+                };
+                console.log("📋 [THREADS] Direct update - new unread count:", newThreads[threadIndex].unread_count);
+                return newThreads;
+              }
+              return prev;
+            });
+          }
+        }
+      };
+
+      socket.on("receive_thread_message", handleDirectMessage);
+      socket.on("thread_message_broadcasted", handleDirectMessage);
+
+      return () => {
+        offInboxUpdate(handleThreadUpdate);
+        socket.off("receive_thread_message", handleDirectMessage);
+        socket.off("thread_message_broadcasted", handleDirectMessage);
+      };
+    }
+
     return () => offInboxUpdate(handleThreadUpdate);
-  }, [onInboxUpdate, offInboxUpdate, zoneId, personIdNum]);
+  }, [onInboxUpdate, offInboxUpdate, zoneId, personIdNum, socket, isConnected]);
 
   // Initialize when socket connects or zone changes
   useEffect(() => {
@@ -194,10 +248,42 @@ export function useThreads(
     if (socket && isConnected) {
       setIsLoading(true);
       ensureZoneJoined();
+      
+      // Add delay to ensure server has processed any recent messages
+      setTimeout(() => {
+        console.log("📋 [THREADS] Delayed refetch for fresh data");
+        socket.emit("fetch_threads", {
+          zoneId: zoneIdNum,
+          personId: personIdNum,
+          type: "active",
+          transLangId: transLangId,
+        });
+      }, 1000);
     } else {
       setError("Socket not connected. Cannot refresh threads.");
     }
-  }, [socket, isConnected, ensureZoneJoined]);
+  }, [socket, isConnected, ensureZoneJoined, zoneIdNum, personIdNum, transLangId]);
+
+  // Listen for message sent events to refresh thread list
+  useEffect(() => {
+    const handleMessagesSent = (event: CustomEvent) => {
+      const { zoneId: eventZoneId } = event.detail;
+      
+      // Only refresh if it's for our zone
+      if (eventZoneId === zoneId) {
+        console.log("📋 [THREADS] Message sent event received, refreshing threads");
+        setTimeout(() => {
+          refetch();
+        }, 1000); // Give time for server to process
+      }
+    };
+
+    window.addEventListener('messagesSent', handleMessagesSent as EventListener);
+    
+    return () => {
+      window.removeEventListener('messagesSent', handleMessagesSent as EventListener);
+    };
+  }, [zoneId, refetch]);
 
   // Performance logging in development
   useEffect(() => {

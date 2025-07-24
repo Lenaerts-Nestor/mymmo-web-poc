@@ -1,5 +1,3 @@
-// src/app/components/chat/chatUtils.ts - Chat Utility Functions
-
 export interface ThreadMessage {
   _id: string;
   text: string;
@@ -74,6 +72,9 @@ export function formatMessageTime(timestamp: string): string {
 /**
  * Groups messages by date for display
  */
+
+//! dit is voor de toekomst, om de berichten te groeperen op datum
+//! momenteel wordt dit niet gebruikt in de chat, maar kan handig zijn voor toekomstige features
 export function groupMessagesByDate(messages: ThreadMessage[]) {
   const groups: { [key: string]: ThreadMessage[] } = {};
 

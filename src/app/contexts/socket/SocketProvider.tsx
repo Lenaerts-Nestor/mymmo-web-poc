@@ -197,6 +197,15 @@ export function SocketProvider({
           appName: "Mymmo-mobile-app-v2",
         });
 
+        // Trigger immediate inbox update for sent message
+        setTimeout(() => {
+          socket.emit("fetch_threads", {
+            type: "active",
+            personId: createdBy,
+            transLangId: "nl",
+          });
+        }, 500);
+
         return true;
       } catch (error) {
         console.error("Socket send error:", error);

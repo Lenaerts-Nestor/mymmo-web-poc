@@ -102,15 +102,20 @@ export function useZonesWithUnreadCounts(
         }
       }
 
-      // Handle new message updates
+      // Handle new message updates with immediate update
       if (data.type === "new_message" && data.thread_id && data.zone_id) {
         const isOwnMessage = data.message?.created_by === parseInt(personId);
         
         if (!isOwnMessage) {
-          setUnreadCounts(prev => ({
-            ...prev,
-            [data.zone_id]: (prev[data.zone_id] || 0) + 1
-          }));
+          console.log("🏠 [ZONES] New message received, updating count for zone:", data.zone_id);
+          setUnreadCounts(prev => {
+            const newCount = (prev[data.zone_id] || 0) + 1;
+            console.log("🏠 [ZONES] Zone", data.zone_id, "count updated to:", newCount);
+            return {
+              ...prev,
+              [data.zone_id]: newCount
+            };
+          });
         }
       }
     };

@@ -41,6 +41,7 @@ export interface SaveMessagePayload {
   text: string;
   createdBy: number;
   completed: boolean;
+  attachments?: any[];
 }
 
 export interface SaveMessageResponse {

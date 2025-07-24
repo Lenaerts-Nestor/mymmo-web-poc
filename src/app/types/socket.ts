@@ -17,6 +17,7 @@ export interface RealtimeMessage {
   thread_id: string;
   attachments?: any[];
   isOptimistic?: boolean;
+  zone_id?: string; // Include zone_id for proper routing
 }
 
 // Socket context interface - 🆕 EXTENDED

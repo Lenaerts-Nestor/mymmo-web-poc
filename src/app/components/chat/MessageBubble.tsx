@@ -2,6 +2,7 @@
 
 import { ThreadMessage } from "@/app/services/mymmo-thread-service/apiThreads";
 import { formatMessageTime } from "./chatUtils";
+import { ImageMessage } from "./ImageMessage";
 
 interface MessageBubbleProps {
   message: ThreadMessage;
@@ -79,9 +80,15 @@ export function MessageBubble({
               : {}
           }
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {message.text}
-          </p>
+          {message.text && (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {message.text}
+            </p>
+          )}
+          
+          {message.attachments && message.attachments.length > 0 && (
+            <ImageMessage attachments={message.attachments} />
+          )}
         </div>
 
         {showTime && (

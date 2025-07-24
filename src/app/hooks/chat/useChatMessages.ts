@@ -75,7 +75,7 @@ export function useChatMessages({
       setMessages((prev) => updateOptimisticMessage(prev, newMessage));
 
       if (autoMarkAsRead && newMessage.created_by !== personIdNum) {
-        setTimeout(() => markAsRead(), 1000);
+        setTimeout(() => markAsRead(), 2000); // Increased delay to allow unread count updates
       }
     },
     [threadId, personIdNum, autoMarkAsRead, updateOptimisticMessage]
@@ -147,20 +147,21 @@ export function useChatMessages({
     if (autoMarkAsRead && unreadMessages.length > 0 && !isLoading) {
       const timer = setTimeout(() => {
         markAsRead();
-      }, 500); // Small delay to ensure smooth UX
+      }, 1500); // Increased delay to allow unread count updates to propagate
       
       return () => clearTimeout(timer);
     }
   }, [autoMarkAsRead, unreadMessages.length, isLoading, markAsRead]);
 
   const sendMessage = useCallback(
-    async (text: string): Promise<boolean> => {
-      if (!text.trim()) return false;
+    async (text: string, attachments?: any[]): Promise<boolean> => {
+      if (!text.trim() && (!attachments || attachments.length === 0)) return false;
 
       const optimisticMessage = createOptimisticMessage(
         text,
         threadId,
-        personIdNum
+        personIdNum,
+        attachments
       );
       setMessages((prev) => [...prev, optimisticMessage]);
 
@@ -169,7 +170,8 @@ export function useChatMessages({
           const socketSuccess = await socketSendMessage(
             threadId,
             text.trim(),
-            personIdNum
+            personIdNum,
+            attachments
           );
 
           if (socketSuccess) {
@@ -182,6 +184,7 @@ export function useChatMessages({
           text: text.trim(),
           createdBy: personIdNum,
           completed: false,
+          attachments,
         });
 
         setMessages((prev) =>

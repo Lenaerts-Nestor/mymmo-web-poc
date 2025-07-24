@@ -69,6 +69,7 @@ export function setupMessageHandlers(
       thread_id: data.thread_id || "",
       attachments: data.attachments || [],
       isOptimistic: false,
+      zone_id: data.zone_id, // Include zone_id for proper routing
     };
 
     messageCallbacks.current.forEach((callback) => {
@@ -175,31 +176,27 @@ export function setupInboxUpdateHandlers(
   socket.on("thread_list_updated", handleInboxUpdate);
 
   // Also listen to message events that affect unread counts
-  socket.on("receive_thread_message", (data: any) => {
-    // Convert and forward as inbox update with zone info
-    handleInboxUpdate({
-      type: "new_message",
-      thread_id: data.thread_id,
-      zone_id: data.zone_id, // Include zone_id from message data
-      message: data,
-    });
-  });
+  const handleNewMessageForInbox = (data: any) => {
+    // Only update unread counts if it's not our own message
+    if (data.created_by !== parseInt(data.personId || '0')) {
+      // Convert and forward as inbox update with zone info
+      handleInboxUpdate({
+        type: "new_message",
+        thread_id: data.thread_id,
+        zone_id: data.zone_id, // Include zone_id from message data
+        message: data,
+      });
+    }
+  };
 
-  // Also handle thread_message_broadcasted for immediate updates
-  socket.on("thread_message_broadcasted", (data: any) => {
-    handleInboxUpdate({
-      type: "new_message", 
-      thread_id: data.thread_id,
-      zone_id: data.zone_id,
-      message: data,
-    });
-  });
+  socket.on("receive_thread_message", handleNewMessageForInbox);
+  socket.on("thread_message_broadcasted", handleNewMessageForInbox);
 
   return () => {
     socket.off("update_groups", handleInboxUpdate);
     socket.off("thread_list_updated", handleInboxUpdate);
-    socket.off("receive_thread_message");
-    socket.off("thread_message_broadcasted");
+    socket.off("receive_thread_message", handleNewMessageForInbox);
+    socket.off("thread_message_broadcasted", handleNewMessageForInbox);
   };
 }
 

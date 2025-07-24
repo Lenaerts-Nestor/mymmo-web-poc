@@ -11,7 +11,7 @@ export interface UseChatMessagesResult {
   error: string | null;
 
   // Message actions
-  sendMessage: (text: string) => Promise<boolean>;
+  sendMessage: (text: string, attachments?: any[]) => Promise<boolean>;
   markAsRead: () => Promise<void>;
   refreshMessages: () => Promise<void>;
 
