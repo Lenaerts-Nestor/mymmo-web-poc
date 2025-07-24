@@ -81,7 +81,7 @@ export function ProtectedRoute({
   if (userLoading || isValidating) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner message={UI_MESSAGES.LOADING.SESSION} />
+        <LoadingSpinner />
       </div>
     );
   }

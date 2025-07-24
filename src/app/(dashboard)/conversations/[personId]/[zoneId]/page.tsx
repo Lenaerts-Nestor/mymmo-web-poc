@@ -72,10 +72,11 @@ function ConversationsContent({
       setHighlightThreadId(highlight);
 
       // Clear highlight from localStorage if it exists
-      const storedHighlight = typeof window !== 'undefined' 
-        ? localStorage.getItem("highlightThreadId")
-        : null;
-      if (storedHighlight && typeof window !== 'undefined') {
+      const storedHighlight =
+        typeof window !== "undefined"
+          ? localStorage.getItem("highlightThreadId")
+          : null;
+      if (storedHighlight && typeof window !== "undefined") {
         localStorage.removeItem("highlightThreadId");
       }
 
@@ -88,10 +89,11 @@ function ConversationsContent({
     }
 
     // Check for highlight in localStorage (from inbox)
-    const storedHighlight = typeof window !== 'undefined'
-      ? localStorage.getItem("highlightThreadId")
-      : null;
-    if (storedHighlight && typeof window !== 'undefined') {
+    const storedHighlight =
+      typeof window !== "undefined"
+        ? localStorage.getItem("highlightThreadId")
+        : null;
+    if (storedHighlight && typeof window !== "undefined") {
       setHighlightThreadId(storedHighlight);
       localStorage.removeItem("highlightThreadId");
 
@@ -125,7 +127,7 @@ function ConversationsContent({
 
   // Update localStorage with current zoneId when page loads
   useEffect(() => {
-    if (zoneId && typeof window !== 'undefined') {
+    if (zoneId && typeof window !== "undefined") {
       localStorage.setItem("selectedZoneId", zoneId);
     }
   }, [zoneId]);
@@ -155,7 +157,7 @@ function ConversationsContent({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner message="Conversaties laden..." />
+        <LoadingSpinner />
       </div>
     );
   }

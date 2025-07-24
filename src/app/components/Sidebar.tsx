@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser } from "../contexts/UserContext";
-import { useSidebar } from "../contexts/SidebarContext";
 import { SidebarHeader } from "./sidebar/sidebarHeader";
 import { SidebarNavigation } from "./sidebar/sidebarNavigation";
 import { SidebarFooter } from "./sidebar/sidebarFooter";
