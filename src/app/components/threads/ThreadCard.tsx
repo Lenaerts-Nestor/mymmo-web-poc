@@ -66,7 +66,7 @@ export function ThreadCard({
     ${
       isHighlighted
         ? "border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200"
-        : thread.unread_count > 0
+        : (thread.unread_count || thread.unreadCount || 0) > 0
         ? "border-red-200 hover:border-red-300 hover:shadow-md"
         : "border-gray-200 hover:border-gray-300 hover:shadow-md"
     }
@@ -116,9 +116,9 @@ export function ThreadCard({
         </div>
 
         {/* Unread count badge */}
-        {thread.unread_count > 0 && (
+        {(thread.unread_count || thread.unreadCount || 0) > 0 && (
           <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold flex-shrink-0">
-            {thread.unread_count}
+            {thread.unread_count || thread.unreadCount || 0}
           </span>
         )}
       </div>
@@ -168,7 +168,7 @@ export function ThreadCard({
           )}
 
           {/* Unread indicator */}
-          {thread.unread_count > 0 && !isHighlighted && (
+          {(thread.unread_count || thread.unreadCount || 0) > 0 && !isHighlighted && (
             <div className="flex items-center space-x-1 text-red-600">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-xs font-medium">Ongelezen</span>
@@ -176,7 +176,7 @@ export function ThreadCard({
           )}
 
           {/* Read indicator */}
-          {thread.unread_count === 0 && !isHighlighted && (
+          {(thread.unread_count || thread.unreadCount || 0) === 0 && !isHighlighted && (
             <div className="flex items-center space-x-1 text-green-600">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-xs">Gelezen</span>

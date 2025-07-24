@@ -26,7 +26,6 @@ export function useSocketInbox(
   // Handle socket updates
   useEffect(() => {
     const handleInboxUpdate = (data: any) => {
-      console.log("📬 [INBOX] Socket update:", data);
 
       // Handle threads data from socket
       if (data.threadsData) {
@@ -34,9 +33,6 @@ export function useSocketInbox(
         const zoneId = threads[0]?.zone_id;
 
         if (zoneId && Array.isArray(threads)) {
-          console.log(`🔧 FIXED - Processing threads: ${threads.length} for zone: ${zoneId}`);
-          console.log(`📬 [INBOX] Updating ${threads.length} threads for zone ${zoneId}`);
-          
           setThreadsByZone(prev => ({
             ...prev,
             [zoneId]: threads
@@ -61,23 +57,22 @@ export function useSocketInbox(
   useEffect(() => {
     if (userZones.length === 0) return;
 
-    console.log("📬 [INBOX] Calculating inbox data");
-
     const inboxItems: any[] = [];
     let totalUnreadCount = 0;
 
     userZones.forEach((zone) => {
       const zoneThreads = threadsByZone[zone.zoneId] || [];
-      const unreadThreads = zoneThreads.filter(thread => thread.unread_count > 0);
+      const unreadThreads = zoneThreads.filter(thread => (thread.unread_count || thread.unreadCount || 0) > 0);
 
       unreadThreads.forEach((thread) => {
-        totalUnreadCount += thread.unread_count;
+        const unreadCount = thread.unread_count || thread.unreadCount || 0;
+        totalUnreadCount += unreadCount;
         inboxItems.push({
           zoneId: zone.zoneId,
           zoneName: zone.name,
           zoneDescription: zone.formattedAddress,
           thread,
-          unreadCount: thread.unread_count,
+          unreadCount: unreadCount,
         });
       });
     });
@@ -89,7 +84,6 @@ export function useSocketInbox(
       return bTime - aTime;
     });
 
-    console.log("📬 [INBOX] Calculated:", inboxItems.length, "items,", totalUnreadCount, "unread");
 
     setInboxData(prev => ({
       items: inboxItems,

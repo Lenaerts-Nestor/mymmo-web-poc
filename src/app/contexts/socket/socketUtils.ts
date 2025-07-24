@@ -21,10 +21,20 @@ export function joinSocketRoom(
   roomId: string,
   personId: number
 ) {
+  // Join as new version (zone-based)
   socket.emit("join_socket", {
     roomId,
     userId: personId,
+    personId: personId,
     appName: "Mymmo-mobile-app-v2",
+  });
+  
+  // ALSO join as old version for compatibility with phone messages
+  socket.emit("join_socket", {
+    roomId: personId.toString(), // Personal room
+    userId: personId,
+    personId: personId,
+    // No appName = old version
   });
 }
 

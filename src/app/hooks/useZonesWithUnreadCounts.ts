@@ -69,7 +69,6 @@ export function useZonesWithUnreadCounts(
       }
 
     } catch (err: any) {
-      console.error("❌ [ZONES] Failed to load zones:", err);
       setError(err.message || "Failed to load zones");
       setIsLoading(false);
     }
@@ -88,12 +87,10 @@ export function useZonesWithUnreadCounts(
         if (zoneId && Array.isArray(threads)) {
           // Calculate unread count for this zone
           const unreadCount = threads.reduce(
-            (sum, thread) => sum + (thread.unread_count || 0),
+            (sum, thread) => sum + (thread.unread_count || thread.unreadCount || 0),
             0
           );
 
-          console.log(`🔧 FIXED - Processing threads: ${threads.length} for zone: ${zoneId}`);
-          console.log(`🏠 [ZONES] Zone ${zoneId} unread count: ${unreadCount}`);
 
           // Update unread counts
           setUnreadCounts(prev => ({
@@ -110,8 +107,6 @@ export function useZonesWithUnreadCounts(
         const isOwnMessage = data.message?.created_by === parseInt(personId);
         
         if (!isOwnMessage) {
-          console.log("🏠 [ZONES] New message in zone:", data.zone_id);
-          
           setUnreadCounts(prev => ({
             ...prev,
             [data.zone_id]: (prev[data.zone_id] || 0) + 1

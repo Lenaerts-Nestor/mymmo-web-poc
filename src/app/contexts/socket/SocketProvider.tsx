@@ -81,7 +81,6 @@ export function SocketProvider({
       return;
     }
 
-    console.log("🚀 Creating socket connection for person:", personId);
     setStatus("connecting");
 
     const newSocket = createSocketConnection(socketUrl, personId);
@@ -116,11 +115,8 @@ export function SocketProvider({
   const initializeZones = useCallback(
     (zones: any[], translationLang: string = "nl") => {
       if (!socket || !personId || status !== "connected") {
-        console.log("⚠️  Cannot initialize zones - socket not ready");
         return;
       }
-
-      console.log("🏠 Initializing zones:", zones.length);
       setUserZones(zones);
 
       // Join zone rooms
@@ -132,7 +128,6 @@ export function SocketProvider({
       // Fetch initial threads for each zone sequentially to maintain context
       const fetchZoneThreadsSequentially = async () => {
         for (const zone of zones) {
-          console.log("📡 Fetching threads for zone:", zone.zoneId);
           
           // Set current zone context
           currentZoneContext.current = zone.zoneId.toString();
@@ -147,7 +142,7 @@ export function SocketProvider({
           });
           
           // Wait a bit between requests to avoid overwhelming the server
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       };
       

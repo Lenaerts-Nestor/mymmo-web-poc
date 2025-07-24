@@ -123,13 +123,9 @@ function ConversationsContent({
     };
   }, []);
 
-  // 🎯 FIX: Update localStorage with current zoneId when page loads
+  // Update localStorage with current zoneId when page loads
   useEffect(() => {
     if (zoneId && typeof window !== 'undefined') {
-      console.log(
-        "🔍 [CONVERSATIONS] Updating localStorage with current zoneId:",
-        zoneId
-      );
       localStorage.setItem("selectedZoneId", zoneId);
     }
   }, [zoneId]);
@@ -243,20 +239,6 @@ function ConversationsHeader({
             {highlightThreadId && (
               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                 Nieuw bericht gemarkeerd
-              </span>
-            )}
-            {/* 🎯 PERFORMANCE: Show polling status in development */}
-            {process.env.NODE_ENV === "development" && (
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  isActivePage
-                    ? "bg-green-100 text-green-800"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {isActivePage
-                  ? "⚡ Fast polling (5s)"
-                  : "🐌 Slow polling (60s)"}
               </span>
             )}
           </div>
