@@ -1,8 +1,8 @@
 // src/app/contexts/UnreadCounterContext.tsx
 
 "use client";
-import React, { createContext, useContext } from "react";
-import { useGlobalUnreadCounter } from "../hooks/useGlobalUnreadCounter";
+import React, { createContext, useContext, useMemo } from "react";
+import { useZonesContext } from "./ZonesContext";
 import { useUser } from "./UserContext";
 import { APP_CONFIG } from "../constants/app";
 
@@ -22,17 +22,12 @@ export function UnreadCounterProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading: userLoading } = useUser();
+  const { zones, isLoading, error, refetch } = useZonesContext();
 
-  const translationLang =
-    user?.translationLang || APP_CONFIG.DEFAULT_TRANSLATION_LANGUAGE;
-
-  const { totalUnreadCount, isLoading, error, refetch } =
-    useGlobalUnreadCounter(
-      user?.personId || "",
-      translationLang,
-      !!user && !userLoading // Only enable polling if user exists and is not loading
-    );
+  // Calculate total unread count from zones data
+  const totalUnreadCount = useMemo(() => {
+    return zones.reduce((total, zone) => total + zone.unreadCount, 0);
+  }, [zones]);
 
   return (
     <UnreadCounterContext.Provider

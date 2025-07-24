@@ -1,9 +1,11 @@
-## issue
+**Current Behavior**
 
-the thing is when i navigate between page , lets say the user goes to conversation and then decide to go back to zones, the zones reload and same happends when i go inbox.
+1. Going from **Zones → Conversation → Zones** causes the Zones page to fully reload.
+2. Navigating to **Inbox** (page & sidebar) also reloads and is redundant—Zones already shows unread toggles.
+3. Every reload refetches all unread zones, so I must wait before seeing which zones are unread.
 
-and also another issue i have is that it seems that its also getting again all the unread zones and so on zone page every time i navigate to it. so when navigating i have to wait to see all the unread zones.
+**Expected Behavior**
 
-the user experience isnt so good as i want. i would like to know how to solve these issues. thanks in advance.
-
-maybe we can remove the inbox page temporary in general and the on the sidebar too .
+- **Zones** should preserve its last state when the user returns (no full reload).
+- Unread zone toggles should appear instantly (avoid refetch on each navigation).
+- Completely remove the **Inbox** page and sidebar. Unread messages stay indicated in **Zones**.

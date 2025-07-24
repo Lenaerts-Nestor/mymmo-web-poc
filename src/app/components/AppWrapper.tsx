@@ -7,6 +7,7 @@ import { SidebarProvider } from "../contexts/SidebarContext";
 import { UnreadCounterProvider } from "../contexts/UnreadCounterContext";
 import { QueryProvider } from "../providers/QueryProvider";
 import { SocketProvider } from "../contexts/SocketContext"; // 🆕 NEW: Socket provider
+import { ZonesProvider } from "../contexts/ZonesContext"; // 🆕 NEW: Zones provider
 import Sidebar from "./Sidebar";
 import { isDashboardRoute } from "../utils/route";
 
@@ -37,7 +38,9 @@ function SocketIntegration({ children }: { children: React.ReactNode }) {
 
   return (
     <SocketProvider personId={personId} enabled={socketEnabled}>
-      {children}
+      <ZonesProvider>
+        {children}
+      </ZonesProvider>
     </SocketProvider>
   );
 }

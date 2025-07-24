@@ -1,27 +1,13 @@
 // src/app/components/sidebar/sidebarNavigation.tsx - FIXED NAVIGATION BUG
 
 import { NavItem, SidebarNavigationProps } from "@/app/types/ui/Sidebar";
-import { MapPin, Inbox, MessageCircle } from "lucide-react";
-import { useUnreadCounter } from "@/app/contexts/UnreadCounterContext";
+import { MapPin, MessageCircle } from "lucide-react";
 
 export function SidebarNavigation({
   personId,
   pathname,
   router,
 }: SidebarNavigationProps) {
-  // Safely get global unread counter (might not be available)
-  let totalUnreadCount = 0;
-  let counterLoading = false;
-
-  try {
-    const { totalUnreadCount: count, isLoading } = useUnreadCounter();
-    totalUnreadCount = count;
-    counterLoading = isLoading;
-  } catch (error) {
-    console.log(
-      "UnreadCounterProvider not available - this is expected on login page"
-    );
-  }
 
   // 🆕 HELPER: Extract zoneId from current URL
   const getCurrentZoneId = (): string | null => {
@@ -76,15 +62,6 @@ export function SidebarNavigation({
       icon: <MapPin size={20} />,
       href: `/zones/${personId}`,
       isActive: pathname.startsWith(`/zones/${personId}`),
-    },
-    {
-      id: "inbox",
-      label: "Inbox",
-      icon: <Inbox size={20} />,
-      href: `/inbox/${personId}`,
-      isActive: pathname.startsWith(`/inbox/${personId}`),
-      isDisabled: false,
-      unreadCount: totalUnreadCount,
     },
     {
       id: "conversations",

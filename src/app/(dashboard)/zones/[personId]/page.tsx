@@ -3,7 +3,7 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ZonesList } from "@/app/components/zones/ZonesList";
 import { ZoneIntroCard } from "@/app/components/zones/ZoneIntroCard";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
@@ -13,7 +13,7 @@ import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { useUser } from "@/app/contexts/UserContext";
 import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
 import { ZoneFilter } from "@/app/components/zones/zoneFilter";
-import { useZonesWithUnreadCounts } from "@/app/hooks/useZonesWithUnreadCounts";
+import { useZonesContext } from "@/app/contexts/ZonesContext";
 import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
 
 export default function ZonesPage() {
@@ -50,14 +50,23 @@ function ZonesContent({
   appLang: string;
   translationLang: string;
 }) {
-  const { zones, person, isLoading, error, refetch } = useZonesWithUnreadCounts(
-    personId,
-    translationLang
-  );
+  const { 
+    zones, 
+    person, 
+    isLoading, 
+    error, 
+    refetch,
+    searchQuery,
+    showAllZones,
+    setSearchQuery,
+    setShowAllZones,
+    initialize
+  } = useZonesContext();
 
-  // Client-side search and filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showAllZones, setShowAllZones] = useState(false);
+  // Initialize zones data when component mounts
+  React.useEffect(() => {
+    initialize(personId, translationLang);
+  }, [initialize, personId, translationLang]);
 
   const handleSearchChange = (search: string) => {
     setSearchQuery(search);
