@@ -1,3 +1,0 @@
-fix the errors on the files threadcard.tsx and threadlist.tsx, currently the error indicate things like this : Property 'unreadCount' does not exist on type 'Thread'. Did you mean 'unread_count'? but if i change it to unread_count everywhere were needs to be changed. it doesnt show me then the unread counter correctly and buggs out. carefully analyze this error.
-
-same situation as the first one. i would like to know how to solve this problem : Property 'latestMessage' does not exist on type 'Thread'. Did you mean 'latest_message'?, but if i choose the latest_message, it also gives me a bug or so. fix it.

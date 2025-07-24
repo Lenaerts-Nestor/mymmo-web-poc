@@ -111,6 +111,7 @@ export function useChatMessages({
         const lastReadMessage = read[read.length - 1];
         setLastAccessTime(new Date(lastReadMessage.created_on));
       }
+
     } catch (err: any) {
       console.error("Failed to load initial messages:", err);
       setError(err.message || "Failed to load messages");
@@ -124,6 +125,33 @@ export function useChatMessages({
       loadInitialMessages();
     }
   }, [threadId, personId, loadInitialMessages]);
+
+  const markAsRead = useCallback(async () => {
+    try {
+      await MyMMOApiThreads.updateThreadLastAccess({
+        threadId,
+        personId: personIdNum,
+      });
+
+      const now = new Date();
+      setLastAccessTime(now);
+      setReadMessages((prev) => [...prev, ...unreadMessages]);
+      setUnreadMessages([]);
+    } catch (err: any) {
+      console.error("Failed to mark as read:", err);
+    }
+  }, [threadId, personIdNum, unreadMessages]);
+
+  // Auto-mark as read when unread messages are loaded
+  useEffect(() => {
+    if (autoMarkAsRead && unreadMessages.length > 0 && !isLoading) {
+      const timer = setTimeout(() => {
+        markAsRead();
+      }, 500); // Small delay to ensure smooth UX
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoMarkAsRead, unreadMessages.length, isLoading, markAsRead]);
 
   const sendMessage = useCallback(
     async (text: string): Promise<boolean> => {
@@ -181,22 +209,6 @@ export function useChatMessages({
       cleanupOptimisticMessages,
     ]
   );
-
-  const markAsRead = useCallback(async () => {
-    try {
-      await MyMMOApiThreads.updateThreadLastAccess({
-        threadId,
-        personId: personIdNum,
-      });
-
-      const now = new Date();
-      setLastAccessTime(now);
-      setReadMessages((prev) => [...prev, ...unreadMessages]);
-      setUnreadMessages([]);
-    } catch (err: any) {
-      console.error("Failed to mark as read:", err);
-    }
-  }, [threadId, personIdNum, unreadMessages]);
 
   const refreshMessages = useCallback(async () => {
     await loadInitialMessages();
