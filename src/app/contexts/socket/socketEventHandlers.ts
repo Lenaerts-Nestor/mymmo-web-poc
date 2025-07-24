@@ -185,10 +185,21 @@ export function setupInboxUpdateHandlers(
     });
   });
 
+  // Also handle thread_message_broadcasted for immediate updates
+  socket.on("thread_message_broadcasted", (data: any) => {
+    handleInboxUpdate({
+      type: "new_message", 
+      thread_id: data.thread_id,
+      zone_id: data.zone_id,
+      message: data,
+    });
+  });
+
   return () => {
     socket.off("update_groups", handleInboxUpdate);
     socket.off("thread_list_updated", handleInboxUpdate);
     socket.off("receive_thread_message");
+    socket.off("thread_message_broadcasted");
   };
 }
 
