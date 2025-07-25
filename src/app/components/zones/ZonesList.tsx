@@ -3,6 +3,15 @@
 import { MapPin, MessageCircle, Bell, Search } from "lucide-react"; // Added icons
 import { ZoneCard } from "./ZoneCard";
 import type { Zone } from "@/app/types/zones";
+import { useState, useMemo } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export interface ZoneWithUnreadCount extends Zone {
   unreadCount: number;
@@ -92,6 +101,9 @@ export function ZonesList({
   personId,
   translationLang,
 }: UpdatedZonesListProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   if (isLoading) return <ZonesListSkeleton />;
 
   // Apply search filter
@@ -106,6 +118,17 @@ export function ZonesList({
   if (!showAllZones) {
     filteredZones = filteredZones.filter((zone) => zone.hasUnreadMessages);
   }
+
+  // Reset to first page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [search, showAllZones, zones.length]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredZones.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedZones = filteredZones.slice(startIndex, endIndex);
 
   if (filteredZones.length === 0) {
     return (
@@ -136,6 +159,13 @@ export function ZonesList({
             {showAllZones ? "Alle Zones" : "Zones met Ongelezen Berichten"} (
             {filteredZones.length})
           </h2>
+          {totalPages > 1 && (
+            <p className="text-sm text-[var(--gravel-500)] mb-2">
+              Pagina {currentPage} van {totalPages} • Toont {startIndex + 1}-
+              {Math.min(endIndex, filteredZones.length)} van{" "}
+              {filteredZones.length} zones
+            </p>
+          )}
           {/* Statistics */}
           <div className="flex items-center gap-4 text-sm text-[var(--gravel-500)]">
             {" "}
@@ -178,7 +208,7 @@ export function ZonesList({
         </div>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredZones.map((zone) => (
+        {paginatedZones.map((zone) => (
           <ZoneCard
             key={zone.zoneId}
             zone={zone}
@@ -187,6 +217,92 @@ export function ZonesList({
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      setCurrentPage(currentPage - 1);
+                    }
+                  }}
+                  className={
+                    currentPage <= 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => {
+                  // Show first page, last page, current page, and pages around current page
+                  const showPage =
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 &&
+                      pageNumber <= currentPage + 1);
+
+                  if (!showPage) {
+                    // Show ellipsis for gaps
+                    if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <span className="flex h-9 w-9 items-center justify-center text-[var(--gravel-500)]">
+                            ...
+                          </span>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(pageNumber);
+                        }}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                      setCurrentPage(currentPage + 1);
+                    }
+                  }}
+                  className={
+                    currentPage >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
