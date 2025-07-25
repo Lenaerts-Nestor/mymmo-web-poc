@@ -6,7 +6,15 @@ import { ConversationCard } from "./ConversationCard";
 import { ConversationListSkeleton } from "./ConversationListSkeleton";
 import { EmptyConversationState } from "./EmptyConversationState";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import type { ThreadsListProps } from "@/app/types/threads";
 
@@ -27,6 +35,8 @@ export function ConversationsList({
 }: ExtendedConversationListProps) {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const handleConversationClick = (threadId: string) => {
     if (onThreadClick) {
@@ -57,6 +67,17 @@ export function ConversationsList({
     );
   }
 
+  // Reset to first page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [showAllThreads, threads.length]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredThreads.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedThreads = filteredThreads.slice(startIndex, endIndex);
+
   if (filteredThreads.length === 0) {
     return (
       <div className="bg-[#ffffff]/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
@@ -82,6 +103,13 @@ export function ConversationsList({
             {showAllThreads ? "Alle Conversaties" : "Ongelezen Conversaties"} (
             {filteredThreads.length})
           </h2>
+          {totalPages > 1 && (
+            <p className="text-sm text-[#765860] mb-2">
+              Pagina {currentPage} van {totalPages} • Toont {startIndex + 1}-
+              {Math.min(endIndex, filteredThreads.length)} van{" "}
+              {filteredThreads.length} conversaties
+            </p>
+          )}
           <div className="flex items-center gap-4 text-sm text-[#765860]">
             {totalUnreadCount > 0 && (
               <>
@@ -112,7 +140,7 @@ export function ConversationsList({
         </div>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredThreads.map((thread) => (
+        {paginatedThreads.map((thread) => (
           <ConversationCard
             key={thread._id}
             thread={thread}
@@ -122,6 +150,92 @@ export function ConversationsList({
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      setCurrentPage(currentPage - 1);
+                    }
+                  }}
+                  className={
+                    currentPage <= 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => {
+                  // Show first page, last page, current page, and pages around current page
+                  const showPage =
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 &&
+                      pageNumber <= currentPage + 1);
+
+                  if (!showPage) {
+                    // Show ellipsis for gaps
+                    if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <span className="flex h-9 w-9 items-center justify-center text-[#765860]">
+                            ...
+                          </span>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(pageNumber);
+                        }}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                      setCurrentPage(currentPage + 1);
+                    }
+                  }}
+                  className={
+                    currentPage >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }
