@@ -1,36 +1,207 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyMMO Web - Real-time Chat Application
 
-## Getting Started
+A Next.js-based real-time chat application for neighborhood communities, featuring Socket.IO integration, image uploads, and conversation management.
 
-First, run the development server:
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm/yarn/pnpm
+- AWS API Gateway endpoint for image uploads
+
+### Installation
+
+1. **Clone and install dependencies:**
+
+```bash
+git clone <repository-url>
+cd mymmo-web
+npm install
+```
+
+2. **Environment Setup:**
+   Create `.env.local` with:
+
+```env
+NEXT_PUBLIC_SOCKET_URL=your-socket-server-url
+AWS_API_GATEWAY_END_POINT=your-aws-api-gateway-url
+```
+
+3. **Run development server:**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📋 Current Status
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ✅ Working Features
 
-## Learn More
+- **Real-time messaging** via Socket.IO
+- **Zone-based conversations** (neighborhood groups)
+- **Message threading** and conversation management
+- **Receiving images** from other users (CloudFront URLs)
+- **Socket connection management** with auto-reconnection
+- **Unread message counts** and inbox updates
 
-To learn more about Next.js, take a look at the following resources:
+### 🔧 In Progress
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Image uploads** - 90% complete, needs `AWS_API_GATEWAY_END_POINT` configuration
+- **Optimistic message updates** - preventing stuck "sending..." states
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🏗️ Architecture
 
-## Deploy on Vercel
+### Socket Connection
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Single WebSocket connection** per user
+- **Multiple rooms**: personal, zone-based, and thread-specific
+- **Event-driven messaging** with real-time updates
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Key Components
+
+```
+src/app/
+├── contexts/socket/          # Socket.IO management
+│   ├── SocketProvider.tsx    # Main socket context
+│   ├── handlers/            # Event handlers by category
+│   └── socketUtils.ts       # Connection utilities
+├── hooks/chat/              # Chat-related hooks
+├── services/                # API and upload services
+└── types/                   # TypeScript definitions
+```
+
+### Socket Events
+
+**Outgoing (app sends):**
+
+- `send_thread_message` - Send new message
+- `fetch_threads` - Get conversation updates
+- `join_room` / `leave_room` - Room management
+
+**Incoming (app receives):**
+
+- `receive_thread_message` - New message received
+- `update_groups` - Inbox/conversation updates
+- `thread_list_updated` - Thread changes
+
+## 🖼️ Image Upload Flow
+
+### Current Implementation
+
+1. User selects images in chat
+2. Files converted to base64
+3. **[PENDING]** Upload to AWS API Gateway
+4. **[PENDING]** Receive CloudFront URLs
+5. Send message with CloudFront URLs as attachments
+
+### Expected Attachment Format
+
+```javascript
+{
+  source: "https://d25duhkm64s16s.cloudfront.net/uploads/originals/xxx.jpg",
+  fileType: "image/jpeg",
+  type: "image",
+  name: "filename.jpg",
+  size: 12345
+}
+```
+
+## 🛠️ Development
+
+### Key Files
+
+- `src/app/contexts/socket/SocketProvider.tsx` - Socket connection management
+- `src/app/services/imageUploadService.ts` - Image upload logic (ready for AWS)
+- `src/app/hooks/chat/useChatHandlers.ts` - Chat interaction logic
+- `docs/socket-connection-guide.md` - Socket implementation guide
+
+### Testing Users
+
+- **User 925** - Sender (image uploads show as blank squares)
+- **User 1325** - Receiver (receives images correctly)
+
+### Environment Variables
+
+```env
+# Required
+NEXT_PUBLIC_SOCKET_URL=wss://your-socket-server.com
+AWS_API_GATEWAY_END_POINT=https://your-api-gateway.com/upload
+
+# Optional
+NEXT_PUBLIC_DEBUG=true
+```
+
+## 📚 Documentation
+
+- [Socket Connection Guide](./docs/socket-connection-simple-versie-guide.md) - Simple explanation of WebSocket implementation
+- [API Endpoints](./docs/api-endpoints.md) - Backend API documentation
+- [Project Architecture](./docs/project-architecture.md) - System overview
+- [Socket.IO Implementation](./docs/socket-io-implementation-dieper-guide.md.md) - Technical details
+
+## 🐛 Known Issues
+
+note : ! these issue as image upload arent implemented yet. the error are an explanation to the next developer and why he may see no image or so.
+
+### Session
+
+the session works and the authentications and such works good, there is just a small issue that i cant pin point , that sometimes after loading if we logged in in another account before the current one we are doing.
+
+for less than a split of a second we can see the previous account zones of page. but it shouldnt happend as i clear the session after logging out. maybe it my local repository and slow pc but lets be sure that it works.
+
+### Fast loading of counter.
+
+currently the counter to show unread messages work. but it doesnt update instantly
+
+- for the moment im unaware of why the unreadcounter badge that indiciates that zone card or conversation card badge isnt instantly updating. i implemented the socket.io and yet it takes sometimes 2 seconds or sometimes 30 to 40 seconds. AI is telling me its something from the backend but im not sure as the microservice are a bit complex to understand on the little time i have .
+
+- possible its a problem with the cache, that i implemneted for smooth navigation and such and maybe its stil holding information and not clearing it on time.
+
+- **updating the counter** works but not as fast as it should be desired. i belief its on my code and not the backend.
+
+### Image Upload Problems
+
+- **Sending images fails**: User 925's images show as blank squares
+- **Loading states**: Images stuck showing "Verzenden..." (sending...)
+- **URL issue**: Images show `about:blank` instead of CloudFront URLs
+
+**Root cause**: Missing AWS API Gateway endpoint configuration
+
+### Fixes Applied
+
+- ✅ Socket message handling with attachments
+- ✅ Message format corrected (`fileType` vs `file_type`)
+- ✅ Optimistic message updates
+- ✅ Duplicate message prevention
+- ✅ Upload service structure ready
+
+## 🔧 Quick Fixes
+
+### To Complete Image Uploads
+
+1. Get `AWS_API_GATEWAY_END_POINT` from senior developer
+2. Add to `.env.local`
+3. Uncomment upload logic in `imageUploadService.ts:22-68`
+
+### Common Commands
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript checking
+```
+
+## 🏃‍♂️ Next Steps
+
+1. **Configure AWS endpoint** for image uploads
+2. **Test image upload flow** end-to-end
+3. **Performance optimization** for large conversations
+4. **Error handling** improvements
+5. **Mobile responsiveness** enhancements
+
+---
+
+**Tech Stack**: Next.js 14, TypeScript, Socket.IO, TailwindCSS, AWS S3/CloudFront

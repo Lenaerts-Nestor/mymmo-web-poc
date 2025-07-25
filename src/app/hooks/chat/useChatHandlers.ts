@@ -59,14 +59,11 @@ export function useChatHandlers({
         setMessageInput(messageText);
       } else {
         // Trigger thread list refresh after successful send
-        setTimeout(() => {
-          // Trigger a custom event that the thread list can listen to
-          window.dispatchEvent(
-            new CustomEvent("messagesSent", {
-              detail: { threadId, zoneId, personId },
-            })
-          );
-        }, 500);
+        window.dispatchEvent(
+          new CustomEvent("messagesSent", {
+            detail: { threadId, zoneId, personId },
+          })
+        );
       }
     } catch (error) {
       console.error("Send message error:", error);

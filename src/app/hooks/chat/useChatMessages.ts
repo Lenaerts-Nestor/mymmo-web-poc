@@ -147,7 +147,7 @@ export function useChatMessages({
     if (autoMarkAsRead && unreadMessages.length > 0 && !isLoading) {
       const timer = setTimeout(() => {
         markAsRead();
-      }, 1500); // Increased delay to allow unread count updates to propagate
+      }, 300); // Reduced delay for faster unread counter updates
       
       return () => clearTimeout(timer);
     }

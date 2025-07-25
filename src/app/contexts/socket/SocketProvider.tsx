@@ -199,13 +199,11 @@ export function SocketProvider({
         });
 
         // Trigger immediate inbox update for sent message
-        setTimeout(() => {
-          socket.emit("fetch_threads", {
-            type: "active",
-            personId: createdBy,
-            transLangId: "nl",
-          });
-        }, 500);
+        socket.emit("fetch_threads", {
+          type: "active",
+          personId: createdBy,
+          transLangId: "nl",
+        });
 
         return true;
       } catch (error) {

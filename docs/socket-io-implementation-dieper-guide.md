@@ -5,6 +5,7 @@
 Think of Socket.IO as a **telephone system** for your website. Without it, users would be like people trying to communicate by sending letters - they'd have to keep refreshing the page to see if someone replied. With Socket.IO, it's like having a phone call where you can talk and hear responses instantly.
 
 In our MyMMO application, Socket.IO does these important things:
+
 - **Instant messaging**: When User A sends a message, User B sees it immediately (no page refresh needed)
 - **Live notifications**: Unread message counters update in real-time
 - **Connection management**: Keeps users connected to the right "chat rooms"
@@ -24,16 +25,19 @@ Before diving into code, let's understand how Socket.IO works in our app:
 Before you start coding, you need to understand what your backend expects. This is like learning the language before calling someone in another country.
 
 **What to check on your backend:**
+
 1. **What events does it listen for?** (What "words" does it understand?)
 2. **What events does it send back?** (What "responses" will it give you?)
 3. **What data format does it expect?** (How should you "speak" to it?)
 
 In our case, the backend listens for events like:
+
 - `join_socket` - "I want to join a chat room"
 - `send_thread_message` - "I'm sending a message"
 - `fetch_threads` - "Give me the list of conversations"
 
 And it sends back events like:
+
 - `receive_thread_message` - "Here's a new message for you"
 - `update_groups` - "Here's updated conversation info"
 
@@ -46,13 +50,7 @@ Think of this as setting up your phone number and address book before making cal
 Create or update your `.env.local` file with these "addresses":
 
 ```env
-# This is like the phone number of the Socket.IO server
-NEXT_PUBLIC_SOCKET_URL=https://uat.thread-service.mymmo.infanion.com
-
-# These are needed for authentication (like your ID card)
-NEXT_PUBLIC_SERVICE_REGISTRY=https://uat.service-registry.mymmo.infanion.com
-NEXT_PUBLIC_CLIENT_SECRET=d55f83f9ce38d7af9b7e4530d9224e1c
-NEXT_PUBLIC_CLIENT_ID=1
+check the image that has been send to maarten.
 ```
 
 ### B. Install the "Phone System" (NPM Packages)
@@ -89,7 +87,9 @@ src/app/
 ## Step 3: Understand the Key Concepts (Building Blocks)
 
 ### What is a Provider?
+
 Think of a **Provider** as your telephone company. It:
+
 - Sets up the phone connection to your house
 - Manages the phone service for your entire family
 - Makes sure everyone in the house can use the phone
@@ -98,7 +98,9 @@ Think of a **Provider** as your telephone company. It:
 In our app, the `SocketProvider` does the same thing - it connects to the Socket.IO server and makes that connection available to all your React components.
 
 ### What is a Context?
+
 Think of **Context** as the phone system in your house. It:
+
 - Shares the phone connection with every room
 - Lets any room make or receive calls
 - Keeps track of who's on the phone
@@ -107,7 +109,9 @@ Think of **Context** as the phone system in your house. It:
 In React, Context lets you share the Socket.IO connection with any component that needs it.
 
 ### What are Event Handlers?
+
 Think of **Event Handlers** as your personal assistant who answers the phone. They:
+
 - Answer when someone calls ("Oh, it's mom calling!")
 - Decide what to do with each type of call ("If it's work, take a message")
 - Handle different types of calls differently ("Pizza delivery? Direct them to the kitchen")
@@ -228,7 +232,7 @@ export function joinSocketRoom(
     personId: personId,
     appName: "Mymmo-mobile-app-v2",
   });
-  
+
   // ALSO join as old version for compatibility
   socket.emit("join_socket", {
     roomId: personId.toString(), // Personal room
@@ -298,7 +302,9 @@ export function setupConnectionHandlers(
 // Message handlers
 export function setupMessageHandlers(
   socket: ReturnType<typeof import("socket.io-client").io>,
-  messageCallbacks: React.MutableRefObject<Set<(message: RealtimeMessage) => void>>
+  messageCallbacks: React.MutableRefObject<
+    Set<(message: RealtimeMessage) => void>
+  >
 ) {
   const handleRealtimeMessage = (data: any) => {
     const message: RealtimeMessage = {
@@ -354,7 +360,7 @@ export function setupInboxUpdateHandlers(
 
   // Handle new messages for unread counts
   const handleNewMessageForInbox = (data: any) => {
-    if (data.created_by !== parseInt(data.personId || '0')) {
+    if (data.created_by !== parseInt(data.personId || "0")) {
       handleInboxUpdate({
         type: "new_message",
         thread_id: data.thread_id,
@@ -413,14 +419,18 @@ export function SocketProvider({
   personId,
   enabled = true,
 }: SocketProviderProps) {
-  const [socket, setSocket] = useState<ReturnType<typeof import("socket.io-client").io> | null>(null);
+  const [socket, setSocket] = useState<ReturnType<
+    typeof import("socket.io-client").io
+  > | null>(null);
   const [status, setStatus] = useState<SocketStatus>("disconnected");
   const [lastError, setLastError] = useState<string | null>(null);
   const [userZones, setUserZones] = useState<any[]>([]);
 
   const currentRooms = useRef<Set<string>>(new Set());
   const reconnectAttempts = useRef(0);
-  const messageCallbacks = useRef<Set<(message: RealtimeMessage) => void>>(new Set());
+  const messageCallbacks = useRef<Set<(message: RealtimeMessage) => void>>(
+    new Set()
+  );
   const threadUpdateCallbacks = useRef<Set<(data: any) => void>>(new Set());
   const inboxUpdateCallbacks = useRef<Set<(data: any) => void>>(new Set());
 
@@ -457,7 +467,10 @@ export function SocketProvider({
     );
 
     const cleanupMessages = setupMessageHandlers(newSocket, messageCallbacks);
-    const cleanupInbox = setupInboxUpdateHandlers(newSocket, inboxUpdateCallbacks);
+    const cleanupInbox = setupInboxUpdateHandlers(
+      newSocket,
+      inboxUpdateCallbacks
+    );
 
     setSocket(newSocket);
 
@@ -475,7 +488,7 @@ export function SocketProvider({
   const initializeZones = useCallback(
     (zones: any[], translationLang: string = "nl") => {
       if (!socket || !personId || status !== "connected") return;
-      
+
       setUserZones(zones);
 
       // Join zone rooms
@@ -630,6 +643,7 @@ Now let's understand the actual conversations you'll have with the server. Think
 These are like different types of incoming calls to your phone:
 
 #### 1. Connection Status Calls
+
 ```typescript
 // "Hello, your phone is now connected!"
 socket.on("connect", () => {
@@ -651,6 +665,7 @@ socket.on("connect_error", (error) => {
 ```
 
 #### 2. Incoming Message Calls
+
 ```typescript
 // "You have a new message!"
 socket.on("receive_thread_message", (data) => {
@@ -672,10 +687,15 @@ socket.on("update_thread_screen", (data) => {
 ```
 
 #### 3. Conversation List Updates
+
 ```typescript
 // "Your conversation list has changed"
 socket.on("update_groups", (data) => {
-  console.log("Conversation list updated with", data.threadsData.length, "threads");
+  console.log(
+    "Conversation list updated with",
+    data.threadsData.length,
+    "threads"
+  );
   // Update unread message counters and conversation list
 });
 
@@ -691,54 +711,64 @@ socket.on("thread_list_updated", (data) => {
 These are like different types of calls you make:
 
 #### 1. "I Want to Join a Chat Room"
+
 ```typescript
 socket.emit("join_socket", {
-  roomId: "zone_123",              // Which room you want to join
-  userId: 925,                     // Your user ID (like your phone number)
-  personId: 925,                   // Your person ID (like your extension)
-  appName: "Mymmo-mobile-app-v2"   // Which app you're using (like caller ID)
+  roomId: "zone_123", // Which room you want to join
+  userId: 925, // Your user ID (like your phone number)
+  personId: 925, // Your person ID (like your extension)
+  appName: "Mymmo-mobile-app-v2", // Which app you're using (like caller ID)
 });
 ```
+
 Think of this like calling reception to say "Please connect me to conference room 123"
 
 #### 2. "I'm Sending a Message"
+
 ```typescript
 socket.emit("send_thread_message", {
-  threadId: "thread_456",          // Which conversation thread
-  text: "Hello everyone!",         // Your message
-  createdBy: 925,                  // Your user ID
-  completed: false,                // Message is not completed yet
-  attachments: [],                 // Any files you're sending
-  appName: "Mymmo-mobile-app-v2"   // Your app identifier
+  threadId: "thread_456", // Which conversation thread
+  text: "Hello everyone!", // Your message
+  createdBy: 925, // Your user ID
+  completed: false, // Message is not completed yet
+  attachments: [], // Any files you're sending
+  appName: "Mymmo-mobile-app-v2", // Your app identifier
 });
 ```
+
 This is like saying "Please deliver this message to everyone in conversation room 456"
 
 #### 3. "Give Me My Conversation List"
+
 ```typescript
 socket.emit("fetch_threads", {
-  zoneId: 123,                     // Which zone/area you want threads for
-  personId: 925,                   // Your person ID
-  type: "active",                  // Only active conversations
-  transLangId: "nl"                // Language preference
+  zoneId: 123, // Which zone/area you want threads for
+  personId: 925, // Your person ID
+  type: "active", // Only active conversations
+  transLangId: "nl", // Language preference
 });
 ```
+
 Like calling and asking "Can you tell me all my active conversations in building 123?"
 
 #### 4. "Show Me All Messages in This Conversation"
+
 ```typescript
 socket.emit("fetch_thread_messages", {
-  threadId: "thread_789",          // Which conversation
-  personId: 925,                   // Your person ID
-  transLangId: "nl"                // Language preference
+  threadId: "thread_789", // Which conversation
+  personId: 925, // Your person ID
+  transLangId: "nl", // Language preference
 });
 ```
+
 Like asking "Can you read me all the messages from conversation 789?"
 
 #### 5. "I'm Still Here" (Heartbeat)
+
 ```typescript
 socket.emit("ping");
 ```
+
 This is like occasionally saying "Hello, are you still there?" to keep the line open
 
 ## Step 5: Understanding the Data Flow
@@ -761,18 +791,18 @@ Let's say User Alice (ID: 925) wants to send "Hello!" to User Bob (ID: 1325) in 
 socket.emit("send_thread_message", {
   threadId: "alice_bob_conversation",
   text: "Hello!",
-  createdBy: 925,  // Alice's ID
+  createdBy: 925, // Alice's ID
   completed: false,
   attachments: [],
-  appName: "Mymmo-mobile-app-v2"
+  appName: "Mymmo-mobile-app-v2",
 });
 
 // Bob's app automatically receives this:
 socket.on("receive_thread_message", (data) => {
   // data.text = "Hello!"
-  // data.created_by = 925 (Alice's ID)  
+  // data.created_by = 925 (Alice's ID)
   // data.thread_id = "alice_bob_conversation"
-  
+
   // Bob's app shows: "Alice says: Hello!"
   showMessageInChat(data);
 });
@@ -794,8 +824,10 @@ import { SocketProvider } from "./contexts/SocketContext";
 
 function AppWrapper({ children }) {
   // Get the current user (like getting their phone number)
-  const { user } = useUser(); 
-  const personId = user?.personId ? parseInt(user.personId.toString()) : undefined;
+  const { user } = useUser();
+  const personId = user?.personId
+    ? parseInt(user.personId.toString())
+    : undefined;
   const socketEnabled = !isLoading && !!personId;
 
   return (
@@ -808,6 +840,7 @@ function AppWrapper({ children }) {
 ```
 
 **What this does:**
+
 - `SocketProvider` is like the telephone company connecting service to your house
 - `personId` is like your phone number - it identifies who you are
 - `enabled` decides whether to turn on phone service (only when user is logged in)
@@ -823,11 +856,11 @@ import { useSocketContext } from "../contexts/SocketContext";
 function ChatComponent() {
   // This is like picking up the phone in any room
   const {
-    isConnected,      // "Is the phone line working?"
-    sendMessage,      // "Make a call to send a message"
+    isConnected, // "Is the phone line working?"
+    sendMessage, // "Make a call to send a message"
     onMessageReceived, // "Answer when someone calls"
     offMessageReceived, // "Stop answering calls"
-    joinThreadRoom    // "Join a conference call room"
+    joinThreadRoom, // "Join a conference call room"
   } = useSocketContext();
 
   useEffect(() => {
@@ -853,12 +886,12 @@ function ChatComponent() {
   // Function to send a message (like making a phone call)
   const handleSendMessage = async () => {
     const success = await sendMessage(
-      "thread_123",     // Which conversation
-      "Hello world!",   // What to say
-      925,             // Your user ID
-      []               // Any files to attach
+      "thread_123", // Which conversation
+      "Hello world!", // What to say
+      925, // Your user ID
+      [] // Any files to attach
     );
-    
+
     if (success) {
       console.log("Message delivered successfully!");
     } else {
@@ -872,11 +905,9 @@ function ChatComponent() {
       <div>
         Phone Status: {isConnected ? "📞 Connected" : "📵 Disconnected"}
       </div>
-      
+
       {/* Button to send a message */}
-      <button onClick={handleSendMessage}>
-        Send Message
-      </button>
+      <button onClick={handleSendMessage}>Send Message</button>
     </div>
   );
 }
@@ -900,6 +931,7 @@ useEffect(() => {
 ```
 
 **What this does:**
+
 - It's like telling the receptionist "User 925 has access to rooms 123, 456, and 789"
 - The system automatically joins all these rooms
 - Now the user will receive messages from any of these zones
@@ -910,19 +942,19 @@ useEffect(() => {
 
 ```typescript
 interface MessageData {
-  _id: string;              // Unique message ID
-  text: string;             // Message content
-  created_on: string;       // ISO timestamp
-  created_by: number;       // Sender's user ID
-  thread_id: string;        // Thread this message belongs to
-  zone_id?: string;         // Zone this message belongs to
-  attachments?: any[];      // File attachments
+  _id: string; // Unique message ID
+  text: string; // Message content
+  created_on: string; // ISO timestamp
+  created_by: number; // Sender's user ID
+  thread_id: string; // Thread this message belongs to
+  zone_id?: string; // Zone this message belongs to
+  attachments?: any[]; // File attachments
   lang_id_detected: string; // Detected language
   metadata: {
-    recipients: number[];   // List of recipient IDs
+    recipients: number[]; // List of recipient IDs
   };
-  is_deleted: boolean;      // Deletion status
-  updated_on: string;       // Last update timestamp
+  is_deleted: boolean; // Deletion status
+  updated_on: string; // Last update timestamp
   updated_by: number | null; // Last updater ID
 }
 ```
@@ -931,13 +963,14 @@ interface MessageData {
 
 ```typescript
 interface ThreadData {
-  _id: string;              // Thread ID
-  zone_id: string;          // Zone this thread belongs to
-  participants: number[];   // User IDs of participants
-  created_on: string;       // Creation timestamp
-  updated_on: string;       // Last update timestamp
-  unread_count: number;     // Unread messages for current user
-  last_message?: {          // Preview of last message
+  _id: string; // Thread ID
+  zone_id: string; // Zone this thread belongs to
+  participants: number[]; // User IDs of participants
+  created_on: string; // Creation timestamp
+  updated_on: string; // Last update timestamp
+  unread_count: number; // Unread messages for current user
+  last_message?: {
+    // Preview of last message
     text: string;
     created_by: number;
     created_on: string;
@@ -956,7 +989,9 @@ Think of this section as your "phone repair guide" - when your Socket.IO connect
 **What's probably wrong:** Your phone number (server URL) is incorrect or missing
 
 **How to fix it:**
+
 1. Check your `.env.local` file - make sure this line exists:
+
    ```env
    NEXT_PUBLIC_SOCKET_URL=https://uat.thread-service.mymmo.infanion.com
    ```
@@ -966,11 +1001,14 @@ Think of this section as your "phone repair guide" - when your Socket.IO connect
 3. Check in your browser console - you should see connection logs
 
 **Like this:**
+
 ```typescript
 // Add this to debug connection issues
 const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
 if (!socketUrl) {
-  console.error("❌ Missing phone number! Add NEXT_PUBLIC_SOCKET_URL to .env.local");
+  console.error(
+    "❌ Missing phone number! Add NEXT_PUBLIC_SOCKET_URL to .env.local"
+  );
   return;
 }
 console.log("📞 Trying to connect to:", socketUrl);
@@ -983,21 +1021,24 @@ console.log("📞 Trying to connect to:", socketUrl);
 **What's probably wrong:** You're not in the right "chat room"
 
 **How to fix it:**
+
 1. Make sure you joined the room first:
+
    ```typescript
    // You must join the room BEFORE you can receive messages
    joinThreadRoom("thread_123", "zone_456");
    ```
 
 2. Check if you're listening for messages:
+
    ```typescript
    useEffect(() => {
      const handleMessage = (message) => {
        console.log("📨 Message received:", message);
      };
-     
+
      onMessageReceived(handleMessage);
-     
+
      return () => offMessageReceived(handleMessage);
    }, []);
    ```
@@ -1011,7 +1052,9 @@ console.log("📞 Trying to connect to:", socketUrl);
 **What's probably wrong:** Your app isn't listening for counter updates
 
 **How to fix it:**
+
 1. Make sure you're listening to the right event:
+
    ```typescript
    socket.on("update_groups", (data) => {
      console.log("📊 Counter update:", data.threadsData);
@@ -1036,7 +1079,9 @@ console.log("📞 Trying to connect to:", socketUrl);
 **What's probably wrong:** Your app is processing the same message twice
 
 **How to fix it:**
+
 1. Keep track of message IDs to avoid duplicates:
+
    ```typescript
    const [seenMessages, setSeenMessages] = useState(new Set());
 
@@ -1046,10 +1091,10 @@ console.log("📞 Trying to connect to:", socketUrl);
        console.log("🚫 Skipping duplicate message:", message._id);
        return; // Don't process it again
      }
-     
+
      // Add to seen messages
-     setSeenMessages(prev => new Set([...prev, message._id]));
-     
+     setSeenMessages((prev) => new Set([...prev, message._id]));
+
      // Now process the message
      console.log("✅ New message:", message);
      addMessageToChat(message);
@@ -1065,14 +1110,14 @@ Think of this as testing your new phone system to make sure all features work.
 ```typescript
 function ConnectionTest() {
   const { isConnected, status, lastError } = useSocketContext();
-  
+
   return (
     <div>
       <h3>📞 Connection Test</h3>
       <p>Status: {status}</p>
       <p>Connected: {isConnected ? "✅ Yes" : "❌ No"}</p>
       {lastError && <p>Error: {lastError}</p>}
-      
+
       {/* You should see "Status: connected" and "Connected: ✅ Yes" */}
     </div>
   );
@@ -1084,17 +1129,15 @@ function ConnectionTest() {
 ```typescript
 function RoomTest() {
   const { joinThreadRoom } = useSocketContext();
-  
+
   const testJoinRoom = () => {
     console.log("🚪 Trying to join test room...");
     joinThreadRoom("test_thread_123", "test_zone_456");
     console.log("✅ Room join attempted");
   };
-  
+
   return (
-    <button onClick={testJoinRoom}>
-      Test Room Joining
-    </button>
+    <button onClick={testJoinRoom}>Test Room Joining</button>
     // Check browser console for logs
   );
 }
@@ -1105,29 +1148,25 @@ function RoomTest() {
 ```typescript
 function SendTest() {
   const { sendMessage } = useSocketContext();
-  
+
   const testSendMessage = async () => {
     console.log("📤 Trying to send test message...");
-    
+
     const success = await sendMessage(
-      "test_thread_123", 
-      "Hello from test!", 
-      925,  // Your user ID
-      []    // No attachments
+      "test_thread_123",
+      "Hello from test!",
+      925, // Your user ID
+      [] // No attachments
     );
-    
+
     if (success) {
       console.log("✅ Message sent successfully!");
     } else {
       console.log("❌ Message failed to send");
     }
   };
-  
-  return (
-    <button onClick={testSendMessage}>
-      Test Send Message
-    </button>
-  );
+
+  return <button onClick={testSendMessage}>Test Send Message</button>;
 }
 ```
 
@@ -1137,23 +1176,23 @@ function SendTest() {
 function ReceiveTest() {
   const { onMessageReceived, offMessageReceived } = useSocketContext();
   const [receivedMessages, setReceivedMessages] = useState([]);
-  
+
   useEffect(() => {
     const handleTestMessage = (message) => {
       console.log("📥 Received test message:", message);
-      setReceivedMessages(prev => [...prev, message]);
+      setReceivedMessages((prev) => [...prev, message]);
     };
-    
+
     onMessageReceived(handleTestMessage);
-    
+
     return () => offMessageReceived(handleTestMessage);
   }, []);
-  
+
   return (
     <div>
       <h3>📥 Message Receive Test</h3>
       <p>Received {receivedMessages.length} messages</p>
-      {receivedMessages.map(msg => (
+      {receivedMessages.map((msg) => (
         <div key={msg._id}>
           From user {msg.created_by}: {msg.text}
         </div>
@@ -1168,25 +1207,30 @@ function ReceiveTest() {
 When Socket.IO isn't working, check these things in order:
 
 ### ✅ Step 1: Environment Check
+
 - [ ] `NEXT_PUBLIC_SOCKET_URL` is in your `.env.local` file
 - [ ] You restarted your development server after adding it
 - [ ] The URL is correct (no typos)
 
-### ✅ Step 2: Connection Check  
+### ✅ Step 2: Connection Check
+
 - [ ] Browser console shows "🔌 Socket connected"
 - [ ] `isConnected` returns `true`
 - [ ] No error messages in console
 
 ### ✅ Step 3: Room Check
+
 - [ ] You called `joinThreadRoom()` before trying to receive messages
 - [ ] You're using the correct room IDs (thread ID and zone ID)
 
 ### ✅ Step 4: Message Check
+
 - [ ] You're listening with `onMessageReceived()`
 - [ ] You're sending with the correct data format
 - [ ] No duplicate message handling issues
 
 ### ✅ Step 5: Data Check
+
 - [ ] Your user ID (`personId`) is correct
 - [ ] Thread IDs and zone IDs are correct
 - [ ] Message data includes all required fields
@@ -1204,6 +1248,7 @@ To implement this Socket.IO system in your own project, you need:
 5. **React Integration**: Wrap app with provider, use hooks in components
 
 The key Socket.IO events are:
+
 - **join_socket** → Join rooms for real-time updates
 - **send_thread_message** → Send messages
 - **fetch_threads** → Get thread lists and unread counts

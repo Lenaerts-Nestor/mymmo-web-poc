@@ -313,16 +313,7 @@ Complex components are built by composing smaller components:
 The application requires these environment variables:
 
 ```env
-# API Configuration
-NEXT_PUBLIC_SERVICE_REGISTRY=https://uat.service-registry.mymmo.infanion.com
-NEXT_PUBLIC_CLIENT_SECRET=d55f83f9ce38d7af9b7e4530d9224e1c
-NEXT_PUBLIC_CLIENT_ID=1
-
-# Authentication
-JWT_SECRET=mymmo-super-secret-jwt-key-2024-change-this-in-production
-
-# WebSocket
-NEXT_PUBLIC_SOCKET_URL=https://uat.thread-service.mymmo.infanion.com
+check the image thats been send to maarten.
 ```
 
 ## Deployment Architecture
