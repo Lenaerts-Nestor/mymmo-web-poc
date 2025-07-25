@@ -78,5 +78,5 @@ export interface ThreadsListProps {
   isLoading: boolean;
   onThreadClick?: (threadId: string) => void;
   highlightThreadId?: string | null; // Add highlighting support
-  showAllThreads?: boolean; // 🆕 NEW: Add toggle support for filtering
+  showAllConversation?: boolean; // 🆕 NEW: Add toggle support for filtering
 }

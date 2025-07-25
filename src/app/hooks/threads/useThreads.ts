@@ -242,14 +242,13 @@ export function useThreads(
       ensureZoneJoined();
 
       // Add delay to ensure server has processed any recent messages
-      setTimeout(() => {
-        socket.emit("fetch_threads", {
-          zoneId: zoneIdNum,
-          personId: personIdNum,
-          type: "active",
-          transLangId: transLangId,
-        });
-      }, 1000);
+
+      socket.emit("fetch_threads", {
+        zoneId: zoneIdNum,
+        personId: personIdNum,
+        type: "active",
+        transLangId: transLangId,
+      });
     } else {
       setError("Socket not connected. Cannot refresh threads.");
     }
@@ -274,7 +273,7 @@ export function useThreads(
         );
         setTimeout(() => {
           refetch();
-        }, 1000); // Give time for server to process
+        }, 1000);
       }
     };
 

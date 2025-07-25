@@ -46,7 +46,7 @@ const truncateText = (text: string, maxLength: number): string => {
   return text.substring(0, maxLength) + "...";
 };
 
-export function ThreadCard({
+export function ConversationCard({
   thread,
   currentPersonId,
   onClick,
@@ -195,23 +195,25 @@ export function ThreadCard({
             </div>
           )}
           {/* Unread indicator */}
-          {(thread.unread_count || (thread as any).unreadCount || 0) > 0 && !isHighlighted && (
-            <div className="flex items-center gap-1 text-[#b00205]">
-              {" "}
-              {/* error color */}
-              <Bell className="w-3 h-3 animate-pulse" />
-              <span className="text-xs font-medium">Ongelezen</span>
-            </div>
-          )}
+          {(thread.unread_count || (thread as any).unreadCount || 0) > 0 &&
+            !isHighlighted && (
+              <div className="flex items-center gap-1 text-[#b00205]">
+                {" "}
+                {/* error color */}
+                <Bell className="w-3 h-3 animate-pulse" />
+                <span className="text-xs font-medium">Ongelezen</span>
+              </div>
+            )}
           {/* Read indicator */}
-          {(thread.unread_count || (thread as any).unreadCount || 0) === 0 && !isHighlighted && (
-            <div className="flex items-center gap-1 text-[#aced94]">
-              {" "}
-              {/* secondary-tea */}
-              <Bell className="w-3 h-3" />
-              <span className="text-xs">Gelezen</span>
-            </div>
-          )}
+          {(thread.unread_count || (thread as any).unreadCount || 0) === 0 &&
+            !isHighlighted && (
+              <div className="flex items-center gap-1 text-[#aced94]">
+                {" "}
+                {/* secondary-tea */}
+                <Bell className="w-3 h-3" />
+                <span className="text-xs">Gelezen</span>
+              </div>
+            )}
         </div>
       </div>
     </div>

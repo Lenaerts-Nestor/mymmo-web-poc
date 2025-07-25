@@ -11,7 +11,6 @@ export function DashboardLayout({ children, personId }: DashboardLayoutProps) {
   return (
     <div style={{ background: "var(--primary-cream)" }}>
       <Sidebar />
-
       <div>{children}</div>
     </div>
   );
