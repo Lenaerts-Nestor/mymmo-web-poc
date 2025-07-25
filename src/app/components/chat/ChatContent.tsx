@@ -82,9 +82,7 @@ export function ChatContent({
   }
 
   return (
-    <div className="flex flex-col h-[90vh] bg-gradient-to-br from-[#f5f2de] to-[#ffffff] rounded-2xl shadow-lg overflow-hidden">
-      {" "}
-      {/* primary-offwhite to pure-white gradient */}
+    <div className="flex flex-col h-[90vh] bg-gradient-to-br from-[var(--primary-offwhite)] to-[var(--pure-white)] rounded-2xl shadow-lg overflow-hidden">
       <ChatHeader
         personId={personId}
         zoneId={zoneId}

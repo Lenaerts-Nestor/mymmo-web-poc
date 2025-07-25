@@ -94,12 +94,14 @@ export function ZoneCard({
         {zone.formattedAddress}
       </p>{" "}
       {/* gravel-500 */}
-      <div className="bg-[#ffffff]/60 rounded-xl p-3 mb-4 text-sm text-[#765860]">
+      <div className="bg-[var(--pure-white)]/60 rounded-xl p-3 mb-4 text-sm text-[var(--gravel-500)]">
         {" "}
         {/* pure-white/60, gravel-500 */}
         <p className="font-medium">
-          Zone ID: <span className="text-[#facf59]">{zone.zoneId}</span> | Plot
-          ID: <span className="text-[#facf59]">{zone.plotId}</span>{" "}
+          Zone ID:{" "}
+          <span className="text-[var(--primary-sunglow)]">{zone.zoneId}</span> |
+          Plot ID:{" "}
+          <span className="text-[var(--primary-sunglow)]">{zone.plotId}</span>{" "}
           {/* primary-sunglow */}
         </p>
         <p className="mt-1">
@@ -107,7 +109,7 @@ export function ZoneCard({
         </p>
       </div>
       <div className="flex justify-between items-center mb-4">
-        <Badge className="bg-[#facf59]/20 text-[#552e38] font-bold text-sm px-3 py-1 rounded-full">
+        <Badge className="bg-[var(--primary-sunglow)]/20 text-[var(--primary-wine)] font-bold text-sm px-3 py-1 rounded-full">
           {" "}
           {/* primary-sunglow/20, primary-wine */}
           {zone.entityCount} entities
@@ -115,18 +117,18 @@ export function ZoneCard({
         <Badge
           className={`px-3 py-1 rounded-full font-bold text-sm ${
             zone.isPublic
-              ? "bg-[#aced94] text-[#552e38]" // secondary-tea, primary-wine
-              : "bg-[#ffb5b5] text-[#552e38]" // secondary-melon, primary-wine
+              ? "bg-[var(--secondary-tea)] text-[var(--primary-wine)]"
+              : "bg-[var(--secondary-melon)] text-[var(--primary-wine)]"
           }`}
         >
           {zone.isPublic ? "Public" : "Private"}
         </Badge>
       </div>
       {/* Enhanced footer with conversation info */}
-      <div className="flex justify-between items-center text-sm pt-2 border-t border-[#cfc4c7]">
+      <div className="flex justify-between items-center text-sm pt-2 border-t border-[var(--gravel-100)]">
         {" "}
         {/* gravel-100 */}
-        <div className="flex items-center gap-1 text-[#a69298] font-medium">
+        <div className="flex items-center gap-1 text-[var(--gravel-300)] font-medium">
           {" "}
           {/* gravel-300 */}
           <Users className="w-3 h-3" />
@@ -135,7 +137,7 @@ export function ZoneCard({
         {/* Conversation status */}
         <div className="flex items-center gap-1">
           {hasUnreadMessages ? (
-            <div className="flex items-center gap-1 text-[#b00205]">
+            <div className="flex items-center gap-1 text-[var(--error)]">
               {" "}
               {/* error color */}
               <MessageCircle className="w-3 h-3" />
@@ -144,7 +146,7 @@ export function ZoneCard({
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-[#765860]">
+            <div className="flex items-center gap-1 text-[var(--gravel-500)]">
               {" "}
               {/* gravel-500 */}
               <MessageCircle className="w-3 h-3" />
@@ -155,7 +157,7 @@ export function ZoneCard({
       </div>
       {/* Animated border for high priority zones */}
       {hasUnreadMessages && unreadCount > 5 && (
-        <div className="absolute inset-0 rounded-2xl border-2 border-[#b00205] animate-pulse pointer-events-none"></div>
+        <div className="absolute inset-0 rounded-2xl border-2 border-[var(--error)] animate-pulse pointer-events-none"></div>
       )}{" "}
       {/* error color */}
     </div>

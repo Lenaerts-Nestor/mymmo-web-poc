@@ -43,7 +43,8 @@ export function ChatInput({
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
-            setImagePreviews((prev) => [...prev, e.target.result as string]);
+            //TODO: Uncomment when image previews are needed
+            // setImagePreviews((prev) => [...prev, e.target.result as string]);
           }
         };
         reader.readAsDataURL(file);
@@ -62,31 +63,28 @@ export function ChatInput({
   };
 
   const handleSendWithImages = () => {
+    // Send images with text if any are selected
     if (selectedImages.length > 0 && onImageUpload) {
       onImageUpload(selectedImages);
-    }
-    if (value.trim()) {
+      // Clear images after sending
+      setSelectedImages([]);
+      setImagePreviews([]);
+    } else if (value.trim()) {
+      // Only send text message if no images are selected
       onSend();
     }
-    // Clear images after sending
-    setSelectedImages([]);
-    setImagePreviews([]);
   };
 
   const canSend = value.trim() || selectedImages.length > 0;
 
   return (
-    <div className="bg-gradient-to-r from-[#ffffff] to-[#f5f2de] border-t-2 border-[#cfc4c7] px-6 py-4 shadow-lg">
+    <div className="bg-gradient-to-r from-[var(--pure-white)] to-[var(--primary-offwhite)] border-t-2 border-[var(--gravel-100)] px-6 py-4 shadow-lg">
       {" "}
       {/* pure-white to primary-offwhite, gravel-100 */}
       <div className="max-w-full">
         {error && (
-          <div className="mb-4 p-4 bg-gradient-to-r from-[#ffb5b5]/20 to-[#ffb5b5]/10 border-2 border-[#b00205] rounded-xl shadow-sm">
-            {" "}
-            {/* secondary-melon/20 to secondary-melon/10, error color */}
-            <p className="text-sm text-[#b00205] font-medium flex items-center gap-2">
-              {" "}
-              {/* error color */}
+          <div className="mb-4 p-4 bg-gradient-to-r from-[var(--secondary-melon)]/20 to-[var(--secondary-melon)]/10 border-2 border-[var(--error)] rounded-xl shadow-sm">
+            <p className="text-sm text-[var(--error)] font-medium flex items-center gap-2">
               <X className="w-4 h-4" />
               {error}
             </p>
@@ -101,15 +99,13 @@ export function ChatInput({
                 <img
                   src={preview || "/placeholder.svg"}
                   alt={`Preview ${index + 1}`}
-                  className="w-20 h-20 object-cover rounded-xl border-2 border-[#cfc4c7] shadow-md"
+                  className="w-20 h-20 object-cover rounded-xl border-2 border-[var(--gravel-100)] shadow-md"
                 />
                 <button
                   onClick={() => removeImage(index)}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-[#b00205] text-[#ffffff] rounded-full flex items-center justify-center hover:bg-[#b00205]/80 transition-colors shadow-md"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-[var(--error)] text-[var(--pure-white)] rounded-full flex items-center justify-center hover:bg-[var(--error)]/80 transition-colors shadow-md"
                   disabled={isSending}
                 >
-                  {" "}
-                  {/* error color */}
                   <X className="w-3 h-3" />
                 </button>
               </div>
@@ -124,7 +120,7 @@ export function ChatInput({
               onChange={(e) => onChange(e.target.value)}
               onKeyPress={onKeyPress}
               placeholder="Typ je bericht..."
-              className="w-full px-5 py-4 border-2 border-[#cfc4c7] rounded-2xl resize-none focus:ring-2 focus:ring-[#b0c2fc] focus:border-[#b0c2fc] transition-all duration-200 text-[#552e38] placeholder-[#a69298] shadow-sm hover:border-[#a69298] bg-[#ffffff] font-medium"
+              className="w-full px-5 py-4 border-2 border-[var(--gravel-100)] rounded-2xl resize-none focus:ring-2 focus:ring-[var(--secondary-lightblue)] focus:border-[var(--secondary-lightblue)] transition-all duration-200 text-[var(--primary-wine)] placeholder-[var(--gravel-300)] shadow-sm hover:border-[var(--gravel-300)] bg-[var(--pure-white)] font-medium"
               style={{
                 minHeight: "56px",
                 maxHeight: "120px",
@@ -147,7 +143,7 @@ export function ChatInput({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isSending}
-            className="p-4 text-[#552e38] bg-[#ffffff] border-2 border-[#cfc4c7] rounded-2xl hover:border-[#facf59] hover:bg-[#facf59]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
+            className="p-4 text-[var(--primary-wine)] bg-[var(--pure-white)] border-2 border-[var(--gravel-100)] rounded-2xl hover:border-[var(--primary-sunglow)] hover:bg-[var(--primary-sunglow)]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
             title="Afbeelding toevoegen"
           >
             {" "}
@@ -160,8 +156,8 @@ export function ChatInput({
             disabled={!canSend || isSending}
             className={`p-4 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:opacity-50 disabled:cursor-not-allowed ${
               canSend && !isSending
-                ? "bg-[#b0c2fc] text-[#552e38] hover:bg-[#b0c2fc]/80 border-2 border-[#b0c2fc]" // secondary-lightblue, primary-wine
-                : "bg-[#cfc4c7] text-[#a69298] border-2 border-[#cfc4c7]" // gravel-100, gravel-300
+                ? "bg-[var(--secondary-lightblue)] text-[var(--primary-wine)] hover:bg-[var(--secondary-lightblue)]/80 border-2 border-[var(--secondary-lightblue)]"
+                : "bg-[var(--gravel-100)] text-[var(--gravel-300)] border-2 border-[var(--gravel-100)]"
             }`}
           >
             <Send className="w-5 h-5" />
@@ -171,9 +167,7 @@ export function ChatInput({
         {/* Status indicators */}
         {selectedImages.length > 0 && (
           <div className="mt-3 flex items-center gap-2">
-            <Badge className="bg-[#facf59]/20 text-[#552e38] px-3 py-1 rounded-full font-medium">
-              {" "}
-              {/* primary-sunglow/20, primary-wine */}
+            <Badge className="bg-[var(--primary-sunglow)]/20 text-[var(--primary-wine)] px-3 py-1 rounded-full font-medium">
               <Paperclip className="w-3 h-3 mr-1" />
               {selectedImages.length} afbeelding
               {selectedImages.length !== 1 ? "en" : ""} geselecteerd

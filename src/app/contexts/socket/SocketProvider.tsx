@@ -181,7 +181,8 @@ export function SocketProvider({
     async (
       threadId: string,
       text: string,
-      createdBy: number
+      createdBy: number,
+      attachments?: any[]
     ): Promise<boolean> => {
       if (!socket || status !== "connected") {
         return false;
@@ -193,7 +194,7 @@ export function SocketProvider({
           text,
           createdBy,
           completed: false,
-          attachments: [],
+          attachments: attachments || [],
           appName: "Mymmo-mobile-app-v2",
         });
 

@@ -31,7 +31,6 @@ export function SidebarNavigation({
       const currentZoneId = getCurrentZoneId();
 
       if (currentZoneId) {
-        console.log("🔍 [SIDEBAR] Using current URL zoneId:", currentZoneId);
         router.push(`/conversations/${personId}/${currentZoneId}`);
         return;
       }
@@ -42,13 +41,11 @@ export function SidebarNavigation({
           ? localStorage.getItem("selectedZoneId")
           : null;
       if (selectedZoneId) {
-        console.log("🔍 [SIDEBAR] Using localStorage zoneId:", selectedZoneId);
         router.push(`/conversations/${personId}/${selectedZoneId}`);
         return;
       }
 
       // 3. Fallback: Go to zones page for zone selection
-      console.log("🔍 [SIDEBAR] No zoneId found, redirecting to zones");
       router.push(`/zones/${personId}`);
       return;
     }

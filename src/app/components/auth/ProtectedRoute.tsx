@@ -40,9 +40,7 @@ export function ProtectedRoute({
           return;
         }
 
-        // If a specific person ID is required, validate access to that person
         if (requiredPersonId) {
-          // Check if user's personId matches the required personId
           if (user.personId !== requiredPersonId) {
             console.warn(
               `User ${user.personId} attempted to access person ${requiredPersonId} data`
@@ -87,7 +85,7 @@ export function ProtectedRoute({
   }
 
   if (!isAuthorized) {
-    return null; // Will be redirecting
+    return null;
   }
 
   return <>{children}</>;

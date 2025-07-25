@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { createImageAttachments } from "@/app/services/imageUploadService";
+import { processImageAttachments } from "@/app/services/imageUploadService";
 
 interface UseChatHandlersProps {
   sendMessage: (message: string, attachments?: any[]) => Promise<boolean>;
@@ -80,8 +80,13 @@ export function useChatHandlers({
   const handleImageUpload = async (files: File[]) => {
     if (isSending) return;
 
-    const attachments = createImageAttachments(files);
-    await handleSendMessage(attachments);
+    try {
+      const attachments = await processImageAttachments(files);
+      // Include the current text content with the image
+      await handleSendMessage(attachments);
+    } catch (error) {
+      console.error("Error processing image attachments:", error);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

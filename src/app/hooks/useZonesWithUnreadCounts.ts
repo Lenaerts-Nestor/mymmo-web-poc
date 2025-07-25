@@ -28,7 +28,13 @@ export function useZonesWithUnreadCounts(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { socket, isConnected, initializeZones, onInboxUpdate, offInboxUpdate } = useSocketContext();
+  const {
+    socket,
+    isConnected,
+    initializeZones,
+    onInboxUpdate,
+    offInboxUpdate,
+  } = useSocketContext();
 
   // Simple unread counts storage
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
@@ -36,7 +42,6 @@ export function useZonesWithUnreadCounts(
   // Fetch zones and display immediately
   const fetchZones = useCallback(async () => {
     try {
-      console.log("🏠 [ZONES] Fetching zones for person:", personId);
       setIsLoading(true);
 
       const personIdNum = parseInt(personId);
@@ -49,9 +54,6 @@ export function useZonesWithUnreadCounts(
       const zonesData = response.data.zones;
       const personData = response.data.person[0];
 
-      console.log("🏠 [ZONES] Loaded", zonesData.length, "zones");
-
-      // Show zones immediately with zero unread counts
       const zonesWithUnread: ZoneWithUnreadCount[] = zonesData.map((zone) => ({
         ...zone,
         unreadCount: 0,
@@ -63,11 +65,9 @@ export function useZonesWithUnreadCounts(
       setError(null);
       setIsLoading(false); // Show zones immediately
 
-      // Initialize socket connection for real-time updates
       if (isConnected) {
         initializeZones(zonesData, translationLang);
       }
-
     } catch (err: any) {
       setError(err.message || "Failed to load zones");
       setIsLoading(false);
@@ -77,43 +77,36 @@ export function useZonesWithUnreadCounts(
   // Handle socket updates for unread counts
   useEffect(() => {
     const handleInboxUpdate = (data: any) => {
-      console.log("🏠 [ZONES] Socket update:", data);
-
-      // Handle threads data from socket
       if (data.threadsData) {
         const threads = data.threadsData;
         const zoneId = threads[0]?.zone_id;
 
         if (zoneId && Array.isArray(threads)) {
-          // Calculate unread count for this zone
           const unreadCount = threads.reduce(
-            (sum, thread) => sum + (thread.unread_count || thread.unreadCount || 0),
+            (sum, thread) =>
+              sum + (thread.unread_count || thread.unreadCount || 0),
             0
           );
 
-
-          // Update unread counts
-          setUnreadCounts(prev => ({
+          setUnreadCounts((prev) => ({
             ...prev,
-            [zoneId]: unreadCount
+            [zoneId]: unreadCount,
           }));
 
           setIsLoading(false);
         }
       }
 
-      // Handle new message updates with immediate update
       if (data.type === "new_message" && data.thread_id && data.zone_id) {
         const isOwnMessage = data.message?.created_by === parseInt(personId);
-        
+
         if (!isOwnMessage) {
-          console.log("🏠 [ZONES] New message received, updating count for zone:", data.zone_id);
-          setUnreadCounts(prev => {
+          setUnreadCounts((prev) => {
             const newCount = (prev[data.zone_id] || 0) + 1;
-            console.log("🏠 [ZONES] Zone", data.zone_id, "count updated to:", newCount);
+
             return {
               ...prev,
-              [data.zone_id]: newCount
+              [data.zone_id]: newCount,
             };
           });
         }
@@ -128,8 +121,8 @@ export function useZonesWithUnreadCounts(
   useEffect(() => {
     if (zones.length === 0) return;
 
-    setZones(prevZones => 
-      prevZones.map(zone => ({
+    setZones((prevZones) =>
+      prevZones.map((zone) => ({
         ...zone,
         unreadCount: unreadCounts[zone.zoneId] || 0,
         hasUnreadMessages: (unreadCounts[zone.zoneId] || 0) > 0,

@@ -132,6 +132,38 @@ class ApiClient {
   static clearResponseCache(): void {
     CacheService.clearAllCache();
   }
+
+  /**
+   * Upload file without encryption (for file uploads)
+   */
+  static async uploadFile(file: File, endpoint: string): Promise<any> {
+    try {
+      const token = await TokenService.getOAuthToken();
+      const serviceRegistry = process.env.NEXT_PUBLIC_SERVICE_REGISTRY;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${serviceRegistry}${endpoint}`, {
+        method: "POST",
+        headers: {
+          "x-client-id": "1",
+          "x-secret-key": token,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`File upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("File upload failed:", error);
+      throw error;
+    }
+  }
 }
 
 export default ApiClient;

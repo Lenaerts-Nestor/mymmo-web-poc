@@ -64,11 +64,6 @@ export function useThreadDetails(
     setError(null);
 
     try {
-      console.log(
-        "💬 [THREAD_DETAILS] Loading initial messages for thread:",
-        threadId
-      );
-
       const response = await MyMMOApiThreads.getThreadDetails({
         threadId,
         transLangId,
@@ -91,7 +86,6 @@ export function useThreadDetails(
       }
 
       setInitialLoadDone(true);
-      console.log("💬 [THREAD_DETAILS] Loaded", allMessages.length, "messages");
     } catch (err: any) {
       console.error(
         "❌ [THREAD_DETAILS] Failed to load initial messages:",
@@ -108,11 +102,6 @@ export function useThreadDetails(
     const handleRealtimeMessage = (message: any) => {
       // Only process messages for this thread
       if (message.thread_id !== threadId) return;
-
-      console.log(
-        "💬 [THREAD_DETAILS] Received real-time message:",
-        message._id
-      );
 
       const newMessage: ThreadMessage = {
         _id: message._id,
@@ -167,8 +156,6 @@ export function useThreadDetails(
   // Mark as read function
   const markAsRead = useCallback(async () => {
     try {
-      console.log("✅ [THREAD_DETAILS] Marking thread as read:", threadId);
-
       await MyMMOApiThreads.updateThreadLastAccess({
         threadId,
         personId: personIdNum,
@@ -179,8 +166,6 @@ export function useThreadDetails(
       setLastAccessTime(now);
       setReadMessages((prev) => [...prev, ...unreadMessages]);
       setUnreadMessages([]);
-
-      console.log("✅ [THREAD_DETAILS] Thread marked as read");
     } catch (error) {
       console.error("❌ [THREAD_DETAILS] Mark as read failed:", error);
     }
@@ -191,8 +176,6 @@ export function useThreadDetails(
     async (text: string): Promise<boolean> => {
       if (!text.trim()) return false;
 
-      console.log("🚀 [THREAD_DETAILS] Sending message via socket...");
-
       if (isConnected) {
         // Try socket first for instant delivery
         const socketSuccess = await socketSendMessage(
@@ -202,15 +185,10 @@ export function useThreadDetails(
         );
 
         if (socketSuccess) {
-          console.log("✅ [THREAD_DETAILS] Message sent via socket");
           return true;
         }
       }
 
-      // Fallback to HTTP API if socket fails
-      console.log(
-        "📡 [THREAD_DETAILS] Fallback: Sending message via HTTP API..."
-      );
       try {
         await MyMMOApiThreads.saveMessage({
           threadId,
@@ -219,10 +197,8 @@ export function useThreadDetails(
           completed: false,
         });
 
-        console.log("✅ [THREAD_DETAILS] Message sent via HTTP");
         return true;
       } catch (error) {
-        console.error("❌ [THREAD_DETAILS] HTTP message send failed:", error);
         return false;
       }
     },
@@ -230,8 +206,6 @@ export function useThreadDetails(
   );
 
   const refetch = useCallback(async () => {
-    console.log("🔄 [THREAD_DETAILS] Manual refetch triggered");
-
     if (socket && isConnected) {
       // Use socket to refresh thread details
       socket.emit("fetch_thread_messages", {
@@ -272,7 +246,6 @@ export function useThreadDetails(
     setUnreadMessages(unread);
   }, [messages, lastAccessTime]);
 
-  // Performance logging in development
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       console.log("💬 [THREAD_DETAILS] Status:", {

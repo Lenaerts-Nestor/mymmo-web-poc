@@ -4,6 +4,7 @@
 
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ToggleSwitch } from "@/app/components/ui/ToggleSwitch";
 import { ThreadsList } from "@/app/components/threads/ThreadsList";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
@@ -265,61 +266,22 @@ function ConversationsToggle({
   showAllThreads: boolean;
   onToggleChange: (showAll: boolean) => void;
 }) {
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const handleToggle = () => {
-    setIsAnimating(true);
-    onToggleChange(!showAllThreads);
-
-    // Reset animation after a brief delay
-    setTimeout(() => setIsAnimating(false), 200);
-  };
-
   return (
     <div className="bg-white/70 rounded-2xl shadow-lg backdrop-blur-sm p-4 w-full max-w-xl">
       <div className="flex items-center space-x-4">
         <span className="text-sm font-medium text-gray-700">
           Conversatie weergave:
         </span>
-
-        <div className="flex items-center space-x-3">
-          {/* Toggle switch */}
-          <button
-            onClick={handleToggle}
-            className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              showAllThreads ? "bg-blue-600" : "bg-gray-400"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-200 ease-in-out shadow-sm ${
-                showAllThreads ? "translate-x-7" : "translate-x-1"
-              } ${isAnimating ? "scale-105" : ""}`}
-            />
-          </button>
-
-          {/* Labels */}
-          <div className="flex items-center space-x-3">
-            <span
-              className={`text-sm ${
-                !showAllThreads
-                  ? "font-semibold text-gray-900"
-                  : "text-gray-500"
-              }`}
-            >
-              💬 Alleen ongelezen conversaties
-            </span>
-            <span className="text-gray-300">|</span>
-            <span
-              className={`text-sm ${
-                showAllThreads ? "font-semibold text-gray-900" : "text-gray-500"
-              }`}
-            >
-              📋 Alle conversaties
-            </span>
-          </div>
-        </div>
+        <ToggleSwitch
+          checked={showAllThreads}
+          onCheckedChange={onToggleChange}
+          label={
+            showAllThreads
+              ? "� Alle conversaties"
+              : "💬 Alleen ongelezen conversaties"
+          }
+        />
       </div>
-
       {/* Status indicator */}
       <div className="mt-2 text-xs text-gray-500">
         {showAllThreads

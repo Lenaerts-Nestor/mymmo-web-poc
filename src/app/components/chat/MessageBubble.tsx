@@ -59,16 +59,12 @@ export function MessageBubble({
                   alt={`${senderInfo.firstName} ${senderInfo.lastName}`}
                 />
               ) : (
-                <AvatarFallback className="bg-[#b0c2fc]/30 text-[#552e38] text-xs font-bold">
-                  {" "}
-                  {/* secondary-lightblue/30, primary-wine */}
+                <AvatarFallback className="bg-[var(--secondary-lightblue)]/30 text-[var(--primary-wine)] text-xs font-bold">
                   {getUserInitials(senderInfo.firstName, senderInfo.lastName)}
                 </AvatarFallback>
               )}
             </Avatar>
-            <span className="text-sm text-[#765860] font-medium">
-              {" "}
-              {/* gravel-500 */}
+            <span className="text-sm text-[var(--gravel-500)] font-medium">
               {senderInfo.firstName || "Buur"}
             </span>
           </div>
@@ -77,8 +73,8 @@ export function MessageBubble({
         <div
           className={`rounded-2xl px-5 py-4 shadow-md transition-all duration-200 border-2 ${
             isOwnMessage
-              ? "bg-[#b0c2fc] text-[#552e38] border-[#b0c2fc] shadow-lg ml-4" // secondary-lightblue, primary-wine
-              : "bg-[#ffffff] text-[#552e38] border-[#cfc4c7] hover:border-[#a69298] hover:shadow-lg mr-4" // pure-white, primary-wine, gravel-100, gravel-300
+              ? "bg-[var(--secondary-lightblue)] text-[var(--primary-wine)] border-[var(--secondary-lightblue)] shadow-lg ml-4"
+              : "bg-[var(--pure-white)] text-[var(--primary-wine)] border-[var(--gravel-100)] hover:border-[var(--gravel-300)] hover:shadow-lg mr-4"
           } ${isOptimistic ? "opacity-70" : ""}`}
         >
           {message.text && (
@@ -99,16 +95,12 @@ export function MessageBubble({
             }`}
           >
             {isOptimistic ? (
-              <Badge className="bg-[#facf59]/20 text-[#552e38] px-3 py-1 rounded-full text-xs font-medium">
-                {" "}
-                {/* primary-sunglow/20, primary-wine */}
-                <div className="w-3 h-3 border-2 border-[#552e38] border-t-transparent rounded-full animate-spin mr-2"></div>
+              <Badge className="bg-[var(--primary-sunglow)]/20 text-[var(--primary-wine)] px-3 py-1 rounded-full text-xs font-medium">
+                <div className="w-3 h-3 border-2 border-[var(--primary-wine)] border-t-transparent rounded-full animate-spin mr-2"></div>
                 Verzenden...
               </Badge>
             ) : (
-              <Badge className="bg-[#ffffff]/90 text-[#765860] px-3 py-1 rounded-full text-xs font-medium shadow-sm border border-[#cfc4c7]">
-                {" "}
-                {/* pure-white/90, gravel-500, gravel-100 */}
+              <Badge className="bg-[var(--pure-white)]/90 text-[var(--gravel-500)] px-3 py-1 rounded-full text-xs font-medium shadow-sm border border-[var(--gravel-100)]">
                 <Clock className="w-3 h-3 mr-1" />
                 {formatMessageTime
                   ? formatMessageTime(message.created_on)

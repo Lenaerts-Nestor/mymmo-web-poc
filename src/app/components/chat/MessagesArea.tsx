@@ -27,18 +27,14 @@ export function MessagesArea({
 }: MessagesAreaProps) {
   if (messages.length === 0) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-[#ffffff]/50 to-[#f5f2de]/30">
-        {" "}
-        {/* pure-white/50 to primary-offwhite/30 */}
+      <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-[var(--pure-white)]/50 to-[var(--primary-offwhite)]/30">
         <EmptyMessagesState isConnected={isConnected} />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#ffffff]/50 to-[#f5f2de]/30 custom-scrollbar">
-      {" "}
-      {/* pure-white/50 to primary-offwhite/30 */}
+    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[var(--pure-white)]/50 to-[var(--primary-offwhite)]/30 custom-scrollbar">
       {messages.map((message, index) => {
         const previousMessage = index > 0 ? messages[index - 1] : null;
         const showTime = shouldShowTime

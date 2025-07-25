@@ -35,14 +35,15 @@ export function useGlobalUnreadCounter(
         if (zoneId && Array.isArray(threads)) {
           // Calculate unread count for this zone
           const unreadCount = threads.reduce(
-            (sum, thread) => sum + (thread.unread_count || thread.unreadCount || 0),
+            (sum, thread) =>
+              sum + (thread.unread_count || thread.unreadCount || 0),
             0
           );
 
           // Update zone counts
-          setZoneCounts(prev => ({
+          setZoneCounts((prev) => ({
             ...prev,
-            [zoneId]: unreadCount
+            [zoneId]: unreadCount,
           }));
 
           setIsLoading(false);
@@ -52,15 +53,14 @@ export function useGlobalUnreadCounter(
       // Handle new message updates with immediate update
       if (data.type === "new_message" && data.thread_id && data.zone_id) {
         const isOwnMessage = data.message?.created_by === parseInt(personId);
-        
+
         if (!isOwnMessage) {
-          console.log("📬 [UNREAD] New message received, updating count for zone:", data.zone_id);
-          setZoneCounts(prev => {
+          setZoneCounts((prev) => {
             const newCount = (prev[data.zone_id] || 0) + 1;
-            console.log("📬 [UNREAD] Zone", data.zone_id, "count updated to:", newCount);
+
             return {
               ...prev,
-              [data.zone_id]: newCount
+              [data.zone_id]: newCount,
             };
           });
         }
@@ -73,7 +73,10 @@ export function useGlobalUnreadCounter(
 
   // Calculate total from zone counts
   useEffect(() => {
-    const total = Object.values(zoneCounts).reduce((sum, count) => sum + count, 0);
+    const total = Object.values(zoneCounts).reduce(
+      (sum, count) => sum + count,
+      0
+    );
     setTotalUnreadCount(total);
   }, [zoneCounts]);
 

@@ -68,14 +68,12 @@ class CacheService {
     }
 
     if (cached && Date.now() < cached.timestamp + cached.ttl) {
-      console.log(`CacheService: Cache HIT for ${endpoint}`);
       return cached.data;
     }
 
     if (cached) {
       // Remove expired cache entry
       this.responseCache.delete(cacheKey);
-      console.log(`CacheService: Cache EXPIRED for ${endpoint}`);
     }
 
     return null;
@@ -103,10 +101,6 @@ class CacheService {
       timestamp: Date.now(),
       ttl: config.ttl,
     });
-
-    console.log(
-      `CacheService: Cache SET for ${endpoint} (TTL: ${config.ttl}ms)`
-    );
   }
 
   /**
@@ -120,10 +114,6 @@ class CacheService {
     keysToDelete.forEach((key) => {
       this.responseCache.delete(key);
     });
-
-    console.log(
-      `CacheService: Cleared ${keysToDelete.length} cache entries for pattern: ${pattern}`
-    );
   }
 
   /**
@@ -131,7 +121,6 @@ class CacheService {
    */
   static clearAllCache(): void {
     this.responseCache.clear();
-    console.log("CacheService: All cache cleared");
   }
 
   /**

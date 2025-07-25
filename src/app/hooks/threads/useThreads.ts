@@ -55,7 +55,6 @@ export function useThreads(
     }
 
     // Fetch threads for this zone
-    console.log("📡 [THREADS] Fetching threads for zone:", zoneId);
     socket.emit("fetch_threads", {
       zoneId: zoneIdNum,
       personId: personIdNum,
@@ -83,18 +82,10 @@ export function useThreads(
         const dataZoneId = receivedThreads[0]?.zone_id;
 
         // Handle both zone-based threads and direct message threads
-        const isDirectMessage = !dataZoneId; // Direct messages don't have zone_id
+        const isDirectMessage = !dataZoneId;
         const isForCurrentZone = dataZoneId && dataZoneId.toString() === zoneId;
-        
-        if (isForCurrentZone || isDirectMessage) {
-          console.log(`🔧 FIXED - Processing threads: ${receivedThreads.length} for zone: ${dataZoneId || 'direct-messages'}`);
-          console.log(
-            "📋 [THREADS] Updating threads for",
-            isDirectMessage ? "direct messages" : `zone: ${zoneId}`,
-            "count:",
-            receivedThreads.length
-          );
 
+        if (isForCurrentZone || isDirectMessage) {
           setThreads(receivedThreads);
           setIsLoading(false);
           setError(null);
@@ -108,8 +99,6 @@ export function useThreads(
 
         // Only process if it's for our zone
         if (threadZoneId && threadZoneId.toString() === zoneId) {
-          console.log("📋 [THREADS] Updating single thread:", threadId);
-
           setThreads((prev) => {
             const threadIndex = prev.findIndex((t) => t._id === threadId);
             if (threadIndex !== -1) {
@@ -150,12 +139,9 @@ export function useThreads(
                 ...newThreads[threadIndex],
                 unread_count: (newThreads[threadIndex].unread_count || 0) + 1,
                 latest_message: data.message,
-                dot: true, // Add visual indicator
+                dot: true,
               };
-              console.log(
-                "📋 [THREADS] Updated thread unread count to:",
-                newThreads[threadIndex].unread_count
-              );
+
               return newThreads;
             }
             return prev;
@@ -170,17 +156,23 @@ export function useThreads(
     // Also listen directly to socket for immediate message updates
     if (socket && isConnected) {
       const handleDirectMessage = (data: any) => {
-        console.log("📋 [THREADS] Direct socket message:", data);
-        
         // Check if message is for current zone
-        if (data.thread_id && (data.zone_id?.toString() === zoneId || !data.zone_id)) {
+        if (
+          data.thread_id &&
+          (data.zone_id?.toString() === zoneId || !data.zone_id)
+        ) {
           const isOwnMessage = data.created_by === personIdNum;
-          
+
           if (!isOwnMessage) {
-            console.log("📋 [THREADS] Processing direct message for thread:", data.thread_id);
-            
+            console.log(
+              "📋 [THREADS] Processing direct message for thread:",
+              data.thread_id
+            );
+
             setThreads((prev) => {
-              const threadIndex = prev.findIndex((t) => t._id === data.thread_id);
+              const threadIndex = prev.findIndex(
+                (t) => t._id === data.thread_id
+              );
               if (threadIndex !== -1) {
                 const newThreads = [...prev];
                 newThreads[threadIndex] = {
@@ -189,7 +181,10 @@ export function useThreads(
                   latest_message: data,
                   dot: true,
                 };
-                console.log("📋 [THREADS] Direct update - new unread count:", newThreads[threadIndex].unread_count);
+                console.log(
+                  "📋 [THREADS] Direct update - new unread count:",
+                  newThreads[threadIndex].unread_count
+                );
                 return newThreads;
               }
               return prev;
@@ -223,10 +218,7 @@ export function useThreads(
     if (!isConnected && status === "disconnected") {
       const timer = setTimeout(() => {
         if (!isConnected && Date.now() - lastFallbackRefresh > 30000) {
-          console.log(
-            "🔄 [THREADS] Socket disconnected >30s, triggering fallback refresh"
-          );
-          // For threads, we can't do HTTP fallback easily, so just try to reconnect socket
+          //dit is voor het geval dat de socket disconnect en we willen een fallback refresh doen
           setError("Connection lost. Attempting to reconnect...");
           setLastFallbackRefresh(Date.now());
         }
@@ -248,10 +240,9 @@ export function useThreads(
     if (socket && isConnected) {
       setIsLoading(true);
       ensureZoneJoined();
-      
+
       // Add delay to ensure server has processed any recent messages
       setTimeout(() => {
-        console.log("📋 [THREADS] Delayed refetch for fresh data");
         socket.emit("fetch_threads", {
           zoneId: zoneIdNum,
           personId: personIdNum,
@@ -262,26 +253,41 @@ export function useThreads(
     } else {
       setError("Socket not connected. Cannot refresh threads.");
     }
-  }, [socket, isConnected, ensureZoneJoined, zoneIdNum, personIdNum, transLangId]);
+  }, [
+    socket,
+    isConnected,
+    ensureZoneJoined,
+    zoneIdNum,
+    personIdNum,
+    transLangId,
+  ]);
 
   // Listen for message sent events to refresh thread list
   useEffect(() => {
     const handleMessagesSent = (event: CustomEvent) => {
       const { zoneId: eventZoneId } = event.detail;
-      
+
       // Only refresh if it's for our zone
       if (eventZoneId === zoneId) {
-        console.log("📋 [THREADS] Message sent event received, refreshing threads");
+        console.log(
+          "📋 [THREADS] Message sent event received, refreshing threads"
+        );
         setTimeout(() => {
           refetch();
         }, 1000); // Give time for server to process
       }
     };
 
-    window.addEventListener('messagesSent', handleMessagesSent as EventListener);
-    
+    window.addEventListener(
+      "messagesSent",
+      handleMessagesSent as EventListener
+    );
+
     return () => {
-      window.removeEventListener('messagesSent', handleMessagesSent as EventListener);
+      window.removeEventListener(
+        "messagesSent",
+        handleMessagesSent as EventListener
+      );
     };
   }, [zoneId, refetch]);
 
@@ -306,6 +312,6 @@ export function useThreads(
     refetch,
     isSocketConnected: isConnected,
     socketStatus: status,
-    pollingContext: "socket-only", // Static value for compatibility
+    pollingContext: "socket-only",
   };
 }

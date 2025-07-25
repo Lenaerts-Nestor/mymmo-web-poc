@@ -109,8 +109,7 @@ export function ZonesList({
 
   if (filteredZones.length === 0) {
     return (
-      <div className="bg-[#ffffff]/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
-        {" "}
+      <div className="bg-[var(--pure-white)]/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
         {/* pure-white/70 */}
         <EmptyZonesState showAllZones={showAllZones} />
       </div>
@@ -127,23 +126,23 @@ export function ZonesList({
   ).length;
 
   return (
-    <div className="bg-[#ffffff]/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
-      {" "}
+    <div className="bg-[var(--pure-white)]/70 rounded-2xl shadow-lg p-8 backdrop-blur-sm">
       {/* pure-white/70 */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-[#552e38] mb-2">
+          <h2 className="text-3xl font-bold text-[var(--primary-wine)] mb-2">
             {" "}
             {/* primary-wine */}
             {showAllZones ? "Alle Zones" : "Zones met Ongelezen Berichten"} (
             {filteredZones.length})
           </h2>
           {/* Statistics */}
-          <div className="flex items-center gap-4 text-sm text-[#765860]">
+          <div className="flex items-center gap-4 text-sm text-[var(--gravel-500)]">
             {" "}
             {/* gravel-500 */}
             <div className="flex items-center gap-1">
-              <Bell className="w-4 h-4 text-[#b00205]" /> {/* error color */}
+              <Bell className="w-4 h-4 text-[var(--error)]" />{" "}
+              {/* error color */}
               <span>
                 {totalUnreadCount} ongelezen{" "}
                 {totalUnreadCount === 1 ? "bericht" : "berichten"}
@@ -151,7 +150,7 @@ export function ZonesList({
             </div>
             <span>•</span>
             <div className="flex items-center gap-1">
-              <MapPin className="w-4 h-4 text-[#facf59]" />{" "}
+              <MapPin className="w-4 h-4 text-[var(--primary-sunglow)]" />{" "}
               {/* primary-sunglow */}
               <span>
                 {zonesWithUnreadCount} van {zones.length} zones heeft ongelezen
@@ -162,7 +161,7 @@ export function ZonesList({
               <>
                 <span>•</span>
                 <div className="flex items-center gap-1">
-                  <Search className="w-4 h-4 text-[#a69298]" />{" "}
+                  <Search className="w-4 h-4 text-[var(--gravel-300)]" />{" "}
                   {/* gravel-300 */}
                   <span>Gefilterd op: "{search}"</span>
                 </div>
@@ -172,9 +171,9 @@ export function ZonesList({
         </div>
         {/* Live indicator */}
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[#aced94] rounded-full animate-pulse"></div>{" "}
+          <div className="w-2 h-2 bg-[var(--secondary-tea)] rounded-full animate-pulse"></div>
           {/* secondary-tea */}
-          <span className="text-sm text-[#765860]">Live updates</span>{" "}
+          <span className="text-sm text-[var(--gravel-500)]">Live updates</span>
           {/* gravel-500 */}
         </div>
       </div>

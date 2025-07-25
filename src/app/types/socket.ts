@@ -35,7 +35,8 @@ export interface SocketContextType {
   sendMessage: (
     threadId: string,
     text: string,
-    createdBy: number
+    createdBy: number,
+    attachments?: any[]
   ) => Promise<boolean>;
   onMessageReceived: (callback: (message: RealtimeMessage) => void) => void;
   offMessageReceived: (callback: (message: RealtimeMessage) => void) => void;
