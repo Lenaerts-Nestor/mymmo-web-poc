@@ -15,7 +15,6 @@ body {
 .dashboard-main {
   margin-left: var(--sidebar-width);
   padding: 2.5rem;
-  min-height: 100vh;
 }
 
 @theme inline {

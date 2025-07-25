@@ -8,8 +8,8 @@ interface ImageMessageProps {
 }
 
 export function ImageMessage({ attachments }: ImageMessageProps) {
-  const imageAttachments = attachments.filter(att => att.type === "image");
-  
+  const imageAttachments = attachments.filter((att) => att.type === "image");
+
   if (imageAttachments.length === 0) return null;
 
   return (
@@ -20,7 +20,7 @@ export function ImageMessage({ attachments }: ImageMessageProps) {
           src={attachment.source}
           alt="Shared image"
           className="max-w-xs max-h-64 rounded-lg shadow-sm cursor-pointer hover:opacity-90"
-          onClick={() => window.open(attachment.source, '_blank')}
+          onClick={() => window.open(attachment.source, "_blank")}
         />
       ))}
     </div>

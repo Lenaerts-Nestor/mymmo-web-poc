@@ -1,8 +1,18 @@
-// src/app/components/chat/MessageBubble.tsx - CLEANED
+"use client";
 
-import { ThreadMessage } from "@/app/services/mymmo-thread-service/apiThreads";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 import { formatMessageTime } from "./chatUtils";
 import { ImageMessage } from "./ImageMessage";
+
+interface ThreadMessage {
+  _id: string;
+  text?: string;
+  created_by: number;
+  created_on: string;
+  attachments?: any[];
+}
 
 interface MessageBubbleProps {
   message: ThreadMessage;
@@ -33,7 +43,7 @@ export function MessageBubble({
 
   return (
     <div
-      className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mb-2`}
+      className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mb-4`}
     >
       <div
         className={`max-w-xs lg:max-w-md ${
@@ -41,51 +51,42 @@ export function MessageBubble({
         }`}
       >
         {!isOwnMessage && senderInfo && (
-          <div className="flex items-center gap-2 mb-1 ml-1">
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm overflow-hidden"
-              style={{
-                backgroundColor: "var(--primary-cream)",
-              }}
-            >
+          <div className="flex items-center gap-3 mb-2 ml-1">
+            <Avatar className="w-8 h-8">
               {senderInfo.profilePic ? (
-                <img
-                  src={senderInfo.profilePic}
+                <AvatarImage
+                  src={senderInfo.profilePic || "/placeholder.svg"}
                   alt={`${senderInfo.firstName} ${senderInfo.lastName}`}
-                  className="w-full h-full object-cover"
                 />
               ) : (
-                <span style={{ color: "var(--text-medium-brown)" }}>
+                <AvatarFallback className="bg-[#b0c2fc]/30 text-[#552e38] text-xs font-bold">
+                  {" "}
+                  {/* secondary-lightblue/30, primary-wine */}
                   {getUserInitials(senderInfo.firstName, senderInfo.lastName)}
-                </span>
+                </AvatarFallback>
               )}
-            </div>
-            <span className="text-xs text-gray-500 font-medium">
+            </Avatar>
+            <span className="text-sm text-[#765860] font-medium">
+              {" "}
+              {/* gravel-500 */}
               {senderInfo.firstName || "Buur"}
             </span>
           </div>
         )}
 
         <div
-          className={`rounded-2xl px-4 py-3 shadow-sm ${
+          className={`rounded-2xl px-5 py-4 shadow-md transition-all duration-200 border-2 ${
             isOwnMessage
-              ? "text-white shadow-lg"
-              : "bg-white text-gray-900 border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200"
+              ? "bg-[#b0c2fc] text-[#552e38] border-[#b0c2fc] shadow-lg ml-4" // secondary-lightblue, primary-wine
+              : "bg-[#ffffff] text-[#552e38] border-[#cfc4c7] hover:border-[#a69298] hover:shadow-lg mr-4" // pure-white, primary-wine, gravel-100, gravel-300
           } ${isOptimistic ? "opacity-70" : ""}`}
-          style={
-            isOwnMessage
-              ? {
-                  backgroundColor: "var(--secondary-lavender)",
-                }
-              : {}
-          }
         >
           {message.text && (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words font-medium">
               {message.text}
             </p>
           )}
-          
+
           {message.attachments && message.attachments.length > 0 && (
             <ImageMessage attachments={message.attachments} />
           )}
@@ -93,21 +94,26 @@ export function MessageBubble({
 
         {showTime && (
           <div
-            className={`text-xs mt-1.5 px-1 ${
-              isOwnMessage
-                ? "text-right text-purple-200"
-                : "text-left text-gray-500"
+            className={`flex items-center gap-2 mt-2 px-2 ${
+              isOwnMessage ? "justify-end" : "justify-start"
             }`}
           >
             {isOptimistic ? (
-              <span className="italic flex items-center gap-1">
-                <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              <Badge className="bg-[#facf59]/20 text-[#552e38] px-3 py-1 rounded-full text-xs font-medium">
+                {" "}
+                {/* primary-sunglow/20, primary-wine */}
+                <div className="w-3 h-3 border-2 border-[#552e38] border-t-transparent rounded-full animate-spin mr-2"></div>
                 Verzenden...
-              </span>
+              </Badge>
             ) : (
-              <span className="bg-white bg-opacity-90 px-2 py-0.5 rounded-full text-xs font-medium shadow-sm">
-                {formatMessageTime(message.created_on)}
-              </span>
+              <Badge className="bg-[#ffffff]/90 text-[#765860] px-3 py-1 rounded-full text-xs font-medium shadow-sm border border-[#cfc4c7]">
+                {" "}
+                {/* pure-white/90, gravel-500, gravel-100 */}
+                <Clock className="w-3 h-3 mr-1" />
+                {formatMessageTime
+                  ? formatMessageTime(message.created_on)
+                  : new Date(message.created_on).toLocaleTimeString()}
+              </Badge>
             )}
           </div>
         )}

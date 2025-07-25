@@ -9,13 +9,10 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, personId }: DashboardLayoutProps) {
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "var(--primary-cream)" }}
-    >
+    <div style={{ background: "var(--primary-cream)" }}>
       <Sidebar />
 
-      <div className="h-screen mx-auto">{children}</div>
+      <div>{children}</div>
     </div>
   );
 }

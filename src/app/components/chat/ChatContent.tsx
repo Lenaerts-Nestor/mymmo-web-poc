@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
@@ -80,7 +82,9 @@ export function ChatContent({
   }
 
   return (
-    <div className="flex flex-col h-[90vh] bg-gray-50 rounded-t-lg">
+    <div className="flex flex-col h-[90vh] bg-gradient-to-br from-[#f5f2de] to-[#ffffff] rounded-2xl shadow-lg overflow-hidden">
+      {" "}
+      {/* primary-offwhite to pure-white gradient */}
       <ChatHeader
         personId={personId}
         zoneId={zoneId}
@@ -89,7 +93,6 @@ export function ChatContent({
         unreadCount={unreadMessages.length}
         onBack={handleBack}
       />
-
       <MessagesArea
         messages={messages}
         personId={personId}
@@ -97,7 +100,6 @@ export function ChatContent({
         messagesEndRef={messagesEndRef}
         getUserInfo={getUserInfo}
       />
-
       <ChatInput
         value={messageInput}
         onChange={setMessageInput}
@@ -108,7 +110,6 @@ export function ChatContent({
         inputRef={messageInputRef}
         onImageUpload={handleImageUpload}
       />
-
       <OfflineWarning isConnected={isConnected} />
     </div>
   );
