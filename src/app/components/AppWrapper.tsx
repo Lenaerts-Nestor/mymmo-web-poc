@@ -9,7 +9,7 @@ import { QueryProvider } from "../providers/QueryProvider";
 import { SocketProvider } from "../contexts/SocketContext"; // 🆕 NEW: Socket provider
 import { ZonesProvider } from "../contexts/ZonesContext"; // 🆕 NEW: Zones provider
 import Sidebar from "./Sidebar";
-import { isDashboardRoute } from "../utils/route";
+import { isDashboardRoute } from "../utils/routes";
 
 interface AppWrapperProps {
   children: React.ReactNode;

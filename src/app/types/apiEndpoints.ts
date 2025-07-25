@@ -160,30 +160,30 @@ export interface DeletePersonAccountResponse
 
 // ===== OTP INTERFACES =====
 export interface SendOtpPayload {
-  phoneNumber: string;
-  langId: string;
-  purpose?: string;
+  mobileNumber: string;
 }
 
 export interface SendOtpResponse
   extends ApiResponseWrapper<{
-    message: string;
-    otpId: string;
-    expiresAt: string;
+    success: boolean;
+    message?: string;
   }> {}
 
 export interface VerifyOtpPayload {
-  phoneNumber: string;
-  otpCode: string;
-  langId: string;
-  otpId?: string;
+  mobileNumber: string;
+  otp: string;
+  deviceId: string;
+  authToken: string;
 }
 
 export interface VerifyOtpResponse
   extends ApiResponseWrapper<{
-    isValid: boolean;
     message: string;
-    token?: string;
+    personId: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    appLangCode: string | null;
+    transLangCode: string | null;
   }> {}
 
 // ===== COMMUNICATION GROUP INTERFACES =====

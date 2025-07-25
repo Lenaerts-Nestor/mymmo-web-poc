@@ -23,8 +23,6 @@ interface ExtendedConversationListProps extends ThreadsListProps {
   showAllConversation?: boolean; // 🆕 TOGGLE PROP
 }
 
-// ...existing code...
-
 export function ConversationsList({
   threads,
   currentPersonId,
