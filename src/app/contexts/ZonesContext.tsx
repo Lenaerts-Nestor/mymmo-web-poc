@@ -31,6 +31,7 @@ interface ZonesContextType {
   setShowAllZones: (showAll: boolean) => void;
   refetch: () => void;
   initialize: (personId: string, translationLang: string) => void;
+  resetZones: () => void;
 }
 
 const ZonesContext = createContext<ZonesContextType | null>(null);
@@ -192,6 +193,18 @@ export function ZonesProvider({ children }: ZonesProviderProps) {
     }
   }, [fetchZones]);
 
+  // Reset all zones/person/unread state
+  const resetZones = useCallback(() => {
+    setZones([]);
+    setPerson(null);
+    setUnreadCounts({});
+    setError(null);
+    setSearchQuery("");
+    setShowAllZones(false);
+    initializedRef.current = null;
+    setIsLoading(false);
+  }, []);
+
   const contextValue: ZonesContextType = {
     zones,
     person,
@@ -203,6 +216,7 @@ export function ZonesProvider({ children }: ZonesProviderProps) {
     setShowAllZones,
     refetch,
     initialize,
+    resetZones,
   };
 
   return (

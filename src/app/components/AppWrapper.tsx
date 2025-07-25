@@ -6,8 +6,8 @@ import { UserProvider, useUser } from "../contexts/UserContext";
 import { SidebarProvider } from "../contexts/SidebarContext";
 import { UnreadCounterProvider } from "../contexts/UnreadCounterContext";
 import { QueryProvider } from "../providers/QueryProvider";
-import { SocketProvider } from "../contexts/SocketContext"; // 🆕 NEW: Socket provider
-import { ZonesProvider } from "../contexts/ZonesContext"; // 🆕 NEW: Zones provider
+import { SocketProvider } from "../contexts/SocketContext";
+import { ZonesProvider } from "../contexts/ZonesContext";
 import Sidebar from "./Sidebar";
 import { isDashboardRoute } from "../utils/routes";
 
@@ -15,16 +15,13 @@ interface AppWrapperProps {
   children: React.ReactNode;
 }
 
-// 🆕 NEW: Socket integration component that has access to user context
 function SocketIntegration({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
 
-  // Extract personId from user session (adjust based on your SessionData structure)
   const personId = user?.personId
     ? parseInt(user.personId.toString())
     : undefined;
 
-  // Only enable socket when user is authenticated and not loading
   const socketEnabled = !isLoading && !!personId;
 
   if (process.env.NODE_ENV === "development") {
@@ -38,9 +35,7 @@ function SocketIntegration({ children }: { children: React.ReactNode }) {
 
   return (
     <SocketProvider personId={personId} enabled={socketEnabled}>
-      <ZonesProvider>
-        {children}
-      </ZonesProvider>
+      <ZonesProvider>{children}</ZonesProvider>
     </SocketProvider>
   );
 }
