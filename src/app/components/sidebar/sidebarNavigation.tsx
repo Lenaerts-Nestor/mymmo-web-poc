@@ -1,14 +1,16 @@
 "use client";
 
 import type { NavItem, SidebarNavigationProps } from "@/app/types/ui/Sidebar";
-import { MapPin, MessageCircle } from "lucide-react";
+import { MapPin, MessageCircle, Inbox } from "lucide-react";
 import Link from "next/link"; // Use Link for navigation
+import { useZonesContext } from "@/app/contexts/ZonesContext";
 
 export function SidebarNavigation({
   personId,
   pathname,
   router,
 }: SidebarNavigationProps) {
+  const { zones } = useZonesContext();
   // 🆕 HELPER: Extract zoneId from current URL
   const getCurrentZoneId = (): string | null => {
     // Check if we're currently on a conversations page
@@ -53,7 +55,18 @@ export function SidebarNavigation({
     router.push(item.href);
   };
 
+  const totalUnreadCount = zones.reduce((sum, zone) => sum + zone.unreadCount, 0);
+
   const navItems: NavItem[] = [
+    {
+      id: "inbox",
+      label: "Inbox",
+      icon: <Inbox size={20} />,
+      href: `/inbox/${personId}`,
+      isActive: pathname.startsWith(`/inbox/${personId}`),
+      isDisabled: false,
+      unreadCount: totalUnreadCount > 0 ? totalUnreadCount : undefined,
+    },
     {
       id: "zones",
       label: "Zones",

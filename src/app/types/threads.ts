@@ -49,6 +49,7 @@ export interface Thread {
   latest_message: ThreadMessage;
   unread_count: number;
   communication_group: CommunicationGroup;
+  zone_id?: number; // Optional zone_id for inbox functionality
 }
 
 // ===== API PAYLOADS =====
