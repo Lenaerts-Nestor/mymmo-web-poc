@@ -32,20 +32,15 @@ export function InboxCard({ zone, personId }: InboxCardProps) {
           </span>
         </div>
       </div>
-      
-      <div className="text-sm text-[#765860] mb-4">
-        {zone.address}
-      </div>
 
       <div className="border-t border-gray-100 pt-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-[#b00205] flex items-center gap-1">
             <div className="w-2 h-2 bg-[#b00205] rounded-full"></div>
-            {zone.unreadCount} ongelezen bericht{zone.unreadCount !== 1 ? 'en' : ''}
+            {zone.unreadCount} ongelezen bericht
+            {zone.unreadCount !== 1 ? "en" : ""}
           </span>
-          <span className="text-[#765860]">
-            Klik om te bekijken →
-          </span>
+          <span className="text-[#765860]">Klik om te bekijken →</span>
         </div>
       </div>
     </div>

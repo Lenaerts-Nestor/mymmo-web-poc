@@ -34,26 +34,28 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-// Helper function to get user initials
 const getInitials = (firstName: string, lastName: string): string => {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 };
 
-// Helper function to truncate text
 const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + "...";
 };
 
-export function InboxConversationCard({ conversation, personId }: InboxConversationCardProps) {
+export function InboxConversationCard({
+  conversation,
+  personId,
+}: InboxConversationCardProps) {
   const router = useRouter();
   const { zones } = useZonesContext();
 
-  // Find the zone this conversation belongs to
-  const zone = zones.find(z => z.zoneId.toString() === conversation.zone_id?.toString());
-  
-  // Get latest message info
-  const latestMessage = conversation.latest_message || conversation.unread_message;
+  const zone = zones.find(
+    (z) => z.zoneId.toString() === conversation.zone_id?.toString()
+  );
+
+  const latestMessage =
+    conversation.latest_message || conversation.unread_message;
   const lastSender = latestMessage
     ? conversation.followers?.find(
         (follower) => follower.person_id === latestMessage.created_by
@@ -62,11 +64,11 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
 
   const handleCardClick = () => {
     if (conversation.zone_id) {
-      // Store selected zone for navigation consistency
       localStorage.setItem("selectedZoneId", conversation.zone_id.toString());
-      
-      // Navigate directly to the thread
-      router.push(`/conversations/${personId}/${conversation.zone_id}/thread/${conversation._id}`);
+
+      router.push(
+        `/conversations/${personId}/${conversation.zone_id}/thread/${conversation._id}`
+      );
     }
   };
 
@@ -78,7 +80,7 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
       {/* Zone info header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
         <div className="text-sm text-[#765860]">
-          <span className="font-medium">{zone?.name || 'Onbekende zone'}</span>
+          <span className="font-medium">{zone?.name || "Onbekende zone"}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="bg-[#4f46e5] text-white text-sm px-3 py-1 rounded-full font-bold">
@@ -90,16 +92,14 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
         </div>
       </div>
 
-      {/* Conversation header with sender info */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3 flex-1">
-          {/* Avatar */}
           <div className="w-12 h-12 bg-[#b0c2fc]/30 rounded-full flex items-center justify-center text-[#552e38] text-sm font-medium">
             {lastSender
               ? getInitials(lastSender.firstName, lastSender.lastName)
               : "?"}
           </div>
-          
+
           {/* Sender info */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[#552e38] truncate">
@@ -116,7 +116,6 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
         </div>
       </div>
 
-      {/* Message preview */}
       <div className="mb-4">
         <p className="text-[#765860] text-sm leading-relaxed">
           {latestMessage?.text
@@ -125,7 +124,6 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
         </p>
       </div>
 
-      {/* Communication group info (if available) */}
       {conversation.communication_group?.group_name && (
         <div className="mb-4 p-2 bg-[#f5f2de] rounded-lg">
           <p className="text-xs text-[#765860]">
@@ -140,12 +138,10 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
       {/* Footer */}
       <div className="flex justify-between items-center pt-3 border-t border-[#cfc4c7]">
         <div className="flex items-center gap-2">
-          {/* Activity indicator */}
           {conversation.dot && (
             <div className="w-2 h-2 bg-[#b0c2fc] rounded-full animate-pulse"></div>
           )}
-          
-          {/* Followers count */}
+
           <p className="text-xs text-[#a69298]">
             <Users className="inline-block w-3 h-3 mr-1" />
             {conversation.followers?.length || 0} deelnemer
@@ -153,16 +149,10 @@ export function InboxConversationCard({ conversation, personId }: InboxConversat
           </p>
         </div>
 
-        {/* Unread indicator */}
         <div className="flex items-center gap-1 text-[#b00205]">
           <Bell className="w-3 h-3 animate-pulse" />
           <span className="text-xs font-medium">Ongelezen</span>
         </div>
-      </div>
-
-      {/* Zone address */}
-      <div className="mt-2 text-xs text-[#a69298]">
-        📍 {zone?.address || 'Onbekend adres'}
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ The application uses **two main services**:
 All API calls require these environment variables in `.env.local`:
 
 ```env
-check the image that has been send to maarten.
+check the image that has been send to maarten..
 ```
 
 ## How API Calls Work

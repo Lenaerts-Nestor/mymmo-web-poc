@@ -22,14 +22,21 @@ export function useInboxConversations(
   const [error, setError] = useState<string | null>(null);
   const fetchingRef = useRef(false);
 
-  const { zones } = useZonesContext();
+  const { zones, isLoading: zonesLoading, initialize } = useZonesContext();
   const personIdNum = parseInt(personId);
+
+  // Initialize zones context if needed
+  useEffect(() => {
+    if (personId && transLangId) {
+      initialize(personId, transLangId);
+    }
+  }, [personId, transLangId, initialize]);
 
   // Fetch threads for all zones that have unread messages
   const fetchUnreadConversations = useCallback(async () => {
     if (fetchingRef.current) return;
     
-    console.log("📥 [INBOX] Fetching unread conversations for all zones", { 
+    console.log("📥 [INBOX] Fetching unread conversations", { 
       zonesCount: zones.length,
       zonesWithUnread: zones.filter(zone => zone.unreadCount > 0).length
     });
@@ -53,7 +60,7 @@ export function useInboxConversations(
 
       // Fetch threads for each zone with unread messages
       for (const zone of zonesWithUnread) {
-        console.log(`📥 [INBOX] Fetching threads for zone ${zone.zoneId} with ${zone.unreadCount} unread`);
+        console.log(`📥 [INBOX] Fetching zone ${zone.zoneId} (${zone.unreadCount} unread)`);
         
         try {
           const response = await MyMMOApiThreads.getThreads({
@@ -63,23 +70,26 @@ export function useInboxConversations(
             transLangId: transLangId,
           });
 
-          // Filter only threads with unread messages and add zone_id
+          // Filter only threads with unread messages and enrich with zone info
           const unreadThreads = response.data
             .filter((thread: Thread) => (thread.unread_count || 0) > 0)
             .map((thread: Thread) => ({
               ...thread,
-              zone_id: parseInt(zone.zoneId.toString())
+              zone_id: parseInt(zone.zoneId.toString()),
+              zone_name: zone.name,
+              zone_address: zone.formattedAddress || zone.street,
             }));
 
-          console.log(`📥 [INBOX] Found ${unreadThreads.length} unread conversations in zone ${zone.zoneId}`);
+          console.log(`📥 [INBOX] Zone ${zone.zoneId}: ${unreadThreads.length} unread threads`);
           allUnreadConversations.push(...unreadThreads);
         } catch (zoneError) {
-          console.error(`📥 [INBOX] Error fetching threads for zone ${zone.zoneId}:`, zoneError);
+          console.error(`📥 [INBOX] Error fetching zone ${zone.zoneId}:`, zoneError);
+          // Continue with other zones even if one fails
         }
       }
 
       setUnreadConversations(allUnreadConversations);
-      console.log(`📥 [INBOX] Total unread conversations: ${allUnreadConversations.length}`);
+      console.log(`📥 [INBOX] TOTAL: ${allUnreadConversations.length} unread conversations`);
       
     } catch (error) {
       console.error("📥 [INBOX] Error fetching unread conversations:", error);
@@ -90,13 +100,27 @@ export function useInboxConversations(
     }
   }, [zones, personIdNum, transLangId]);
 
-  // Fetch conversations when zones change
+  // Fetch conversations when zones are ready and have unread counts
   useEffect(() => {
-    if (zones.length > 0) {
-      console.log("📥 [INBOX] Zones changed, triggering fetch", zones.length);
-      fetchUnreadConversations();
+    if (zones.length > 0 && !zonesLoading) {
+      const zonesWithUnread = zones.filter(zone => zone.unreadCount > 0);
+      console.log("📥 [INBOX] Zones ready, checking for unread", {
+        totalZones: zones.length,
+        zonesWithUnread: zonesWithUnread.length
+      });
+      
+      // Small delay to ensure socket updates have been processed
+      const timeoutId = setTimeout(() => {
+        fetchUnreadConversations();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    } else if (!zonesLoading && zones.length === 0) {
+      // No zones loaded, clear conversations
+      setUnreadConversations([]);
+      setIsLoading(false);
     }
-  }, [zones, fetchUnreadConversations]);
+  }, [zones, zonesLoading, fetchUnreadConversations]);
 
   // Calculate total unread count
   const totalUnreadCount = unreadConversations.reduce(
@@ -111,7 +135,7 @@ export function useInboxConversations(
 
   return {
     unreadConversations,
-    isLoading,
+    isLoading: zonesLoading || isLoading,
     error,
     refetch,
     totalUnreadCount,
