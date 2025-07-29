@@ -3,7 +3,6 @@
 
 import { usePathname } from "next/navigation";
 import { UserProvider, useUser } from "../contexts/UserContext";
-import { SidebarProvider } from "../contexts/SidebarContext";
 import { QueryProvider } from "../providers/QueryProvider";
 import { SocketProvider } from "../contexts/SocketContext";
 import { ZonesProvider } from "../contexts/ZonesContext";
