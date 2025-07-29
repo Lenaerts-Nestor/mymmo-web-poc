@@ -13,18 +13,15 @@ export function useChatUserInfo({
   threadId,
   translationLang,
 }: UseChatUserInfoProps) {
-  // Get thread data for follower info
   const { threads: threadsData } = useThreads(
     personId,
     zoneId,
     translationLang,
-    false // Not active chat page for this call
+    false
   );
 
-  // Get current thread for follower info
   const currentThread = threadsData.find((t) => t._id === threadId);
 
-  // User info lookup function
   const getUserInfo = (createdBy: number) => {
     if (!currentThread?.followers) {
       return {
@@ -45,6 +42,8 @@ export function useChatUserInfo({
       };
     }
 
+    //! dit is ingeval dat er problemen zijn met de firstname enzo, tenminste zou de user verder gaan en dan buur tonen en verdres spreken zonder probleem.
+    //! tot de firstname automatisch terug is.
     return {
       firstName: follower.firstName || "Buur",
       lastName: follower.lastName || "",

@@ -1,5 +1,3 @@
-// src/app/hooks/chat/useChatMessages.ts - CLEANED
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -111,7 +109,6 @@ export function useChatMessages({
         const lastReadMessage = read[read.length - 1];
         setLastAccessTime(new Date(lastReadMessage.created_on));
       }
-
     } catch (err: any) {
       console.error("Failed to load initial messages:", err);
       setError(err.message || "Failed to load messages");
@@ -148,14 +145,15 @@ export function useChatMessages({
       const timer = setTimeout(() => {
         markAsRead();
       }, 300); // Reduced delay for faster unread counter updates
-      
+
       return () => clearTimeout(timer);
     }
   }, [autoMarkAsRead, unreadMessages.length, isLoading, markAsRead]);
 
   const sendMessage = useCallback(
     async (text: string, attachments?: any[]): Promise<boolean> => {
-      if (!text.trim() && (!attachments || attachments.length === 0)) return false;
+      if (!text.trim() && (!attachments || attachments.length === 0))
+        return false;
 
       const optimisticMessage = createOptimisticMessage(
         text,

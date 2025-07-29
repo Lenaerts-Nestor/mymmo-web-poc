@@ -50,7 +50,7 @@ export function SocketProvider({
 
   const currentRooms = useRef<Set<string>>(new Set());
   const reconnectAttempts = useRef(0);
-  
+
   // 🆕 NEW: Track zone requests to map responses back to zones
   const zoneRequestMap = useRef<Map<string, string>>(new Map());
   const currentZoneContext = useRef<string | null>(null);
@@ -128,11 +128,10 @@ export function SocketProvider({
       // Fetch initial threads for each zone sequentially to maintain context
       const fetchZoneThreadsSequentially = async () => {
         for (const zone of zones) {
-          
           // Set current zone context
           currentZoneContext.current = zone.zoneId.toString();
           zoneRequestMap.current.set("current", zone.zoneId.toString());
-          
+
           // Emit request with zone context
           socket.emit("fetch_threads", {
             zoneId: zone.zoneId,
@@ -140,12 +139,12 @@ export function SocketProvider({
             type: "active",
             transLangId: translationLang,
           });
-          
+
           // Wait a bit between requests to avoid overwhelming the server
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       };
-      
+
       fetchZoneThreadsSequentially();
     },
     [socket, personId, status]
@@ -198,7 +197,6 @@ export function SocketProvider({
           appName: "Mymmo-mobile-app-v2",
         });
 
-        // Trigger immediate inbox update for sent message
         socket.emit("fetch_threads", {
           type: "active",
           personId: createdBy,
@@ -236,7 +234,6 @@ export function SocketProvider({
     threadUpdateCallbacks.current.delete(callback);
   }, []);
 
-  // 🆕 NEW: Inbox update functions
   const onInboxUpdate = useCallback((callback: (data: any) => void) => {
     inboxUpdateCallbacks.current.add(callback);
   }, []);
@@ -257,7 +254,6 @@ export function SocketProvider({
     offMessageReceived,
     onThreadUpdate,
     offThreadUpdate,
-    // 🆕 NEW: Inbox functions
     initializeZones,
     onInboxUpdate,
     offInboxUpdate,

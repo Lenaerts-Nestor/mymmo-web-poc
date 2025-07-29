@@ -17,7 +17,7 @@ export interface RealtimeMessage {
   thread_id: string;
   attachments?: any[];
   isOptimistic?: boolean;
-  zone_id?: string; // Include zone_id for proper routing
+  zone_id?: string;
 }
 
 // Socket context interface - 🆕 EXTENDED
@@ -49,7 +49,6 @@ export interface SocketContextType {
   onInboxUpdate: (callback: (data: any) => void) => void;
   offInboxUpdate: (callback: (data: any) => void) => void;
 
-  // 🆕 NEW: Zone management
   initializeZones: (zones: any[]) => void;
   userZones: any[];
 }
@@ -67,6 +66,6 @@ export interface UseSocketOptions {
   personId?: number;
   onMessage?: (data: any) => void;
   onThreadUpdate?: (data: any) => void;
-  onInboxUpdate?: (data: any) => void; // 🆕 NEW
+  onInboxUpdate?: (data: any) => void;
   onError?: (error: string) => void;
 }

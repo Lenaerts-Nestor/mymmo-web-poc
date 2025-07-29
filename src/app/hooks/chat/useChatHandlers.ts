@@ -23,7 +23,6 @@ export function useChatHandlers({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -37,14 +36,12 @@ export function useChatHandlers({
     }
   }, [messagesLength]);
 
-  // Auto-focus input for better UX
   useEffect(() => {
     if (!messagesLoading && messageInputRef.current) {
       messageInputRef.current.focus();
     }
   }, [messagesLoading]);
 
-  // Send message with real-time updates
   const handleSendMessage = async (attachments?: any[]) => {
     if (!messageInput.trim() && !attachments?.length) return;
     if (isSending) return;
@@ -58,7 +55,6 @@ export function useChatHandlers({
       if (!success) {
         setMessageInput(messageText);
       } else {
-        // Trigger thread list refresh after successful send
         window.dispatchEvent(
           new CustomEvent("messagesSent", {
             detail: { threadId, zoneId, personId },

@@ -1,24 +1,20 @@
-// src/app/contexts/socket/socketEventHandlers.ts - MODULAR HANDLERS
-
 import { RealtimeMessage, SocketStatus } from "../../types/socket";
 import { setupConnectionHandlers } from "./handlers/connectionHandlers";
 import { setupMessageHandlers } from "./handlers/messageHandlers";
 import { setupThreadUpdateHandlers } from "./handlers/threadHandlers";
 import { setupUnreadCountHandlers } from "./handlers/unreadCountHandlers";
 
-// Re-export individual handlers for backward compatibility
 export {
   setupConnectionHandlers,
   setupMessageHandlers,
   setupThreadUpdateHandlers,
 };
-export { setupUnreadCountHandlers as setupInboxUpdateHandlers }; // Legacy alias
+export { setupUnreadCountHandlers as setupInboxUpdateHandlers };
 
-// Updated setupAllSocketHandlers with modular imports
 export function setupAllSocketHandlers(
   socket: ReturnType<typeof import("socket.io-client").io>,
   personId: number,
-  currentRooms: React.MutableRefObject<Set<string>>,
+  currentRooms: React.RefObject<Set<string>>,
   setStatus: React.Dispatch<React.SetStateAction<SocketStatus>>,
   setLastError: React.Dispatch<React.SetStateAction<string | null>>,
   reconnectAttempts: React.MutableRefObject<number>,
@@ -59,7 +55,6 @@ export function setupAllSocketHandlers(
   });
 
   socket.on("update_groups", (data: any) => {
-    // Try to determine zone from thread data or context
     if (data.threadsData && data.threadsData.length > 0) {
       // Check if we can determine zone from existing data
       let zoneId = data.zoneId;

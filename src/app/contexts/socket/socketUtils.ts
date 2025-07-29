@@ -8,10 +8,10 @@ export function createSocketConnection(socketUrl: string, personId: number) {
     transports: ["websocket", "polling"],
     timeout: 20000,
     reconnection: true,
-    reconnectionAttempts: 10, // Increased for better reliability
+    reconnectionAttempts: 10,
     reconnectionDelay: 1000,
-    reconnectionDelayMax: 10000, // Increased max delay
-    forceNew: true, // Force new connection for better reliability
+    reconnectionDelayMax: 10000,
+    forceNew: true,
   });
 
   // Add heartbeat to keep connection alive
@@ -45,7 +45,7 @@ export function joinSocketRoom(
     personId: personId,
     appName: "Mymmo-mobile-app-v2",
   });
-  
+
   // ALSO join as old version for compatibility with phone messages
   socket.emit("join_socket", {
     roomId: personId.toString(), // Personal room

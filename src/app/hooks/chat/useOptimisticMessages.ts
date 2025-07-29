@@ -1,5 +1,3 @@
-// src/app/hooks/chat/useOptimisticMessages.ts - Optimistic Message Management
-
 "use client";
 
 import { useRef, useCallback } from "react";
@@ -8,9 +6,13 @@ import { ThreadMessage } from "../../services/mymmo-thread-service/apiThreads";
 export function useOptimisticMessages() {
   const optimisticMessages = useRef<Set<string>>(new Set());
 
-  // Create optimistic message
   const createOptimisticMessage = useCallback(
-    (text: string, threadId: string, createdBy: number, attachments?: any[]): ThreadMessage => {
+    (
+      text: string,
+      threadId: string,
+      createdBy: number,
+      attachments?: any[]
+    ): ThreadMessage => {
       const optimisticId = `temp-${crypto.randomUUID()}`;
       const now = new Date().toISOString();
 
@@ -65,19 +67,20 @@ export function useOptimisticMessages() {
       // Check if we need to replace an optimistic message by matching content
       const optimisticIndex = messages.findIndex((msg) => {
         if (!msg._id.startsWith("temp-")) return false;
-        
+
         // Match by text content and attachment count
         const textMatches = msg.text === newMessage.text;
-        const attachmentCountMatches = 
-          (msg.attachments?.length || 0) === (newMessage.attachments?.length || 0);
-        
+        const attachmentCountMatches =
+          (msg.attachments?.length || 0) ===
+          (newMessage.attachments?.length || 0);
+
         return textMatches && attachmentCountMatches;
       });
 
       if (optimisticIndex !== -1) {
         const optimisticId = messages[optimisticIndex]._id;
         optimisticMessages.current.delete(optimisticId);
-        
+
         const updatedMessages = [...messages];
         updatedMessages[optimisticIndex] = newMessage;
         return updatedMessages;

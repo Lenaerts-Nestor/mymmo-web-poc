@@ -75,7 +75,7 @@ export function ZoneControls({
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <h3 className="text-lg font-semibold text-[var(--primary-wine)] mb-1">
-                  Zone weergave
+                  Zone weergave nestor
                 </h3>
                 <p className="text-sm text-[var(--gravel-500)]">
                   {showAllZones
@@ -104,7 +104,7 @@ export function ZoneControls({
                       : "text-[var(--gravel-300)]"
                   }`}
                 >
-                  Alle
+                  hier is het
                 </span>
               </div>
             </div>
