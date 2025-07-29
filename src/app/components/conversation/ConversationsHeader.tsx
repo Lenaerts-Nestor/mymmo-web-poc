@@ -8,7 +8,7 @@ interface ConversationsHeaderProps {
   highlightThreadId: string | null;
   onBackToZones: () => void;
   isActivePage: boolean;
-  zoneName?: string; // 🆕 Optional, fallback to zoneId if not provided
+  zoneName?: string;
 }
 
 export function ConversationsHeader({
@@ -21,12 +21,10 @@ export function ConversationsHeader({
   isActivePage,
   zoneName,
 }: ConversationsHeaderProps) {
-  // If zoneName is not provided, fallback to zoneId
   const displayZone = zoneName || zoneId;
   return (
     <div className="bg-white/70 rounded-2xl p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between gap-2">
-        {/* Back button left */}
         <div className="flex-shrink-0 flex justify-start w-1/4">
           <button
             onClick={onBackToZones}
@@ -36,7 +34,6 @@ export function ConversationsHeader({
             &larr; Terug naar zones
           </button>
         </div>
-        {/* Title center */}
         <div className="flex-1 flex flex-col items-center">
           <h1 className="text-2xl font-bold text-stone-800 mb-1 text-center">
             Conversaties van{" "}
@@ -48,7 +45,6 @@ export function ConversationsHeader({
             </span>
           )}
         </div>
-        {/* Thread count right */}
         <div className="flex-shrink-0 flex justify-end w-1/4">
           <span className="text-sm text-stone-600">
             {threadsCount} Conversatie{threadsCount === 1 ? "" : "s"}

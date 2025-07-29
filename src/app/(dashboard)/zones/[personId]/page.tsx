@@ -1,9 +1,9 @@
-// src/app/(dashboard)/zones/[personId]/page.tsx - Responsive Design
+// src/app/(dashboard)/zones/[personId]/page.tsx - Responsive Design fix it
 
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React from "react";
 import { ZonesList } from "@/app/components/zones/ZonesList";
 import { ZoneIntroCard } from "@/app/components/zones/ZoneIntroCard";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
@@ -11,10 +11,8 @@ import { ErrorDisplay } from "@/app/components/ui/ErrorDisplay";
 import { ProtectedRoute } from "@/app/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/app/components/layouts/DashboardLayout";
 import { useUser } from "@/app/contexts/UserContext";
-import { APP_CONFIG, UI_MESSAGES } from "@/app/constants/app";
-import { ZoneFilter } from "@/app/components/zones/zoneFilter";
+import { APP_CONFIG } from "@/app/constants/app";
 import { useZonesContext } from "@/app/contexts/ZonesContext";
-import { ZonesToggle } from "@/app/components/zones/ZonesToggle";
 import { ZoneControls } from "@/app/components/zones/zoneControls";
 
 export default function ZonesPage() {

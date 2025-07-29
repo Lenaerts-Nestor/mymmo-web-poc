@@ -3,8 +3,6 @@
 
 import { usePathname } from "next/navigation";
 import { UserProvider, useUser } from "../contexts/UserContext";
-import { SidebarProvider } from "../contexts/SidebarContext";
-import { UnreadCounterProvider } from "../contexts/UnreadCounterContext";
 import { QueryProvider } from "../providers/QueryProvider";
 import { SocketProvider } from "../contexts/SocketContext";
 import { ZonesProvider } from "../contexts/ZonesContext";
@@ -45,33 +43,11 @@ export function AppWrapper({ children }: AppWrapperProps) {
     <QueryProvider>
       <UserProvider>
         <SocketIntegration>
-          <SidebarProvider>
-            <ConditionalUnreadCounterProvider>
-              <AppContent>{children}</AppContent>
-            </ConditionalUnreadCounterProvider>
-          </SidebarProvider>
+          <AppContent>{children}</AppContent>
         </SocketIntegration>
       </UserProvider>
     </QueryProvider>
   );
-}
-
-// New component to conditionally render UnreadCounterProvider
-function ConditionalUnreadCounterProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const showSidebar = isDashboardRoute(pathname);
-
-  // Only provide UnreadCounterProvider on dashboard routes
-  if (showSidebar) {
-    return <UnreadCounterProvider>{children}</UnreadCounterProvider>;
-  }
-
-  // No UnreadCounterProvider on login/other pages
-  return <>{children}</>;
 }
 
 function AppContent({ children }: { children: React.ReactNode }) {

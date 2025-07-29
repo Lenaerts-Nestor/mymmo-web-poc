@@ -6,7 +6,7 @@ export interface PersonEndpoint {
 }
 
 export interface PersonInfoProps {
-  person: PersonEndpoint;
+  person: PersonEndpoint | null;
   personId: string;
   appLang: string;
   translationLang: string;

@@ -1,20 +1,20 @@
 "use client";
 
 import type { NavItem, SidebarNavigationProps } from "@/app/types/ui/Sidebar";
-import { MapPin, MessageCircle } from "lucide-react";
+import { MapPin, MessageCircle, Inbox } from "lucide-react";
 import Link from "next/link"; // Use Link for navigation
+import { useZonesContext } from "@/app/contexts/ZonesContext";
 
 export function SidebarNavigation({
   personId,
   pathname,
   router,
 }: SidebarNavigationProps) {
-  // 🆕 HELPER: Extract zoneId from current URL
+  const { zones } = useZonesContext();
   const getCurrentZoneId = (): string | null => {
-    // Check if we're currently on a conversations page
     const conversationsMatch = pathname.match(/^\/conversations\/\d+\/(\d+)/);
     if (conversationsMatch) {
-      return conversationsMatch[1]; // Return current zoneId from URL
+      return conversationsMatch[1];
     }
     return null;
   };
@@ -25,9 +25,7 @@ export function SidebarNavigation({
       return;
     }
 
-    // 🎯 FIXED: Handle conversations click with smart zone detection
     if (item.id === "conversations") {
-      // 1. First priority: Use current URL zoneId if we're already on conversations
       const currentZoneId = getCurrentZoneId();
 
       if (currentZoneId) {
@@ -35,7 +33,6 @@ export function SidebarNavigation({
         return;
       }
 
-      // 2. Second priority: Use localStorage if available
       const selectedZoneId =
         typeof window !== "undefined"
           ? localStorage.getItem("selectedZoneId")
@@ -45,7 +42,6 @@ export function SidebarNavigation({
         return;
       }
 
-      // 3. Fallback: Go to zones page for zone selection
       router.push(`/zones/${personId}`);
       return;
     }
@@ -53,7 +49,21 @@ export function SidebarNavigation({
     router.push(item.href);
   };
 
+  const totalUnreadCount = zones.reduce(
+    (sum, zone) => sum + zone.unreadCount,
+    0
+  );
+
   const navItems: NavItem[] = [
+    {
+      id: "inbox",
+      label: "Inbox",
+      icon: <Inbox size={20} />,
+      href: `/inbox/${personId}`,
+      isActive: pathname.startsWith(`/inbox/${personId}`),
+      isDisabled: false,
+      unreadCount: totalUnreadCount > 0 ? totalUnreadCount : undefined,
+    },
     {
       id: "zones",
       label: "Zones",
@@ -65,7 +75,7 @@ export function SidebarNavigation({
       id: "conversations",
       label: "Conversations",
       icon: <MessageCircle size={20} />,
-      href: `/conversations/${personId}`, // This will be handled by the click handler
+      href: `/conversations/${personId}`,
       isActive: pathname.startsWith(`/conversations/${personId}`),
       isDisabled: false,
     },
@@ -77,9 +87,9 @@ export function SidebarNavigation({
         {navItems.map((item) => (
           <li key={item.id}>
             <Link
-              href={item.href} // Use Link for proper navigation
+              href={item.href}
               onClick={(e) => {
-                e.preventDefault(); // Prevent default Link behavior to use custom handleNavigation
+                e.preventDefault();
                 handleNavigation(item);
               }}
               className={`
@@ -103,7 +113,6 @@ export function SidebarNavigation({
                 <span className="nav-item__label">{item.label}</span>
               </div>
 
-              {/* Unread count badge */}
               {item.unreadCount && item.unreadCount > 0 && (
                 <span className="ml-auto bg-[#b00205] text-[#ffffff] text-xs px-2 py-1 rounded-full font-bold">
                   {item.unreadCount}

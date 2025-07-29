@@ -9,7 +9,8 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(npx shadcn:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

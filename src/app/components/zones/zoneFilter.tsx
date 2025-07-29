@@ -15,11 +15,10 @@ export function ZoneFilter({
   const [searchItem, setSearchItem] = useState(initialSearch);
   const [isFocused, setIsFocused] = useState(false);
 
-  // Debounce search to avoid excessive filtering
   useEffect(() => {
     const timer = setTimeout(() => {
       onSearchChange(searchItem);
-    }, 300); // 300ms delay
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [searchItem, onSearchChange]);
@@ -42,7 +41,6 @@ export function ZoneFilter({
               : "border-gray-200 hover:border-gray-300"
           }`}
         >
-          {/* Search icon */}
           <Search
             size={20}
             className={`absolute left-3 transition-colors duration-200 ${
@@ -50,7 +48,6 @@ export function ZoneFilter({
             }`}
           />
 
-          {/* Input field */}
           <input
             type="text"
             placeholder="Search zones..."
@@ -61,7 +58,6 @@ export function ZoneFilter({
             onBlur={handleBlur}
           />
 
-          {/* Clear button */}
           {searchItem && (
             <button
               onClick={clearSearch}

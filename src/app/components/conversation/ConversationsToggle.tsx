@@ -21,12 +21,11 @@ export function ConversationsToggle({
           onCheckedChange={onToggleChange}
           label={
             showAllThreads
-              ? "� Alle conversaties"
+              ? "🫡 Alle conversaties"
               : "💬 Alleen ongelezen conversaties"
           }
         />
       </div>
-      {/* Status indicator */}
       <div className="mt-2 text-xs text-gray-500">
         {showAllThreads
           ? "Alle conversaties worden getoond"
